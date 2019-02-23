@@ -1,0 +1,111 @@
+%%%% accuracy plots, results etc (as means across K folds)
+
+%%%% balanced results (per class, how to represent them) 
+
+input => 2 label vectors (actual, predicted) (input to system) 
+
+actual =    [1; 1; 1; 1; 1; 1; 2; 2; 2; 2; 2; 3; 3; 3; 3; 3;];
+predicted = [1; 1; 2; 3; 1; 1; 1; 2; 3; 2; 2; 3; 1; 3; 3; 3;] ;
+
+pred2 = actual(randperm(size(actual,1)),:)   %for testing (ie whether its permutation case or 
+
+
+nclasses= numel(unique(actual));
+
+%% make confusion matrix +> code from Er.Abbas Manthiri S confusionmat (File Exchange) 
+%% as many c_matrices as k folds #
+[c_matrix]= confusionmat(actual, pred2);
+
+%Start process
+%Build Confusion matrix
+%Set variables
+class_list=un_actual;
+disp('Class List in given sample')
+disp(class_list)
+fprintf('\nTotal Instance = %d\n',length(actual));
+n_class=length(un_actual);
+c_matrix=zeros(n_class);
+predict_class=cell(1,n_class);
+class_ref=cell(n_class,1);
+row_name=cell(1,n_class);
+%Calculate conufsion for all classes
+for i=1:n_class
+    class_ref{i,1}=strcat('class',num2str(i),'==>',num2str(class_list(i)));
+    for j=1:n_class
+        val=(actual==class_list(i)) & (predict==class_list(j));
+        c_matrix(i,j)=sum(val);
+        predict_class{i,j}=sum(val);
+    end
+    row_name{i}=strcat('Actual_class',num2str(i));
+    disp(class_ref{i})
+end
+
+c_matrix_table=cell2table(predict_class);
+c_matrix_table.Properties.RowNames=row_name;
+disp('Confusion Matrix')
+disp(c_matrix_table)
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% from c-matrix (per class metrics)
+%%%% per class calculations
+for i= 1: nclasses                                                %ie. 3
+TP = c_matrix(i,i)  ;   
+FP = sum (c_matrix(:, i)) - TP;
+FN = sum (c_matrix(i, :)) - TP;
+TN = sum(sum (c_matrix))- (sum (c_matrix(i, :)) + sum (c_matrix(:, i))) + TP;
+TP_v(i) =[TP];
+TN_v(i) =[TN];
+FN_v(i) =[FN];
+FP_v(i) =[FP];
+end 
+
+%%%%%%%%%%%%%%%%%%% confusion metrics 
+%%% overall (divide by overall)
+%%% acc = /all cases
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% balanced (ie per class) %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%% accuracy
+for i= 1: nclasses;
+acc = (TP_v(i)+TN_v(i))/(TP_v(i)+TN_v(i)+FP_v(i)+FN_v(i)) *100;
+bal_acc_v(i) = [acc]                                                            % per class accuracies
+end
+%%%%% error 
+bal_err_v = 100 - bal_acc_v
+%%%% sensitivity
+for i= 1: nclasses;
+sens = TP_v(i)/(TP_v(i)+ FN_v(i)) *100;
+bal_sens_v(i) = [sens]                                                            
+end
+%%%% specificity
+for i= 1: nclasses;
+spec = TN_v(i)/(FP_v(i)+ TN_v(i)) *100;
+bal_spec_v(i) = [spec]                                                            
+end
+%%%% positive predictive value
+for i= 1: nclasses;
+ppv = TP_v(i)/(TP_v(i)+ FP_v(i)) *100;
+bal_ppv_v(i) = [ppv]                                                            
+end
+%%%% negative predictive value
+for i= 1: nclasses;
+nvp = TN_v(i)/(TN_v(i)+ FN_v(i)) *100;
+bal_nvp_v(i) = [nvp]                                                            
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% because k folds, take MEAN at each fold (assumption: take mean AFTER metrics calculated for each fold
+%%% as # instances can differ at each fold (and we want to be as correct as we can) 
+
+%%% AUC ROC, Confidence interval for these measures? (how?) 
+
+%%%
+in results window => if user wants to look (per 2 classes... delete labels other classes, keep data only picked
+would this be right (isnt it easier to select classes we want first?) 
+
+%%%% feature selection 
+do simple feature ranking first, then go from there... 
+find a solid solution for feature ranking, but how? sci kit learn 
