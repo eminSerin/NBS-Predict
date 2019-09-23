@@ -22,7 +22,7 @@ function varargout = view_NBSPredict(varargin)
 
 % Edit the above text to modify the response to help view_NBSPredict
 
-% Last Modified by GUIDE v2.5 08-Sep-2019 20:25:38
+% Last Modified by GUIDE v2.5 19-Sep-2019 11:05:03
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -77,11 +77,15 @@ handles.plotData.edgeIdx = NBSPredict.data.edgeIdx;
 handles.plotData.ifPlotScaled = 0;
 handles.ifShowLabel = 0;
 
+
 if isfield(NBSPredict.results,'bestEstimator')
     handles.cModel = handles.plotData.bestEstimator;
 else
     handles.cModel = handles.plotData.MLmodels{1};
 end
+handles.figureTitle = sprintf('Score: %.3f (%.3f, %.3f)',...
+    handles.plotData.(handles.cModel).meanRepCVscore,...
+    handles.plotData.(handles.cModel).meanCVscoreCI);
 
 % Set MLmodelPop handle.
 set(handles.MLmodelsPop,'String',handles.plotData.MLmodels);
@@ -91,6 +95,9 @@ handles.plotResults.wThresh = 0;
 handles.cFig = 'adj';
 set(0, 'CurrentFigure', handles.viewNBSPredictFig);
 handles = plotUpdatedData(handles);
+if ispc
+   handles.figureAxes.FontSize = 8; 
+end
 guidata(hObject, handles);
 
 
@@ -146,7 +153,8 @@ colormap(parula);
 colorbar;
 caxis([0,1])
 set(gca,'XTick',[],'YTick',[]);
-title(sprintf('Score: %.3f',handles.plotData.(handles.cModel).meanRepCVscore))
+title(handles.figureTitle)
+% set(gca, 'FontSize',10,'FontName','default');
 dcm_obj = datacursormode(gcf);
 set(dcm_obj,'Enable','on','UpdateFcn',{@dataCursorUpdateFun,handles});
 guidata(hObject,handles)
@@ -165,7 +173,7 @@ end
 plot(handles.plotResults.G,'EdgeCData',handles.plotResults.G.Edges.Weight,...
     'MarkerSize',degree(handles.plotResults.G),'LineWidth',3,...
     'NodeLabel',labels);
-title(sprintf('Score: %.3f',handles.plotData.(handles.cModel).meanRepCVscore))
+title(handles.figureTitle) 
 set(gca,'XTick',[],'YTick',[]);
 colorbar;
 caxis([0,1])
@@ -189,11 +197,14 @@ else
 end
 histData(histData == 0) = [];
 minHistData = min(histData);
-hist(histData,50);
+nBins = 50;
+[~,handles.plotResults.binEdges] = histcounts(histData,nBins,'BinLimits',...
+    [minHistData,max(histData)]);
+hist(histData,nBins);
 xlabel('Weight')
 handles.distYlabel = ylabel('Number of Edges');
 xlim([minHistData,1])
-title(sprintf('Score: %.3f',handles.plotData.(handles.cModel).meanRepCVscore))
+title(handles.figureTitle);
 handles.cFig = 'dist';
 dcm_obj = datacursormode(gcf);
 set(dcm_obj,'Enable','on','UpdateFcn',{@dataCursorUpdateFun,handles});
@@ -391,7 +402,12 @@ switch handles.cFig
             ['Nodal degree: ',num2str(cDegree)]};
     case 'dist'
         nodeCount = pos(2);
-        adjDataCursorTxt = {['Edge Count: ',num2str(nodeCount)]};
+        binCentre = round(pos(1),3);
+        binIdx = find(binCentre==round(mean(event_obj.Target.XData,1),3),1,'first');
+        binEdges = handles.plotResults.binEdges;
+        adjDataCursorTxt = {['Edge Count: ',num2str(nodeCount)],...
+            ['Mean weight: ',num2str(binCentre)],...
+            sprintf('Range: [%.3f, %.3f]',binEdges(binIdx),binEdges(binIdx+1))};
 end
 
 function [handles] = plotUpdatedData(handles)
@@ -417,16 +433,17 @@ switch handles.cFig
     case 'net'
         networkPush_Callback(handles.networkPush,[],handles);
     case 'dist'
-        distPush_Callback(handles.distPush,[],handles);
-        
+        distPush_Callback(handles.distPush,[],handles);  
 end
 if isfield(handles,'brainNetFig') && isgraphics(handles.brainNetFig)
     pause(0.1)
     brainNetPush_Callback(handles.brainNetPush, [], handles);
 end
-handles.uitable1.Data = table2cell(table(handles.plotResults.labels,...
-    degree(handles.plotResults.G)));
-
+handles.sizeNetworkText.String = sprintf('Nodes : %d\nEdges : %d',...
+    numel(handles.plotResults.labels),size(handles.plotResults.G.Edges,1));
+sortedTable = sortrows(table(handles.plotResults.labels,...
+    degree(handles.plotResults.G)),2,'descend');
+handles.uitable1.Data = table2cell(sortedTable);
 
 
 % --- Executes during object deletion, before destroying properties.
@@ -437,5 +454,3 @@ function viewNBSPredictFig_DeleteFcn(hObject, eventdata, handles)
 goodbyeMsg = ['\nThank you for using NBS-Predict!\n',...
     'Please contact to eminserinn@gmail.com for any questions, suggestions or bug reports.\n'];
 fprintf(goodbyeMsg);
-
-

@@ -316,19 +316,20 @@ if exist(fileName, 'file') == 2
     handles.NBSPredict.data.y = y;
     if numel(unique(y(:,2))) < length(y(:,2))/2
         mlOptions = {'Auto (optimize models)','Decision Tree Classification','SVM Classification'};
-        mlFunNames = {'','decisionTreeC','svmC'};
+        MLfunNames = {'','decisionTreeC','svmC'};
         set(handles.testpop,'String',{'t-test','F-test'})
         set(handles.metricpop,'String',{'Accuracy','Sensitivity','Specificity',...
             'Precision','Recall','F1','Matthews_CC','Cohens_Kappa','AUC'})
         set(handles.mlModelpop,'String',mlOptions);
     else
         mlOptions = {'Auto (optimize models)','SVM Regression','Decision Tree Regression'};
-        mlFunNames = {'','svmR','decisionTreeR'};
+        MLfunNames = {'','svmR','decisionTreeR'};
         set(handles.testpop,'String',{'F-test'})
         set(handles.metricpop,'String',{'RMSE','R-squared','Explained_Variance','MAD'})
         set(handles.mlModelpop,'String',mlOptions);
     end
-    handles.MLfunNames = mlFunNames;
+    handles.MLfunNames = MLfunNames;
+    handles.guiHistory.MLfunNames = MLfunNames;
     handles.guiHistory.UI.String.designMatEdit = fileName;
     set(handles.designMatPush,'ForegroundColor',[0,0.7,0]);
     guidata(hObject,handles)
@@ -668,7 +669,7 @@ function aboutPush_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 verNBSPredict = '\bf1.0.0-alpha1';
 msg = {'NBS-Predict';['Version: ',verNBSPredict];...
-    '\rmAuthor: Emin Serin & Johann D. Kruschwitz';...
+    '\rmAuthor: Emin Serin';...
     'Contact: eminserinn@gmail.com'};
 CreateStruct.Interpreter = 'tex';
 CreateStruct.WindowStyle = 'modal';
@@ -708,6 +709,7 @@ try
     load('history')
     UI = guiHistory.UI;
     UIproperty = fieldnames(UI);
+    handles.MLfunNames = guiHistory.MLfunNames;
     for i = 1:numel(UIproperty)
         callbacks = fieldnames(UI.(UIproperty{i}));
         for j = 1: numel(callbacks)
