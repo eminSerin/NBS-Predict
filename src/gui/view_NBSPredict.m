@@ -22,7 +22,7 @@ function varargout = view_NBSPredict(varargin)
 
 % Edit the above text to modify the response to help view_NBSPredict
 
-% Last Modified by GUIDE v2.5 19-Sep-2019 11:05:03
+% Last Modified by GUIDE v2.5 26-Sep-2019 12:16:47
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -77,13 +77,31 @@ handles.plotData.edgeIdx = NBSPredict.data.edgeIdx;
 handles.plotData.ifPlotScaled = 0;
 handles.ifShowLabel = 0;
 
-
 if isfield(NBSPredict.results,'bestEstimator')
-    handles.cModel = handles.plotData.bestEstimator;
+    cModel = handles.plotData.bestEstimator;
 else
-    handles.cModel = handles.plotData.MLmodels{1};
+    cModel = handles.plotData.MLmodels{1};
 end
-handles.figureTitle = sprintf('Score: %.3f (%.3f, %.3f)',...
+handles.cModel = cModel;
+
+y = NBSPredict.data.y;
+ifClass = numel(unique(y(:,2))) < length(y(:,2))/2;
+handles.ifClass = ifClass;
+if ifClass
+    handles.confMatPush.Visible = 'on';
+    handles =  updateConfMat(handles);
+    set(handles.metricPopUp,'String',{'Accuracy','Sensitivity','Specificity',...
+        'Precision','Recall','F1','Matthews_CC','Cohens_Kappa','AUC'});
+else
+    set(handles.metricpop,'String',{'MSE','RMSE','Correlation',...
+        'R_squared','Explained_Variance','MAD'});
+end
+
+metric = NBSPredict.parameter.metric;
+handles.plotData.metric = metric;
+handles.plotResults.metric = metric;
+handles.figureTitle = sprintf('%s: %.3f (%.3f, %.3f)',...
+    [upper(metric(1)),metric(2:end)],...
     handles.plotData.(handles.cModel).meanRepCVscore,...
     handles.plotData.(handles.cModel).meanCVscoreCI);
 
@@ -202,7 +220,7 @@ nBins = 50;
     [minHistData,max(histData)]);
 hist(histData,nBins);
 xlabel('Weight')
-handles.distYlabel = ylabel('Number of Edges');
+handles.distYlabel = 'Number of Edges';
 xlim([minHistData,1])
 title(handles.figureTitle);
 handles.cFig = 'dist';
@@ -229,6 +247,47 @@ end
 dlmcell([tmpDir,'tmp.node'],table2cell(brainRegions),'\t');
 dlmcell([tmpDir,'tmp.edge'],num2cell(handles.plotResults.adj),'\t');
 handles.brainNetFig = BrainNet_MapCfg('BrainMesh_ICBM152_smoothed.nv',[tmpDir,'tmp.node'],[tmpDir,'tmp.edge'],'brainNetViewerConfig.mat');
+guidata(hObject,handles)
+
+% --- Executes on button press in confMatPush.
+function confMatPush_Callback(hObject, eventdata, handles)
+% hObject    handle to confMatPush (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+% https://stackoverflow.com/questions/33451812/plot-confusion-matrix
+handles.cFig = 'confMat';
+datacursormode off;
+truePredLabels = handles.plotResults.truePredLabels;
+confmat = handles.plotResults.confMat;
+labels = unique(truePredLabels);
+numlabels = size(confmat, 1); % number of labels
+% calculate the percentage accuracies
+confpercent = 100*confmat./repmat(sum(confmat, 1),numlabels,1);
+% plotting the colors
+imagesc(confpercent);
+ylabel('Predicted'); xlabel('Actual');
+% set the colormap
+colormap(flipud(gray));
+% Create strings from the matrix values and remove spaces
+textStrings = num2str([confpercent(:), confmat(:)], '%.1f%%\n%d\n');
+textStrings = strtrim(cellstr(textStrings));
+% Create x and y coordinates for the strings and plot them
+[x,y] = meshgrid(1:numlabels);
+hStrings = text(x(:),y(:),textStrings(:), ...
+    'HorizontalAlignment','center');
+% Get the middle value of the color range
+midValue = mean(get(gca,'CLim'));
+% Choose white or black for the text color of the strings so
+% they can be easily seen over the background color
+textColors = repmat(confpercent(:) > midValue,1,3);
+set(hStrings,{'Color'},num2cell(textColors,2));
+% Setting the axis labels
+set(gca,'XTick',1:numlabels,...
+    'XTickLabel',labels,...
+    'YTick',1:numlabels,...
+    'YTickLabel',labels,...
+    'TickLength',[0 0]);
+title(handles.figureTitle);
 guidata(hObject,handles)
 
 % --- Executes during object deletion, before destroying properties.
@@ -270,11 +329,14 @@ if ~(figFilePath==0)
         % Configs for other figures.
         set(saveFigH,'PaperSize', [pos(3)*.75 pos(4)],...
             'PaperPositionMode', 'manual','PaperPosition',[0 0 pos(3) pos(4)]);
+        if ismember(handles.cFig,{'adj','net'})
+            % Add colorbar if adjacency or network plots are to be printed.
+            colorbar;
+        elseif ismember(handles.cFig,{'confMat'})
+            colormap(flipud(gray));
+        end
     end
-    if ismember(handles.cFig,{'adj','net'})
-        % Add colorbar if adjacency or network plots are to be printed.
-        colorbar; 
-    end
+   
     if filterIdx == 2
         % Save as figure.
         set(saveFigH,'Visible','on');
@@ -328,15 +390,50 @@ function MLmodelsPop_Callback(hObject, eventdata, handles)
 %        contents{get(hObject,'Value')} returns selected item from MLmodelsPop
 cModelIdx = get(hObject,'Value');
 handles.cModel= handles.plotData.MLmodels{cModelIdx};
-
+handles.plotResults.truePredLabels = handles.plotData.(handles.cModel).truePredLabels;
 % Update handles structure and plot
 handles = plotUpdatedData(handles);
-
+handles = updateTitle(handles);
+if handles.ifClass 
+    [handles] =  updateConfMat(handles);
+    if strcmpi(handles.cFig,'confMat')
+        confMatPush_Callback(handles.confMatPush,[],handles);
+    end
+end
 guidata(hObject,handles);
 
 % --- Executes during object creation, after setting all properties.
 function MLmodelsPop_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to MLmodelsPop (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+% --- Executes on selection change in metricPopUp.
+function metricPopUp_Callback(hObject, eventdata, handles)
+% hObject    handle to metricPopUp (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns metricPopUp contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from metricPopUp
+tmp = get(hObject,'String');
+tmpIdx = get(hObject,'Value');
+metricName = tmp{tmpIdx};
+metric = lower(metricName);
+handles.plotResults.metric = metric;
+handles = updateTitle(handles);
+guidata(hObject,handles);
+
+
+% --- Executes during object creation, after setting all properties.
+function metricPopUp_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to metricPopUp (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -445,6 +542,31 @@ sortedTable = sortrows(table(handles.plotResults.labels,...
     degree(handles.plotResults.G)),2,'descend');
 handles.uitable1.Data = table2cell(sortedTable);
 
+function [handles] =  updateConfMat(handles)
+% Generate confusion matrix.
+% truePredLabels = handles.
+truePredLabels = handles.plotData.(handles.cModel).truePredLabels;
+[~,TP,FP,TN,FN] = compute_modelMetrics(truePredLabels(:,1),...
+    truePredLabels(:,2),'accuracy');
+confMat = [TP,FN;FP,TN];
+handles.plotResults.truePredLabels = truePredLabels; 
+handles.plotResults.confMat = confMat;
+
+function [handles] = updateTitle(handles)
+% updateTitle updates title with given metric. 
+metric = handles.plotResults.metric; 
+metricName = [upper(metric(1)),metric(2:end)];
+if strcmpi(handles.plotData.metric,metric)
+    figTitle = sprintf('%s: %.3f (%.3f, %.3f)',metricName,...
+        handles.plotData.(handles.cModel).meanRepCVscore,...
+        handles.plotData.(handles.cModel).meanCVscoreCI);
+else
+    truePredLabels = handles.plotResults.truePredLabels;
+    score = compute_modelMetrics(truePredLabels(:,1),truePredLabels(:,2),metric);
+    figTitle = sprintf('%s: %.3f',metricName,score);
+end
+handles.figureTitle = figTitle;
+title(figTitle);
 
 % --- Executes during object deletion, before destroying properties.
 function viewNBSPredictFig_DeleteFcn(hObject, eventdata, handles)
@@ -454,3 +576,6 @@ function viewNBSPredictFig_DeleteFcn(hObject, eventdata, handles)
 goodbyeMsg = ['\nThank you for using NBS-Predict!\n',...
     'Please contact to eminserinn@gmail.com for any questions, suggestions or bug reports.\n'];
 fprintf(goodbyeMsg);
+
+
+

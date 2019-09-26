@@ -27,6 +27,7 @@ startTime = tic;
 
 nEdges = numel(NBSPredict.data.edgeIdx);
 nModels = numel(NBSPredict.parameter.MLmodels);
+nSub = size(NBSPredict.data.y,1);
 totalRepCViter = NBSPredict.parameter.repCViter;
 
 % Preallocation 
@@ -35,6 +36,7 @@ meanRepCVscore = zeros(nModels,1);
 meanRepCVscoreCI = zeros(nModels,2); 
 edgeWeight = zeros(totalRepCViter,NBSPredict.parameter.kFold,...
     nEdges,'single'); 
+truePredLabels = zeros(totalRepCViter,nSub,2,'uint8');
 
 fileDir = save_NBSPredict(NBSPredict);
 cNBSPredict = NBSPredict; % current NBSPredict.
@@ -49,18 +51,19 @@ for cModelIdx = 1: nModels
     if cNBSPredict.parameter.ifParallel
         % Run parallelly.
         parfor repCViter = 1: totalRepCViter
-            [outerCVscore,edgeWeight(repCViter,:,:)] = outerFold(cNBSPredict);
+            [outerCVscore,edgeWeight(repCViter,:,:),truePredLabels(repCViter,:,:)] = outerFold(cNBSPredict);
             repCVscore(repCViter) = outerCVscore;
             show_NBSPredictProgress(cNBSPredict,repCViter,outerCVscore);
         end
     else
         % Run sequentially.
         for repCViter = 1: totalRepCViter
-            [outerCVscore,edgeWeight(repCViter,:,:)] = outerFold(cNBSPredict);
+            [outerCVscore,edgeWeight(repCViter,:,:),truePredLabels(repCViter,:,:)] = outerFold(cNBSPredict);
             repCVscore(repCViter) = outerCVscore;
             show_NBSPredictProgress(cNBSPredict,repCViter,repCVscore);
         end
     end
+    
     % Repeated CV scores.
     meanRCVscore =  mean(repCVscore);
     meanRepCVscore(cModelIdx) = meanRCVscore;
@@ -70,14 +73,20 @@ for cModelIdx = 1: nModels
     upperBoundRCVscore = meanRCVscore + alphaSE; % upper CI 
     meanRepCVscoreCI(cModelIdx,:) = [lowerBoundRCVscore,upperBoundRCVscore];
     
+    % True and predicted labels
+    truePredLabelsR = reshape(ipermute(truePredLabels,[2 1 3]),[],2);
+    NBSPredict.results.(cModel).truePredLabels = truePredLabelsR;
+    
     % Edge Weights
     reshapedEdgeWeight = reshape(ipermute(edgeWeight,[3 2 1]),nEdges,[]);
     meanEdgeWeight = mean(reshapedEdgeWeight,2);
     NBSPredict.results.(cModel).edgeWeight = reshapedEdgeWeight;
+    
     % Mean edge weight.
     NBSPredict.results.(cModel).meanEdgeWeight = meanEdgeWeight; % mean
     [NBSPredict.results.(cModel).wAdjMat] = gen_weightedAdjMat(NBSPredict.data.nodes,...
-        NBSPredict.data.edgeIdx,NBSPredict.results.(cModel).meanEdgeWeight); % weighted Adj matrix. 
+        NBSPredict.data.edgeIdx,NBSPredict.results.(cModel).meanEdgeWeight); % weighted Adj matrix.
+    
     % Scaled mean edge weight
     NBSPredict.results.(cModel).scaledMeanEdgeWeight = rescale(meanEdgeWeight); % Min-max scaled mean weights
     NBSPredict.results.(cModel).scaledWAdjMat = gen_weightedAdjMat(NBSPredict.data.nodes,...
@@ -129,7 +138,7 @@ if NBSPredict.parameter.ifView
 end
 end
 
-function [meanCVscore,edgeWeights] = outerFold(NBSPredict)
+function [meanCVscore,edgeWeights,truePredLabels] = outerFold(NBSPredict)
 % outerFold is the first (or outer) layer of the 3-layer nested
 % cross-validation structure. outerFold performs model evaluation.
 % Prepare data.
@@ -157,13 +166,12 @@ modelEvaluateFun = @(data) modelEvaluate(data,NBSPredict);
         data.X_test  = data.X_test(:,transformMask);
         data.y_test = data.y_test(:,2);
         data.y_train = data.y_train(:,2);
-        if ~ismember(NBSPredict.parameter.metric,{'rmse','mad'})
-            modelEvalResults.score = fit_hyperParam(data,[],NBSPredict.MLhandle,...
+        [modelEvalResults.score,modelEvalResults.truePredLabels] = fit_hyperParam(data,[],NBSPredict.MLhandle,...
                 NBSPredict.parameter.metric);
-            weightScore = modelEvalResults.score;
-        else
-            [modelEvalResults.score,weightScore] = fit_hyperParam(data,[],NBSPredict.MLhandle,...
-                {NBSPredict.parameter.metric,'r-squared'});
+        weightScore = modelEvalResults.score;
+        if ismember(NBSPredict.parameter.metric,{'rmse','mad'})
+            weightScore = compute_modelMetrics(modelEvalResults.truePredLabels{1},...
+                modelEvalResults.truePredLabels{1},'r_squared');
         end
         % Multiply features selected with test score of model to compute
         % weight for each feature.
@@ -171,6 +179,7 @@ modelEvaluateFun = @(data) modelEvaluate(data,NBSPredict);
     end
 meanCVscore = mean([outerFoldCVresults.score]);
 edgeWeights = [outerFoldCVresults.outerFoldEdgeWeight]';
+truePredLabels = cell2mat(reshape([outerFoldCVresults.truePredLabels],2,[])');
 end
 
 function [bestParam] = middleFold(data,NBSPredict)
@@ -224,7 +233,7 @@ if ischar(metrics)
     metrics = {metrics};
 end
 nMetrics = numel(metrics);
-varargout = cell(1,nMetrics);
+varargout = cell(1,nMetrics+1);
 [varargout{:}] = modelFitScore(Mdl,data,metrics);
 end
 

@@ -11,9 +11,15 @@ function [varargout] = modelFitScore(Mdl,trainTestData,metrics)
 %   metrics = Performance metric (e.g., accuracy, f1, auc). 
 %
 % Output:
-%   score = Prediction score. 
+%   score = Prediction score.
+%   truePredLabels = True and predicted labels.    
 %
-% Emin Serin - 02.08.2019
+% Example: 
+%   acc = modelFitScore(Mdl,trainTestData,{'accuracy'});
+%   [acc,auc] = modelFitScore(Mdl,trainTestData,{'accuracy','auc'});
+%   [acc,auc,truePredLabels] = modelFitScore(Mdl,trainTestData,{'accuracy','auc'});
+%
+% Emin Serin - 24.09.2019
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clf = Mdl.fit(trainTestData.X_train,trainTestData.y_train); % fit
@@ -22,9 +28,10 @@ if ischar(metrics)
     metrics = {metrics};
 end
 nMetrics = numel(metrics);
-varargout = cell(1,nMetrics);
+varargout = cell(1,nMetrics+1);
 for i = 1:nMetrics
     varargout{i} = Mdl.score(trainTestData.y_test,...
         y_pred,metrics{i}); % score
 end
+varargout{i+1} = {uint8(trainTestData.y_test),uint8(y_pred)};
 end

@@ -144,7 +144,7 @@ end
 
 %% Best parameter selection metric. 
 if ~isfield(default.parameter,'bestParamMethod')
-    if ifClassif || ismember(default.parameter.metric,{'r-squared','explained_variance'})
+    if ifClassif || ismember(default.parameter.metric,{'r_squared','explained_variance'})
         default.parameter.bestParamMethod = 'max';
     else
         default.parameter.bestParamMethod = 'min';
@@ -156,9 +156,9 @@ else
             'classification are max,ose or median!']);
     else
         assert(ismember(default.parameter.bestParamMethod,{'min'}) &&...
-            ~ismember(default.parameter.metric,{'r-squared','explained_variance'}),...
+            ~ismember(default.parameter.metric,{'r_squared','explained_variance'}),...
             ['Wrong best parameter metric chosen!. Best parameter metrics for ',...
-            'are min or median if your prediction metric is not R-squared!']);
+            'are min or median if your prediction metric is not R_squared!']);
     end
 end
 

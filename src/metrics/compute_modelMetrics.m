@@ -1,109 +1,139 @@
-function [score] = compute_modelMetrics(y_true,y_pred,metrics)
-%COMPUTE_MODELMETRICS evaulates classification or prediction performance of
-% the model given. It requires Statistics and Machine Learning toolbox.
+ function [varargout] = compute_modelMetrics(y_true,y_pred,metrics)
+% compute_modelMetrics evaulates classification or prediction performance
+% of the model given and returns a performance score.
 %
-%   It provides for classification problems:
-% - Accuracy score,
-% - Sensitivity score,
-% - Specificity score
-% - Precision score
-% - F1 score
-% - Matthews Correlation Coefficient (MCC)
-% - Cohen's Kappa score
-% - Area Under the Receiver Operating Characteristic Curve (AUC ROC).
+% Arguements:
+%   y_true = True labels.
+%   y_pred = Predicted labels.
+%   metrics = Performance metrics:
+%       Classification:
+%           Binary or Multi-Class:
+%               accuracy = Accuracy score.
+%               sensitivity = Sensitivity score.
+%               specificity = Specificity score.
+%               precision = Precision score.
+%               f1 = F1 score.
+%           Only Binary: 
+%               matthews_cc = Matthews Correlation Coefficient (MCC).
+%               cohens_kappa = Cohen's Kappa score.
+%               auc = Area Under the Receiver Operating Characteristic Curve (AUC ROC).
+%       Regresssion:
+%           correlation = Pearson correlation coefficient.
+%           r_squared = R squared.
+%           mse = Mean squared error.
+%           rmse = Root Mean squared error regression loss.
+%           explained_variance = Explained variance score.
+%           mad = Median absolute deviation.
 %
-%   For regression problems:
-% - R squared
-% - Root Mean squared error regression loss
-% - Explained variance score.
-% - Correlation
-% - Median absolute deviation
+% Output:
+%   score = Score of performance metrics.
+%   Additional metrics provided if classification performed:
+%       TP = True positive.
+%       FP = False positive.
+%       TN = True negative.
+%       FN = False negative.
 %
-%   Usage:
-%   score = compute_modelMetrics(y_true,y_pred,metrics)
-%   e.g.
-%   score = compute_modelMetrics(y_true,y_pred,'mse')
+% Usage:
+%   score = compute_modelMetrics(y_true,y_pred,metrics);
+%   score = compute_modelMetrics(y_true,y_pred,'mse');
+%   [score,TP,FP,TN,FN] = compute_modelMetrics(y_true,y_pred,'auc');
 %
-%   Emin Serin, 2018. Berlin School of Mind and Brain
+% Emin Serin, 2018. Berlin School of Mind and Brain
+%
+% Last edited by Emin Serin, 25.09.2019.
 %
 
-%% Compute Performance metrics. 
-% Check the input vectors have same length.
-if length(y_true) ~= length(y_pred)
-    error('Input vectors have different lengths')
-end
-
-uniqueClasses = unique([y_true,y_pred]); % find unique classes. 
+uniqueClasses = unique([y_true,y_pred]); % Find unique classes.
 nClass = numel(uniqueClasses); % Number of unique classes.
 
-if nargin < 3
-    % Default metrics. 
-    if nClass < 4
-        % Use roc_auc if classification.
-        metrics = 'auc';
-    else
-        % Use mean squared error if regresson.
-        metrics = 'rmse';
+multiClass = {'accuracy','specificity','sensitivity','precision',...
+    'recall','f1'};
+classification = {multiClass{:},'matthews_cc','cohens_kappa','auc'};
+
+confMatMet = {};
+if ismember(metrics,classification)
+    % Compute confusion matrix.
+    CM = confusionMatrix(y_true,y_pred);
+    accuracy = @() numel(find(y_true==y_pred))/numel(y_true); % Accuracy
+    if nClass > 1
+        TP = CM.TP; FP = CM.FP; TN = CM.TN; FN = CM.FN;
+        confMatMet = {CM.TP,CM.FP,CM.TN,CM.FN};
+        % Classification metrics
+        sensitivity = @() mean(TP ./ (TP + FN)); % Sensitivity
+        specificity = @() mean(TN ./ (TN+FP)); % Specificity
+        precision = @() mean(TP ./ (TP+FP)); % Precision
+        recall = @() mean(TP./(TP+FN)); % Recall
+        f1 = @() 2*((precision()*recall())/(precision()+recall())); % F1 Score
+        matthews_cc = @() matthews_cc_score(TP,TN,FP,FN); % Matthew's Correlation Coefficient
+        cohens_kappa = @() cohens_kappa_score(TP,TN,FP,FN); % Cohen's Kappa
+        auc = @() roc_auc_score(TP,TN,FP,FN); % Area Under the Curve
     end
-end     
-    
+else
+    % Regression metrics
+    mse = @() sum((y_true-y_pred).^2)/numel(y_true);
+    rmse = @() sqrt(mse()); % Root Means Squared Error
+    correlation = @() corr(single(y_true),single(y_pred));
+    r_squared = @() correlation()^2; % R Squared
+    explained_variance = @() 1 - var(y_true-y_pred)/var(y_true); % Explained Variance
+    mad = @() median(abs(y_true-y_pred)); % Median Absolute Difference
+end
+%% Compute 
 % compute decision rates and performance metrics.
 if nClass == 1
-    score = numel(find(y_true==y_pred))/numel(y_true);
-%     disp('There is only one unique class. Therefore the result is accuracy score.')
-elseif ~ismember(metrics,{'mad','rmse','r-squared','explained_variance'})
-    % If classification. 
-    
-    % Create confusion matrix.
-    cMatrix = zeros(nClass);
-    for i=1:nClass
-        for j=1:nClass
-            cMatrix(i, j) = sum((y_true == uniqueClasses(i)) & (y_pred == uniqueClasses(j)));
-        end
+    score = accuracy();
+else
+    score =  eval([metrics,'()']);
+end
+
+% Check if nan
+if isnan(score)
+    score = 0;
+end
+
+varargout = {score,confMatMet{:}};
+end
+
+function [CM] = confusionMatrix(y_true,y_pred)
+% Confusion matrix for classification. 
+% Arguements: 
+%   y_true = True labels.
+%   y_pred = Predicted labels.
+% Output:
+%   CM structure including: 
+%       confMat = Confusion matrix.
+%       TP = True positives.
+%       FP = False positives.
+%       TN = True negatives.
+%       FN = False negatives.
+% Example:
+%   CM = confusionMatrix(y_true,y_pred);
+%
+% Created by Emin Serin, 25.09.2019.
+%
+
+% Check if size of the predicted and true labels arrays are similar.  
+assert(length(y_true) == length(y_pred),'Input vectors have different lengths');
+
+uniqueClasses = unique([y_true,y_pred]); % find unique classes.
+nClass = numel(uniqueClasses); % Number of unique classes.
+
+% Create confusion matrix.
+cMatrix = zeros(nClass);
+for i=1:nClass
+    for j=1:nClass
+        cMatrix(i, j) = sum((y_true == uniqueClasses(i)) & (y_pred == uniqueClasses(j)));
     end
-    if nClass <= 2
+end
+
+CM.confMat = cMatrix;
+if nClass > 1
+    if nClass == 2
         % If binomial classification
         TP=cMatrix(2,2); % True positive
         FN=cMatrix(2,1); % False negative
         FP=cMatrix(1,2); % False positive
         TN=cMatrix(1,1); % True negative
-        switch metrics
-            case 'accuracy'
-                % Classification accuracy score.
-                score = numel(find(y_true==y_pred))/numel(y_true);
-            case 'sensitivity'
-                % Sensitivity score
-                score = mean(TP ./ (TP + FN));
-            case 'specificity'
-                % Specificity score
-                score = mean(TN ./ (TN+FP));
-            case 'precision'
-                % Precision (a.k.a positive predictive value) score
-                score =  mean(TP ./ (TP+FP));
-            case 'recall'
-                score = TP/(TP+FN);
-            case 'f1'
-                % F1 score
-                precision = TP/(TP+FP);
-                recall = TP/(TP+FN);
-                score = 2*((precision*recall)/(precision+recall));
-            case 'matthews_cc'
-                % Matthews Correlation Coefficient (MCC)
-                score = ((TP*TN)-(FP*FN))/sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN));
-            case 'cohens_kappa'
-                % Cohen's Kappa score
-                po = (TP + TN) / (TP + TN + FP + FN);
-                pe = ((TP+FN)*(TP+FP) + (FP + TN)*(FN+TN))/(TP+FN+FP+TN)^2;
-                score = (po-pe)/(1-pe);
-            case 'auc'
-                % Area Under the Receiver Operating Characteristic Curve.
-                TPR = TP / (TP + FN); % true positive rate
-                FPR = FP / (FP+TN); % false positive rate
-                X = [0;TPR;1]; % coordinates of TPR. 
-                Y = [0;FPR;1]; % coordinates of FPR. 
-                score = trapz(Y,X); % apply trapezoid rule to find AUC. 
-        end
-    else
+    elseif nClass >= 3
         % If multinomial classification
         TP=zeros(1,nClass);
         FN=zeros(1,nClass);
@@ -115,47 +145,44 @@ elseif ~ismember(metrics,{'mad','rmse','r-squared','explained_variance'})
             FP(i)=sum(cMatrix(:,i))-cMatrix(i,i);
             TN(i)=sum(cMatrix(:))-TP(i)-FP(i)-FN(i);
         end
-        
-        switch metrics
-            case 'accuracy'
-                % Classification accuracy score.
-                score = numel(find(y_true==y_pred))/numel(y_true);
-            case 'sensitivity'
-                % Sensitivity score
-                score = mean(TP ./ (TP + FN));
-            case 'specificity'
-                % Specificity score
-                score = mean(TN ./ (TN+FP));
-            case 'precision'
-                % Precision (a.k.a positive predictive value) score
-                score =  mean(TP ./ (TP+FP));
-            otherwise
-                % If target is not binary.
-                disp('Target is not binary.')      
-        end
     end
+    CM.TP = TP;
+    CM.FP = FP;
+    CM.TN = TN;
+    CM.FN = FN;
 else
-    % If regression
-    switch metrics
-        case 'r-squared'
-            % R squared
-            score = corr(y_true,y_pred)^2;
-        case 'rmse'
-            % Root Mean squared error regression loss
-            score = sqrt(sum((y_true-y_pred).^2)/numel(y_true));
-        case 'explained_variance'
-            % Explained variance score.
-            score = 1 - var(y_true-y_pred)/var(y_true);
-        case 'mad'
-            % Median absolute deviation
-            score = median(abs(y_true-y_pred));
+    if uniqueClasses == 1
+        CM.TP = cMatrix;
+    else
+        CM.TN = cMatrix;
     end
 end
-
-% Check if nan
-if isnan(score)
-    score = 0;
-end
 end
 
+function [matthews] = matthews_cc_score(TP,TN,FP,FN)
+% Computes Matthew's Correlation Coefficient. 
+checkMultiClass(TP); % Check if no multilabel class provided.
+matthews = ((TP*TN)-(FP*FN))/sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN)); % Matthew's Correlation Coefficient
+end
 
+function [kappa] = cohens_kappa_score(TP,TN,FP,FN)
+% Computes Cohen's Kappa. 
+checkMultiClass(TP); % Check if no multilabel class provided.
+po = (TP + TN) / (TP + TN + FP + FN);
+pe = ((TP+FN)*(TP+FP) + (FP + TN)*(FN+TN))/(TP+FN+FP+TN)^2;
+kappa = (po-pe)/(1-pe);
+end
+
+function [ROCAUC] = roc_auc_score(TP,TN,FP,FN)
+% Area Under the Receiver Operating Characteristic Curve.
+checkMultiClass(TP); % Check if no multilabel class provided.
+TPR = TP / (TP + FN); % true positive rate
+FPR = FP / (FP+TN); % false positive rate
+X = [0;TPR;1]; % coordinates of TPR.
+Y = [0;FPR;1]; % coordinates of FPR.
+ROCAUC = trapz(Y,X); % apply trapezoid rule to find AUC.
+end
+
+function [] = checkMultiClass(x)
+assert(numel(x) >= 1,'Multi-class data provided! You can only use binary labels.');
+end
