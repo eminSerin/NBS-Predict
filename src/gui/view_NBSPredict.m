@@ -22,7 +22,7 @@ function varargout = view_NBSPredict(varargin)
 
 % Edit the above text to modify the response to help view_NBSPredict
 
-% Last Modified by GUIDE v2.5 26-Sep-2019 12:16:47
+% Last Modified by GUIDE v2.5 26-Sep-2019 22:47:18
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -113,9 +113,6 @@ handles.plotResults.wThresh = 0;
 handles.cFig = 'adj';
 set(0, 'CurrentFigure', handles.viewNBSPredictFig);
 handles = plotUpdatedData(handles);
-if ispc
-   handles.figureAxes.FontSize = 8; 
-end
 guidata(hObject, handles);
 
 
@@ -166,7 +163,7 @@ function adjacencyPush_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 handles.labelButton.Visible = 'off';
 handles.cFig = 'adj';
-imagesc(handles.plotResults.adj);
+imagesc(handles.figureAxes,handles.plotResults.adj);
 colormap(parula);
 colorbar;
 caxis([0,1])
@@ -175,6 +172,7 @@ title(handles.figureTitle)
 % set(gca, 'FontSize',10,'FontName','default');
 dcm_obj = datacursormode(gcf);
 set(dcm_obj,'Enable','on','UpdateFcn',{@dataCursorUpdateFun,handles});
+[handles] = pcFontSize(handles);
 guidata(hObject,handles)
 
 % --- Executes on button press in networkPush.
@@ -193,11 +191,13 @@ plot(handles.plotResults.G,'EdgeCData',handles.plotResults.G.Edges.Weight,...
     'NodeLabel',labels);
 title(handles.figureTitle) 
 set(gca,'XTick',[],'YTick',[]);
+colormap(parula);
 colorbar;
 caxis([0,1])
 handles.cFig = 'net';
 dcm_obj = datacursormode(gcf);
 set(dcm_obj,'Enable','on','UpdateFcn',{@dataCursorUpdateFun,handles});
+[handles] = pcFontSize(handles);
 guidata(hObject,handles)
 
 % --- Executes on button press in distPush.
@@ -205,6 +205,7 @@ function distPush_Callback(hObject, ~, handles)
 % hObject    handle to distPush (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+colormap(parula);
 handles.labelButton.Visible = 'off';
 ifScaled = handles.plotData.ifPlotScaled; 
 cModel = handles.cModel;
@@ -226,6 +227,7 @@ title(handles.figureTitle);
 handles.cFig = 'dist';
 dcm_obj = datacursormode(gcf);
 set(dcm_obj,'Enable','on','UpdateFcn',{@dataCursorUpdateFun,handles});
+[handles] = pcFontSize(handles);
 guidata(hObject,handles)
 
 % --- Executes on button press in brainNetPush.
@@ -246,7 +248,9 @@ if handles.ifShowLabel
 end
 dlmcell([tmpDir,'tmp.node'],table2cell(brainRegions),'\t');
 dlmcell([tmpDir,'tmp.edge'],num2cell(handles.plotResults.adj),'\t');
-handles.brainNetFig = BrainNet_MapCfg('BrainMesh_ICBM152_smoothed.nv',[tmpDir,'tmp.node'],[tmpDir,'tmp.edge'],'brainNetViewerConfig.mat');
+handles.brainNetFig = BrainNet_MapCfg('BrainMesh_ICBM152_smoothed.nv',...
+    [tmpDir,'tmp.node'],[tmpDir,'tmp.edge'],'brainNetViewerConfig.mat');
+[handles] = pcFontSize(handles);
 guidata(hObject,handles)
 
 % --- Executes on button press in confMatPush.
@@ -288,6 +292,7 @@ set(gca,'XTick',1:numlabels,...
     'YTickLabel',labels,...
     'TickLength',[0 0]);
 title(handles.figureTitle);
+[handles] = pcFontSize(handles);
 guidata(hObject,handles)
 
 % --- Executes during object deletion, before destroying properties.
@@ -295,6 +300,7 @@ function figureAxes_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to figureAxes (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
 
 % --- Executes during object deletion, before destroying properties.
 function figureAxes_DeleteFcn(hObject, eventdata, handles)
@@ -568,6 +574,12 @@ end
 handles.figureTitle = figTitle;
 title(figTitle);
 
+function [handles] = pcFontSize(handles)
+% Set font and font size if pc. 
+if ispc
+    set(handles.figureAxes,'FontSize',8,'FontName','default');
+end
+    
 % --- Executes during object deletion, before destroying properties.
 function viewNBSPredictFig_DeleteFcn(hObject, eventdata, handles)
 % hObject    handle to viewNBSPredictFig (see GCBO)
@@ -576,6 +588,3 @@ function viewNBSPredictFig_DeleteFcn(hObject, eventdata, handles)
 goodbyeMsg = ['\nThank you for using NBS-Predict!\n',...
     'Please contact to eminserinn@gmail.com for any questions, suggestions or bug reports.\n'];
 fprintf(goodbyeMsg);
-
-
-
