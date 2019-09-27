@@ -576,7 +576,7 @@ title(figTitle);
 
 function [handles] = pcFontSize(handles)
 % Set font and font size if pc. 
-if ispc
+if ispc || isunix
     set(handles.figureAxes,'FontSize',8,'FontName','default');
 end
     
