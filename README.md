@@ -67,7 +67,7 @@ NBS-Predict was developed on Matlab R2017b and tested on Matlab R2017b and R2018
 
 ## Authors
 
-NBS-Predict was designed by Emin Serin and Johann D. Kruschwitz, and developed by Emin Serin. 
+NBS-Predict was designed by Emin Serin, Johann D. Kruschwitz and Andrew Zalesky, and developed by Emin Serin. 
 
 ## Contributing
 
