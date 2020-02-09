@@ -68,7 +68,7 @@ function [NBSPredict] = test_NBSPredict(varargin)
 %% Input parser.
 % Default parameters for NBSPredict.
 defaultVals.kFold = 10; defaultVals.ifParallel = false;
-defaultVals.metrics = 'f1'; defaultVals.MLmodels = 'svmC'; 
+defaultVals.metrics = 'accuracy'; defaultVals.MLmodels = 'svmC'; 
 defaultVals.selMethod = 'randomSearch'; defaultVals.bestParamMethod = 'max'; 
 defaultVals.maxPercent = 10; defaultVals.repCViter = 10; 
 defaultVals.verbose = 1; defaultVals.ifHyperOpt = 1; 

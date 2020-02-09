@@ -29,18 +29,19 @@ function [] = start_NBSPredict(varargin)
 %   You should have received a copy of the GNU General Public License
 %   along with this program. If not, see <http://www.gnu.org/licenses/>.
 %
-%   Release : 1.0.0-alpha1
+%   Release : 1.0.0-alpha2
 %   Mail to Author: eminserinn@gmail.com
 %
 % See also: run_NBSPredictGUI, run_NBSPredict, test_NBSPredict
 
-verNBSPredict = '1.0.0-alpha1';
+verNBSPredict = '1.0.0-alpha2';
 
 welcomeMsg = ['\n\n\nWelcome to NBSPredict\n',...
     'Release: <strong>%s</strong> \n',...
     'NBS-Predict was designed by Emin Serin, Johann Kruschwitz and Andrew Zalesky, and developed by Emin Serin\n',...
     'Berlin School of Mind and Brain, Humboldt Universtaet zu Berlin, Germany\n',...
     'Division of Mind and Brain Research, Department for Psychiatry, Charite Berlin, Germany\n',...
+    'Melbourne Neuropsychiatry Centre and Department of Biomedical Engineering, University of Melbourne, Australia\n',...
     'Mail to Author: <a href="eminserinn@gmail.com">Emin Serin</a>\n\n\n'];
 
 fprintf(welcomeMsg,verNBSPredict);
