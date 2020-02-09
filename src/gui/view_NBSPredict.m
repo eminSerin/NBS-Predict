@@ -176,7 +176,7 @@ colormap(parula);
 colorbar;
 caxis([0,1])
 set(gca,'XTick',[],'YTick',[]);
-title(handles.figureTitle)
+title(handles.figureTitle,'Interpreter','none'); 
 % set(gca, 'FontSize',10,'FontName','default');
 dcm_obj = datacursormode(gcf);
 set(dcm_obj,'Enable','on','UpdateFcn',{@dataCursorUpdateFun,handles});
@@ -197,7 +197,7 @@ end
 plot(handles.plotResults.G,'EdgeCData',handles.plotResults.G.Edges.Weight,...
     'MarkerSize',degree(handles.plotResults.G),'LineWidth',3,...
     'NodeLabel',labels);
-title(handles.figureTitle) 
+title(handles.figureTitle,'Interpreter','none');  
 set(gca,'XTick',[],'YTick',[]);
 colormap(parula);
 colorbar;
@@ -231,7 +231,7 @@ hist(histData,nBins);
 xlabel('Weight')
 handles.distYlabel = 'Number of Edges';
 xlim([minHistData,1])
-title(handles.figureTitle);
+title(handles.figureTitle,'Interpreter','none');
 handles.cFig = 'dist';
 dcm_obj = datacursormode(gcf);
 set(dcm_obj,'Enable','on','UpdateFcn',{@dataCursorUpdateFun,handles});
@@ -299,7 +299,7 @@ set(gca,'XTick',1:numlabels,...
     'YTick',1:numlabels,...
     'YTickLabel',labels,...
     'TickLength',[0 0]);
-title(handles.figureTitle);
+title(handles.figureTitle,'Interpreter','none'); ;
 [handles] = pcFontSize(handles);
 guidata(hObject,handles)
 

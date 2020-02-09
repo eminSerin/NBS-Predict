@@ -2508,12 +2508,12 @@ global EC
 if EC.lbl_front == 0
     switch i % Edited by Mingrui Xia, 111028. Adjust label postion. Edited by Mingrui Xia, 20111113, label position plus radius times ratio.
         case {1,4,3,6}
-            text(surf.sphere(j,1),surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center');
+            text(surf.sphere(j,1),surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center','Interpreter','none');
         case 2
             if surf.sphere(j,1)<=0
-                text(surf.sphere(j,1),surf.sphere(j,2)+surf.sphere(j,7)+1,surf.sphere(j,3),surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right')
+                text(surf.sphere(j,1),surf.sphere(j,2)+surf.sphere(j,7)+1,surf.sphere(j,3),surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right','Interpreter','none')
             else
-                text(surf.sphere(j,1),surf.sphere(j,2)+surf.sphere(j,7)+1,surf.sphere(j,3),surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left')
+                text(surf.sphere(j,1),surf.sphere(j,2)+surf.sphere(j,7)+1,surf.sphere(j,3),surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left','Interpreter','none')
             end
             %     case 3
             %         if surf.sphere(j,1)<=0
@@ -2523,9 +2523,9 @@ if EC.lbl_front == 0
             %         end
         case 5
             if surf.sphere(j,1)<=0
-                text(surf.sphere(j,1),surf.sphere(j,2)-surf.sphere(j,7)-2,surf.sphere(j,3),surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right')
+                text(surf.sphere(j,1),surf.sphere(j,2)-surf.sphere(j,7)-2,surf.sphere(j,3),surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right','Interpreter','none')
             else
-                text(surf.sphere(j,1),surf.sphere(j,2)-surf.sphere(j,7)-2,surf.sphere(j,3),surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left')
+                text(surf.sphere(j,1),surf.sphere(j,2)-surf.sphere(j,7)-2,surf.sphere(j,3),surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left','Interpreter','none')
             end
             %     case 6
             %         if surf.sphere(j,1)<=0
@@ -2538,24 +2538,24 @@ else
     switch i
         case {1,6}
             pos = min([min(surf.coord(1,:)),min(surf.sphere(:,1))]);
-            text(pos-surf.sphere(j,7)-2,surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center');
+            text(pos-surf.sphere(j,7)-2,surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center','Interpreter','none');
         case {3,4}
             pos = max([max(surf.coord(1,:)),max(surf.sphere(:,1))]);
-            text(pos+surf.sphere(j,7)+1,surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center');
+            text(pos+surf.sphere(j,7)+1,surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center','Interpreter','none');
             
         case 2
             pos = max([max(surf.coord(3,:)),max(surf.sphere(:,3))]);
             if surf.sphere(j,1)<=0
-                text(surf.sphere(j,1),surf.sphere(j,2)+surf.sphere(j,7)+1,pos+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right')
+                text(surf.sphere(j,1),surf.sphere(j,2)+surf.sphere(j,7)+1,pos+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right','Interpreter','none')
             else
-                text(surf.sphere(j,1),surf.sphere(j,2)+surf.sphere(j,7)+1,pos+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left')
+                text(surf.sphere(j,1),surf.sphere(j,2)+surf.sphere(j,7)+1,pos+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left','Interpreter','none')
             end
         case 5
             pos = min([min(surf.coord(3,:)),min(surf.sphere(:,3))]);
             if surf.sphere(j,1)<=0
-                text(surf.sphere(j,1),surf.sphere(j,2)-surf.sphere(j,7)-2,pos-surf.sphere(j,7)-2,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right')
+                text(surf.sphere(j,1),surf.sphere(j,2)-surf.sphere(j,7)-2,pos-surf.sphere(j,7)-2,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right','Interpreter','none')
             else
-                text(surf.sphere(j,1),surf.sphere(j,2)-surf.sphere(j,7)-2,pos-surf.sphere(j,7)-2,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left')
+                text(surf.sphere(j,1),surf.sphere(j,2)-surf.sphere(j,7)-2,pos-surf.sphere(j,7)-2,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left','Interpreter','none')
             end
     end
 end
@@ -2566,73 +2566,73 @@ global EC
 if EC.lbl_front == 0
     switch i
         case {1,3,4,6} %%% Edited by Mingrui Xia, 111028. Combine several same situation, adjust label postion.Edited by Mingrui Xia, 20111113, label position plus radius times ratio.
-            text(surf.sphere(j,1),surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center');
+            text(surf.sphere(j,1),surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center','Interpreter','none');
             %     case {4,6}
             %         text(surf.sphere(j,1),surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)*2,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center');
             %     case 3
             %         text(surf.sphere(j,1),surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)*2,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center');
         case 2
             if surf.sphere(j,1)<=0
-                text(surf.sphere(j,1),surf.sphere(j,2)+surf.sphere(j,7)+1,surf.sphere(j,3),surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right')
+                text(surf.sphere(j,1),surf.sphere(j,2)+surf.sphere(j,7)+1,surf.sphere(j,3),surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right','Interpreter','none')
             else
-                text(surf.sphere(j,1),surf.sphere(j,2)+surf.sphere(j,7)+1,surf.sphere(j,3),surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left')
+                text(surf.sphere(j,1),surf.sphere(j,2)+surf.sphere(j,7)+1,surf.sphere(j,3),surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left','Interpreter','none')
             end
         case 7
             if surf.sphere(j,1)<=0
-                text(surf.sphere(j,1),surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left')
+                text(surf.sphere(j,1),surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left','Interpreter','none')
             else
-                text(surf.sphere(j,1),surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right')
+                text(surf.sphere(j,1),surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right','Interpreter','none')
             end
         case 5
             if surf.sphere(j,1)<=0
-                text(surf.sphere(j,1),surf.sphere(j,2)-surf.sphere(j,7)-2,surf.sphere(j,3),surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right')
+                text(surf.sphere(j,1),surf.sphere(j,2)-surf.sphere(j,7)-2,surf.sphere(j,3),surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right','Interpreter','none')
             else
-                text(surf.sphere(j,1),surf.sphere(j,2)-surf.sphere(j,7)-2,surf.sphere(j,3),surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left')
+                text(surf.sphere(j,1),surf.sphere(j,2)-surf.sphere(j,7)-2,surf.sphere(j,3),surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left','Interpreter','none')
             end
         case 8
             if surf.sphere(j,1)<=0
-                text(surf.sphere(j,1),surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right')
+                text(surf.sphere(j,1),surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right','Interpreter','none')
             else
-                text(surf.sphere(j,1),surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left')
+                text(surf.sphere(j,1),surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left','Interpreter','none')
             end
     end
 else
     switch i
         case {1,6}
             pos = min([min(surf.coord(1,:)),min(surf.sphere(:,1))]);
-            text(pos-surf.sphere(j,7)-2,surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center');
+            text(pos-surf.sphere(j,7)-2,surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center','Interpreter','none');
             
         case {3,4}
             pos = max([max(surf.coord(1,:)),max(surf.sphere(:,1))]);
-            text(pos+surf.sphere(j,7)+1,surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center');
+            text(pos+surf.sphere(j,7)+1,surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center','Interpreter','none');
             
         case 2
             pos = max([max(surf.coord(3,:)),max(surf.sphere(:,3))]);
             if surf.sphere(j,1)<=0
-                text(surf.sphere(j,1),surf.sphere(j,2)+surf.sphere(j,7)+1,pos+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right')
+                text(surf.sphere(j,1),surf.sphere(j,2)+surf.sphere(j,7)+1,pos+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right','Interpreter','none')
             else
-                text(surf.sphere(j,1),surf.sphere(j,2)+surf.sphere(j,7)+1,pos+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left')
+                text(surf.sphere(j,1),surf.sphere(j,2)+surf.sphere(j,7)+1,pos+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left','Interpreter','none')
             end
         case 7
             pos = max([max(surf.coord(2,:)),max(surf.sphere(:,2))]);
             if surf.sphere(j,1)<=0
-                text(surf.sphere(j,1),pos+surf.sphere(j,7)+1,surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left')
+                text(surf.sphere(j,1),pos+surf.sphere(j,7)+1,surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left','Interpreter','none')
             else
-                text(surf.sphere(j,1),pos+surf.sphere(j,7)+1,surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right')
+                text(surf.sphere(j,1),pos+surf.sphere(j,7)+1,surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right','Interpreter','none')
             end
         case 5
             pos = min([min(surf.coord(3,:)),min(surf.sphere(:,3))]);
             if surf.sphere(j,1)<=0
-                text(surf.sphere(j,1),surf.sphere(j,2)-surf.sphere(j,7)-2,pos-surf.sphere(j,7)-2,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right')
+                text(surf.sphere(j,1),surf.sphere(j,2)-surf.sphere(j,7)-2,pos-surf.sphere(j,7)-2,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right','Interpreter','none')
             else
-                text(surf.sphere(j,1),surf.sphere(j,2)-surf.sphere(j,7)-2,pos-surf.sphere(j,7)-2,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left')
+                text(surf.sphere(j,1),surf.sphere(j,2)-surf.sphere(j,7)-2,pos-surf.sphere(j,7)-2,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left','Interpreter','none')
             end
         case 8
             pos = min([min(surf.coord(2,:)),min(surf.sphere(:,2))]);
             if surf.sphere(j,1)<=0
-                text(surf.sphere(j,1),pos+surf.sphere(j,7)+1,surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right')
+                text(surf.sphere(j,1),pos+surf.sphere(j,7)+1,surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right','Interpreter','none')
             else
-                text(surf.sphere(j,1),pos+surf.sphere(j,7)+1,surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left')
+                text(surf.sphere(j,1),pos+surf.sphere(j,7)+1,surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left','Interpreter','none')
             end
     end
 end
@@ -2644,29 +2644,29 @@ global EC
 if EC.lbl_front == 0
     switch i
         case {1,3,4,5}
-            text(surf.sphere(j,1),surf.sphere(j,2),surf.sphere(j,3) + surf.sphere(j,7) * EC.nod.size_ratio + 2,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center');
+            text(surf.sphere(j,1),surf.sphere(j,2),surf.sphere(j,3) + surf.sphere(j,7) * EC.nod.size_ratio + 2,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center','Interpreter','none');
             
         case 2
             if surf.sphere(j,1) <= 0
-                text(surf.sphere(j,1),surf.sphere(j,2) + surf.sphere(j,7) * EC.nod.size_ratio + 2,surf.sphere(j,3),surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right')
+                text(surf.sphere(j,1),surf.sphere(j,2) + surf.sphere(j,7) * EC.nod.size_ratio + 2,surf.sphere(j,3),surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right','Interpreter','none')
             else
-                text(surf.sphere(j,1),surf.sphere(j,2) + surf.sphere(j,7) * EC.nod.size_ratio + 2,surf.sphere(j,3),surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left')
+                text(surf.sphere(j,1),surf.sphere(j,2) + surf.sphere(j,7) * EC.nod.size_ratio + 2,surf.sphere(j,3),surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left','Interpreter','none')
             end
     end
 else
     switch i
         case {1,5}
             pos = min([min(surf.coord(1,:)),min(surf.sphere(:,1))]);
-            text(pos-surf.sphere(j,7)-2,surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center');
+            text(pos-surf.sphere(j,7)-2,surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center','Interpreter','none');
         case {3,4}
             pos = max([max(surf.coord(1,:)),max(surf.sphere(:,1))]);
-            text(pos+surf.sphere(j,7)+1,surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center');
+            text(pos+surf.sphere(j,7)+1,surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center','Interpreter','none');
         case 2
             pos = max([max(surf.coord(3,:)),max(surf.sphere(:,3))]);
             if surf.sphere(j,1)<=0
-                text(surf.sphere(j,1),surf.sphere(j,2)+surf.sphere(j,7)+1,pos+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right')
+                text(surf.sphere(j,1),surf.sphere(j,2)+surf.sphere(j,7)+1,pos+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right','Interpreter','none')
             else
-                text(surf.sphere(j,1),surf.sphere(j,2)+surf.sphere(j,7)+1,pos+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left')
+                text(surf.sphere(j,1),surf.sphere(j,2)+surf.sphere(j,7)+1,pos+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left','Interpreter','none')
             end
     end
 end
@@ -2677,27 +2677,27 @@ global EC
 if EC.lbl_front == 0
     switch i
         case {1,2,3,4}
-            text(surf.sphere(j,1),surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center');
+            text(surf.sphere(j,1),surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center','Interpreter','none');
         case 5
-            text(surf.sphere(j,1)-surf.sphere(j,7)+1,surf.sphere(j,2),surf.sphere(j,3),surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center');
+            text(surf.sphere(j,1)-surf.sphere(j,7)+1,surf.sphere(j,2),surf.sphere(j,3),surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center','Interpreter','none');
         case 6
-            text(surf.sphere(j,1)+surf.sphere(j,7)+1,surf.sphere(j,2),surf.sphere(j,3),surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center');
+            text(surf.sphere(j,1)+surf.sphere(j,7)+1,surf.sphere(j,2),surf.sphere(j,3),surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center','Interpreter','none');
     end
 else
     switch i
         case {1,4}
             pos = min([min(surf.coord(1,:)),min(surf.sphere(:,1))]);
-            text(pos-surf.sphere(j,7)-2,surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center');
+            text(pos-surf.sphere(j,7)-2,surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center','Interpreter','none');
         case {2,3}
             pos = max([max(surf.coord(1,:)),max(surf.sphere(:,1))]);
-            text(pos+surf.sphere(j,7)+1,surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center');
+            text(pos+surf.sphere(j,7)+1,surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center','Interpreter','none');
             
         case 5
             pos = min([min(surf.coord(3,:)),min(surf.sphere(:,3))]);
-            text(surf.sphere(j,1)-surf.sphere(j,7)-2,surf.sphere(j,2),pos+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center');
+            text(surf.sphere(j,1)-surf.sphere(j,7)-2,surf.sphere(j,2),pos+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center','Interpreter','none');
         case 6
             pos = min([min(surf.coord(3,:)),min(surf.sphere(:,3))]);
-            text(surf.sphere(j,1)+surf.sphere(j,7)+1,surf.sphere(j,2),pos+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center');
+            text(surf.sphere(j,1)+surf.sphere(j,7)+1,surf.sphere(j,2),pos+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center','Interpreter','none');
     end
 end
 
@@ -2711,18 +2711,18 @@ if EC.lbl_front == 0
         switch EC.lot.view_direction
             case {1,4}
                 %         text(surf.sphere(j,1),surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center');
-                text(0,surf.sphere2(j,2),surf.sphere2(j,3)+surf.sphere2(j,7)*EC.nod.size_ratio+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center');
+                text(0,surf.sphere2(j,2),surf.sphere2(j,3)+surf.sphere2(j,7)*EC.nod.size_ratio+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center','Interpreter','none');
             case 2
                 if surf.sphere2(j,1)<=0
-                    text(surf.sphere2(j,1),surf.sphere2(j,2)+surf.sphere2(j,7)*EC.nod.size_ratio+1,surf.sphere2(j,3),surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right')
+                    text(surf.sphere2(j,1),surf.sphere2(j,2)+surf.sphere2(j,7)*EC.nod.size_ratio+1,surf.sphere2(j,3),surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right','Interpreter','none')
                 else
-                    text(surf.sphere2(j,1),surf.sphere2(j,2)+surf.sphere2(j,7)*EC.nod.size_ratio+1,surf.sphere2(j,3),surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left')
+                    text(surf.sphere2(j,1),surf.sphere2(j,2)+surf.sphere2(j,7)*EC.nod.size_ratio+1,surf.sphere2(j,3),surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left','Interpreter','none')
                 end
             case 3
                 if surf.sphere2(j,1)<=0
-                    text(surf.sphere2(j,1),surf.sphere2(j,2),surf.sphere2(j,3)+surf.sphere2(j,7)*EC.nod.size_ratio+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left')
+                    text(surf.sphere2(j,1),surf.sphere2(j,2),surf.sphere2(j,3)+surf.sphere2(j,7)*EC.nod.size_ratio+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left','Interpreter','none')
                 else
-                    text(surf.sphere2(j,1),surf.sphere2(j,2),surf.sphere2(j,3)+surf.sphere2(j,7)*EC.nod.size_ratio+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right')
+                    text(surf.sphere2(j,1),surf.sphere2(j,2),surf.sphere2(j,3)+surf.sphere2(j,7)*EC.nod.size_ratio+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right','Interpreter','none')
                 end
                 
         end
@@ -2730,18 +2730,18 @@ if EC.lbl_front == 0
         switch EC.lot.view_direction
             case {1,4}
                 %         text(surf.sphere(j,1),surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center');
-                text(surf.sphere(j,1),surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center');
+                text(surf.sphere(j,1),surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center','Interpreter','none');
             case 2
                 if surf.sphere(j,1)<=0
-                    text(surf.sphere(j,1),surf.sphere(j,2)+surf.sphere(j,7)+1,surf.sphere(j,3),surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right')
+                    text(surf.sphere(j,1),surf.sphere(j,2)+surf.sphere(j,7)+1,surf.sphere(j,3),surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right','Interpreter','none')
                 else
-                    text(surf.sphere(j,1),surf.sphere(j,2)+surf.sphere(j,7)+1,surf.sphere(j,3),surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left')
+                    text(surf.sphere(j,1),surf.sphere(j,2)+surf.sphere(j,7)+1,surf.sphere(j,3),surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left','Interpreter','none')
                 end
             case 3
                 if surf.sphere(j,1)<=0
-                    text(surf.sphere(j,1),surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left')
+                    text(surf.sphere(j,1),surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left','Interpreter','none')
                 else
-                    text(surf.sphere(j,1),surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right')
+                    text(surf.sphere(j,1),surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right','Interpreter','none')
                 end
                 
         end
@@ -2751,46 +2751,46 @@ else
         switch EC.lot.view_direction
             case 1
                 pos = min([min(surf.coord(1,:)),min(surf.sphere(:,1))]);
-                text(pos-surf.sphere2(j,7)*EC.nod.size_ratio-2,surf.sphere2(j,2),surf.sphere2(j,3)+surf.sphere2(j,7)*EC.nod.size_ratio+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center');
+                text(pos-surf.sphere2(j,7)*EC.nod.size_ratio-2,surf.sphere2(j,2),surf.sphere2(j,3)+surf.sphere2(j,7)*EC.nod.size_ratio+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center','Interpreter','none');
             case 2
                 pos = max([max(surf.coord(3,:)),max(surf.sphere(:,3))]);
                 if surf.sphere2(j,1)<=0
-                    text(surf.sphere2(j,1),surf.sphere2(j,2)+surf.sphere2(j,7)*EC.nod.size_ratio+1,pos+surf.sphere2(j,7)*EC.nod.size_ratio+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right')
+                    text(surf.sphere2(j,1),surf.sphere2(j,2)+surf.sphere2(j,7)*EC.nod.size_ratio+1,pos+surf.sphere2(j,7)*EC.nod.size_ratio+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right','Interpreter','none')
                 else
-                    text(surf.sphere2(j,1),surf.sphere2(j,2)+surf.sphere2(j,7)*EC.nod.size_ratio+1,pos+surf.sphere2(j,7)*EC.nod.size_ratio+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left')
+                    text(surf.sphere2(j,1),surf.sphere2(j,2)+surf.sphere2(j,7)*EC.nod.size_ratio+1,pos+surf.sphere2(j,7)*EC.nod.size_ratio+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left','Interpreter','none')
                 end
             case 3
                 pos = min([min(surf.coord(3,:)),min(surf.sphere(:,3))]);
                 if surf.sphere2(j,1)<=0
-                    text(surf.sphere2(j,1),surf.sphere2(j,2)-surf.sphere2(j,7)*EC.nod.size_ratio-2,pos-surf.sphere2(j,7)*EC.nod.size_ratio-2,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right')
+                    text(surf.sphere2(j,1),surf.sphere2(j,2)-surf.sphere2(j,7)*EC.nod.size_ratio-2,pos-surf.sphere2(j,7)*EC.nod.size_ratio-2,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right','Interpreter','none')
                 else
-                    text(surf.sphere2(j,1),surf.sphere2(j,2)-surf.sphere2(j,7)*EC.nod.size_ratio-2,pos-surf.sphere2(j,7)*EC.nod.size_ratio-2,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left')
+                    text(surf.sphere2(j,1),surf.sphere2(j,2)-surf.sphere2(j,7)*EC.nod.size_ratio-2,pos-surf.sphere2(j,7)*EC.nod.size_ratio-2,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left','Interpreter','none')
                 end
             case 4
-                text(surf.sphere2(j,1),surf.sphere2(j,2),surf.sphere2(j,3)+surf.sphere2(j,7)*EC.nod.size_ratio+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center');
+                text(surf.sphere2(j,1),surf.sphere2(j,2),surf.sphere2(j,3)+surf.sphere2(j,7)*EC.nod.size_ratio+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center','Interpreter','none');
                 
         end
     else
         switch EC.lot.view_direction
             case 1
                 pos = min([min(surf.coord(1,:)),min(surf.sphere(:,1))]);
-                text(pos-surf.sphere(j,7)-2,surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center');
+                text(pos-surf.sphere(j,7)-2,surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center','Interpreter','none');
             case 2
                 pos = max([max(surf.coord(3,:)),max(surf.sphere(:,3))]);
                 if surf.sphere(j,1)<=0
-                    text(surf.sphere(j,1),surf.sphere(j,2)+surf.sphere(j,7)+1,pos+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right')
+                    text(surf.sphere(j,1),surf.sphere(j,2)+surf.sphere(j,7)+1,pos+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right','Interpreter','none')
                 else
-                    text(surf.sphere(j,1),surf.sphere(j,2)+surf.sphere(j,7)+1,pos+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left')
+                    text(surf.sphere(j,1),surf.sphere(j,2)+surf.sphere(j,7)+1,pos+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left','Interpreter','none')
                 end
             case 3
                 pos = max([max(surf.coord(2,:)),max(surf.sphere(:,2))]);
                 if surf.sphere(j,1)<=0
-                    text(surf.sphere(j,1),pos+surf.sphere(j,7)+1,surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left')
+                    text(surf.sphere(j,1),pos+surf.sphere(j,7)+1,surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','left','Interpreter','none')
                 else
-                    text(surf.sphere(j,1),pos+surf.sphere(j,7)+1,surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right')
+                    text(surf.sphere(j,1),pos+surf.sphere(j,7)+1,surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','right','Interpreter','none')
                 end
             case 4
-                text(surf.sphere(j,1),surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center');
+                text(surf.sphere(j,1),surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center','Interpreter','none');
         end
     end
 end
@@ -2801,15 +2801,15 @@ function PlotLabel4(surf,i,j)
 %%% Edited by Mingrui Xia, 20111113, label position plus radius times ratio.
 global EC
 if EC.lbl_front == 0
-    text(surf.sphere(j,1),surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center');
+    text(surf.sphere(j,1),surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+1,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center','Interpreter','none');
 else
     switch i
         case {1,4}
             pos = min([min(surf.coord(1,:)),min(surf.sphere(:,1))]);
-            text(pos-surf.sphere(j,7)-2,surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+3,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center');
+            text(pos-surf.sphere(j,7)-2,surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+3,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center','Interpreter','none');
         case {2,3}
             pos = max([max(surf.coord(1,:)),max(surf.sphere(:,1))]);
-            text(pos+surf.sphere(j,7)+1,surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+3,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center');
+            text(pos+surf.sphere(j,7)+1,surf.sphere(j,2),surf.sphere(j,3)+surf.sphere(j,7)+3,surf.label{j},'FontName',EC.lbl_font.FontName,'FontWeight',EC.lbl_font.FontWeight,'FontAngle',EC.lbl_font.FontAngle,'FontSize',EC.lbl_font.FontSize,'FontUnits',EC.lbl_font.FontUnits,'HorizontalAlignment','center','Interpreter','none');
     end
 end
 
