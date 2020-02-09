@@ -12,7 +12,7 @@ function [bestParam,bestParamScore,bestParamIdx] = randomSearch(objFun,data,para
 %   objFun = Objective function (e.g., estimator).
 %   data = Data structure including X and y matrices. 
 %   paramGrid = Parameter grid.
-%   nIter: Number of iteration (default = 60).
+%   nIter: Number of iteration (default = 10).
 %   bestParamMethod = Method to choose best parameter ('max','ose','median','min', default = "max").
 %       Check help section of bestParamMetric for detailed information.     
 %   sortDirection = Direction of sorting ('ascend' or 'descend', default= 'ascend'). 

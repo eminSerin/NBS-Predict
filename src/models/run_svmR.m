@@ -1,23 +1,24 @@
 function [Mdl] = run_svmR(params)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% run_svmC returns Mdl structure including function handles of fit,
-% predict and score functions for support vector machine regression. 
+% run_svmR returns Mdl structure including function handles of fit,
+% predict and score functions for linear regression. 
 %
 % Optional arguement: 
 %   params: Structure including following hyperparameters:
-%       nu: Nu parameter. 
+%   epsilon: Epsilon parameter (default = 0.1). 
 % 
 % Output: 
 %   Mdl: Structure that includes fit, predict and score function handles. 
 %
 % Reference:
-%   https://en.wikipedia.org/wiki/Support_vector_machine
+%   https://en.wikipedia.org/wiki/Support-vector_machine
+%   https://www.mathworks.com/help/stats/understanding-support-vector-machine-regression.html
 %
 % Emin Serin - 10.08.2019
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Default parameters.
-defaultParams.nu = 0.5;
+defaultParams.epsilon = 0.1;
 
 if nargin < 1 || isempty(params)
     % Create struct if no provided.
@@ -27,7 +28,7 @@ end
 params = check_MLparams(params,defaultParams);
 
 % Function handles.
-Mdl.fit = @(X,y) svmtrain(y,X,['-t 0 -s 4 -q -n ' num2str(getfieldi(params,'nu'))]);
-Mdl.pred = @(clf,newX) svmpredict(zeros(size(newX,1),1),newX,clf,'-q');
+Mdl.fit = @(X,y) fitrlinear(X,y,'Learner','svm','Epsilon', params.epsilon);
+Mdl.pred = @(clf,newX) clf.predict(newX);
 Mdl.score = @compute_modelMetrics;
 end

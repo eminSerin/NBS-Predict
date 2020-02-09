@@ -1,14 +1,14 @@
 function [NBSPredict] = run_NBSPredict(NBSPredict)
 % run_NBSPredict is a function which consists main nested cross-validation
-% structure. It performs cross-validated prediction on given data. 
-% 
-% Arguements: 
+% structure. It performs cross-validated prediction on given data.
+%
+% Arguements:
 %   NBSPredict - Structure including data and parameters. NBSPredict
 %       structure is prepared by NBSPredict GUI. However it could also be
 %       provided by user to bypass the GUI (see MANUAL for details).
 %
-% Output: 
-%   NBSPredict - Structure provided by the user or GUI with results saved in. 
+% Output:
+%   NBSPredict - Structure provided by the user or GUI with results saved in.
 %
 % Last edited by Emin Serin, 03.09.2019.
 %
@@ -17,11 +17,11 @@ function [NBSPredict] = run_NBSPredict(NBSPredict)
 NBSPredict = get_NBSPredictInput(NBSPredict);
 
 if NBSPredict.parameter.ifParallel && isempty(gcp('nocreate'))
-    % Init parallel pool. 
+    % Init parallel pool.
     parpool('local');
 end
 
-% Write an start tag. 
+% Write an start tag.
 NBSPredict.info.startDate = date;
 startTime = tic;
 
@@ -30,13 +30,13 @@ nModels = numel(NBSPredict.parameter.MLmodels);
 nSub = size(NBSPredict.data.y,1);
 totalRepCViter = NBSPredict.parameter.repCViter;
 
-% Preallocation 
+% Preallocation
 repCVscore = zeros(totalRepCViter,1,'single');
-meanRepCVscore = zeros(nModels,1); 
-meanRepCVscoreCI = zeros(nModels,2); 
+meanRepCVscore = zeros(nModels,1);
+meanRepCVscoreCI = zeros(nModels,2);
 edgeWeight = zeros(totalRepCViter,NBSPredict.parameter.kFold,...
-    nEdges,'single'); 
-truePredLabels = zeros(totalRepCViter,nSub,2,'uint8');
+    nEdges,'single');
+truePredLabels = zeros(totalRepCViter,nSub,2,'single');
 
 fileDir = save_NBSPredict(NBSPredict);
 cNBSPredict = NBSPredict; % current NBSPredict.
@@ -70,7 +70,7 @@ for cModelIdx = 1: nModels
     seRCVscore = std(repCVscore)/sqrt(totalRepCViter);
     alphaSE = seRCVscore*1.96; % 95% confidence interval.
     lowerBoundRCVscore = meanRCVscore - alphaSE; % lower CI
-    upperBoundRCVscore = meanRCVscore + alphaSE; % upper CI 
+    upperBoundRCVscore = meanRCVscore + alphaSE; % upper CI
     meanRepCVscoreCI(cModelIdx,:) = [lowerBoundRCVscore,upperBoundRCVscore];
     
     % True and predicted labels
@@ -92,7 +92,7 @@ for cModelIdx = 1: nModels
     NBSPredict.results.(cModel).scaledWAdjMat = gen_weightedAdjMat(NBSPredict.data.nodes,...
         NBSPredict.data.edgeIdx,NBSPredict.results.(cModel).scaledMeanEdgeWeight); % weighted Adj matrix.
     
-    % Save values to NBSPredict. 
+    % Save values to NBSPredict.
     NBSPredict.results.(cModel).repCVscore = repCVscore;
     NBSPredict.results.(cModel).meanCVscoreCI = [lowerBoundRCVscore,upperBoundRCVscore];
     NBSPredict.results.(cModel).meanRepCVscore = meanRepCVscore(cModelIdx);
@@ -139,11 +139,15 @@ end
 end
 
 function [meanCVscore,edgeWeights,truePredLabels] = outerFold(NBSPredict)
-% outerFold is the first (or outer) layer of the 3-layer nested
+% outerFold is the first (or outer) layer of the 2-layer nested
 % cross-validation structure. outerFold performs model evaluation.
 % Prepare data.
 data.X = NBSPredict.data.X;
 data.y = NBSPredict.data.y;
+if ~isempty(NBSPredict.data.confounds)
+    % Check if confounds are provided.
+    data.confounds = NBSPredict.data.confounds;
+end
 
 % Model handler.
 modelEvaluateFun = @(data) modelEvaluate(data,NBSPredict);
@@ -151,10 +155,18 @@ modelEvaluateFun = @(data) modelEvaluate(data,NBSPredict);
     'kfold',NBSPredict.parameter.kFold); % Run handler in CV.
 
     function [modelEvalResults] = modelEvaluate(data,NBSPredict)
+        
         %Prepare data for middle fold.
         middleFoldData.X = data.X_train;
         middleFoldData.y = data.y_train;
+        if isfield(data,'confounds_train')
+            middleFoldData.confounds = data.confounds_train;
+            
+        end
         middleFoldBestParams = middleFold(middleFoldData,NBSPredict); % run middleFold.
+        
+        % Preprocess data.
+        data = preprocess_data(data,NBSPredict.parameter.scalingMethod);
         
         % Transform data for model evaluation using parameters found in middle fold.
         modelEvalData.X = data.X_train;
@@ -166,8 +178,13 @@ modelEvaluateFun = @(data) modelEvaluate(data,NBSPredict);
         data.X_test  = data.X_test(:,transformMask);
         data.y_test = data.y_test(:,2);
         data.y_train = data.y_train(:,2);
-        [modelEvalResults.score,modelEvalResults.truePredLabels] = fit_hyperParam(data,[],NBSPredict.MLhandle,...
-                NBSPredict.parameter.metric);
+        
+        params = middleFoldBestParams;
+        if ~NBSPredict.parameter.ifHyperOpt
+            params = [];
+        end
+        [modelEvalResults.score,modelEvalResults.truePredLabels] = fit_hyperParam(data,...
+            params,NBSPredict.MLhandle,NBSPredict.parameter.metric);
         weightScore = modelEvalResults.score;
         if ismember(NBSPredict.parameter.metric,{'rmse','mad'})
             weightScore = compute_modelMetrics(modelEvalResults.truePredLabels{1},...
@@ -183,7 +200,7 @@ truePredLabels = cell2mat(reshape([outerFoldCVresults.truePredLabels],2,[])');
 end
 
 function [bestParam] = middleFold(data,NBSPredict)
-% middleFold is the second (or middle) layer of the 3-layer nested
+% middleFold is the second (or middle) layer of the 2-layer nested
 % cross-validation structure. middleFold performs feature selection using a
 % searching algorithm selected. If requested, a function for hyperparameter
 % optimization (i.e., inner layer) is called in this function.
@@ -192,17 +209,17 @@ featureSelFun = @(data,param) run_featureSel(data,NBSPredict,param);
     NBSPredict.parameter.paramGrid);
 
     function [score] = run_featureSel(data,NBSPredict,params)
+        % Preprocess data.
+        data = preprocess_data(data,NBSPredict.parameter.scalingMethod);
+        
         % Run GLM and get test statistics
         testStats = run_nbsPredictGlm(data.y_train,data.X_train,NBSPredict.parameter.contrast,...
             NBSPredict.parameter.test);
-        [~,I] = sort(testStats,'descend'); % Rank features according to their test statistics.
+        [~,I] = sort(testStats,'descend'); % Rank features based on their test statistics.
         
         % Construct labels.
         data.y_test = data.y_test(:,2);
         data.y_train = data.y_train(:,2);
-        
-        % Make sure mid adj is in correct shape.
-        % midAdj = reshape(midAdj,nCand,numel(testStats));
         
         % Select n features.
         cEdgesIdx = I(1:getfieldi(params,'kBest'));
@@ -225,6 +242,25 @@ featureSelFun = @(data,param) run_featureSel(data,NBSPredict,param);
 end
 
 %% Helper functions
+function data = preprocess_data(data,scalingMethod)
+% preprocess_data performs preprocessing on data provided.
+% Preprocessing consists of rescaling and, if provided, removing
+% confounds from data.
+% Preprocess data
+if ~isempty(scalingMethod)
+    % Rescale data.
+    scaler = feval(scalingMethod);
+    data.X_train = scaler.fit_transform(data.X_train);
+    data.X_test = scaler.transform(data.X_test);
+end
+if isfield(data,'confounds_train')
+    % Remove variance associated with confounds from data.
+    confcorr = ConfoundRegression;
+    data.X_train = confcorr.fit_transform(data.X_train,data.confounds_train);
+    data.X_test = confcorr.transform(data.X_test,data.confounds_test);
+end
+end
+
 function varargout = fit_hyperParam(data,hyperparam,MLhandle,metrics)
 % fit_hyperParam fits ML algorithm on provided data with hyperparameters
 % provided.
@@ -234,6 +270,7 @@ if ischar(metrics)
 end
 nMetrics = numel(metrics);
 varargout = cell(1,nMetrics+1);
+
 [varargout{:}] = modelFitScore(Mdl,data,metrics);
 end
 
@@ -243,8 +280,6 @@ function [fileDir] = save_NBSPredict(NBSPredict)
 % current date of analysis. If there is another NBSPredict exists in the
 % same folder (i.e., multiple analysis in a day), the current file is named
 % with suffix.
-
-%%
 if NBSPredict.parameter.ifSave
     referenceFile = 'start_NBSPredict.m';
     saveDir = fileparts(which(referenceFile));

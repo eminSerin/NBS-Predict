@@ -33,5 +33,5 @@ for i = 1:nMetrics
     varargout{i} = Mdl.score(trainTestData.y_test,...
         y_pred,metrics{i}); % score
 end
-varargout{i+1} = {uint8(trainTestData.y_test),uint8(y_pred)};
+varargout{i+1} = {single(trainTestData.y_test),single(y_pred)};
 end

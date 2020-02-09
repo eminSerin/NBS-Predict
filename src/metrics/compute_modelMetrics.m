@@ -43,6 +43,10 @@
 % Last edited by Emin Serin, 25.09.2019.
 %
 
+% Make sure that vectors are at least single for compatibility.
+y_true = single(y_true);
+y_pred = single(y_pred);
+
 uniqueClasses = unique([y_true,y_pred]); % Find unique classes.
 nClass = numel(uniqueClasses); % Number of unique classes.
 
@@ -72,7 +76,7 @@ else
     % Regression metrics
     mse = @() sum((y_true-y_pred).^2)/numel(y_true);
     rmse = @() sqrt(mse()); % Root Means Squared Error
-    correlation = @() corr(single(y_true),single(y_pred));
+    correlation = @() corr(y_true,y_pred);
     r_squared = @() correlation()^2; % R Squared
     explained_variance = @() 1 - var(y_true-y_pred)/var(y_true); % Explained Variance
     mad = @() median(abs(y_true-y_pred)); % Median Absolute Difference

@@ -23,7 +23,7 @@ function [searchInputs] = get_searchInputs(searchMethod,varargin)
 %% Input
 % Set default inputs.
 % Default parameters.
-defaultVals.nIter = 60; defaultVals.nDiv = 20; defaultVals.selRound = 3;
+defaultVals.nIter = 10; defaultVals.nDiv = 20; defaultVals.selRound = 3;
 defaultVals.kFold = 10; defaultVals.bestParamMethod = 'max';
 defaultVals.sortDirection = 'ascend';  defaultVals.kFold = 10; 
 defaultVals.ifParallel = 0; defaultVals.alpha = .90; defaultVals.T = 5;

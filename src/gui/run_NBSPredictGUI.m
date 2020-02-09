@@ -22,7 +22,7 @@ function varargout = run_NBSPredictGUI(varargin)
 
 % Edit the above text to modify the response to manualPush run_NBSPredictGUI
 
-% Last Modified by GUIDE v2.5 05-Sep-2019 22:37:11
+% Last Modified by GUIDE v2.5 09-Feb-2020 15:39:15
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -141,7 +141,7 @@ function metricpop_Callback(hObject, eventdata, handles)
 tmp = get(hObject,'String');
 tmpIdx = get(hObject,'Value');
 handles.NBSPredict.parameter.metric = lower(tmp{tmpIdx});
-handles.guiHistory.UI.Value.metricpop = tmpIdx;
+% handles.guiHistory.UI.Value.metricpop = tmpIdx;
 guidata(hObject,handles);
 
 
@@ -162,11 +162,45 @@ metricOpt = {'Accuracy','Sensitivity','Specificity','Precision',...
     'Matthews_CC',...
     'Cohens_Kappa',...
     'AUC',...
-    'R_squared',...
+    'MSE',...
     'RMSE',...
-    'Explained_Variance',...
-    'MAD'};
+    'MAD',...
+    'Correlation',...
+    'R_squared',...
+    'Explained_Variance'};
 set(hObject,'String',metricOpt);
+
+% --- Executes on selection change in scalingPopMenu.
+function scalingPopMenu_Callback(hObject, eventdata, handles)
+% hObject    handle to scalingPopMenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns scalingPopMenu contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from scalingPopMenu
+tmp = get(hObject,'String');
+tmpIdx = get(hObject,'Value');
+scalingMethod = tmp{tmpIdx};
+if strcmpi(scalingMethod,'No Scaling')
+    scalingMethod = [];
+end
+handles.NBSPredict.parameter.scalingMethod = scalingMethod;
+handles.guiHistory.UI.Value.scalingPopMenu = tmpIdx;
+guidata(hObject,handles);
+
+% --- Executes during object creation, after setting all properties.
+function scalingPopMenu_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to scalingPopMenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+scalingOpt = {'No Scaling','MinMaxScaler','MaxAbsScaler','StandardScaler'};
+set(hObject,'String',scalingOpt);
 
 function repCViterEdit_Callback(hObject, eventdata, handles)
 % hObject    handle to repCViterEdit (see GCBO)
@@ -203,8 +237,6 @@ ifParallel = get(hObject,'Value');
 handles.NBSPredict.parameter.ifParallel = ifParallel;
 handles.guiHistory.UI.Value.ifParallelCheck = ifParallel;
 guidata(hObject,handles)
-
-
 
 function contrastEdit_Callback(hObject, eventdata, handles)
 % hObject    handle to contrastEdit (see GCBO)
@@ -248,7 +280,7 @@ function testpop_Callback(hObject, eventdata, handles)
 tmp = get(hObject,'String');
 tmpIdx = get(hObject,'Value');
 handles.NBSPredict.parameter.test = tmp{tmpIdx};
-handles.guiHistory.UI.Value.testpop = tmpIdx;
+% handles.guiHistory.UI.Value.testpop = tmpIdx;
 guidata(hObject,handles)
 
 % --- Executes during object creation, after setting all properties.
@@ -285,7 +317,7 @@ else
     handles.NBSPredict.parameter.ifModelOpt = 0;
     handles.NBSPredict.parameter.MLmodels = MLmodelNames(MLidx);
 end
-handles.guiHistory.UI.Value.mlModelpop = MLidx;
+% handles.guiHistory.UI.Value.mlModelpop = MLidx;
 guidata(hObject,handles)
 
 % --- Executes during object creation, after setting all properties.
@@ -301,8 +333,11 @@ end
 mlOptions = {'Auto (optimize models)',...
     'Decision Tree Classification',...
     'SVM Classification',...
+    'Logistic Regression',...
+    'Linear Discriminant Analysis',...
     'SVM Regression',...
-    'Decision Tree Regression'};
+    'Decision Tree Regression',...
+    'Linear Regression'};
 set(hObject,'String',mlOptions);
 handles.NBSPredict.parameter.ifModelOpt = 1;
 guidata(hObject,handles)
@@ -318,19 +353,22 @@ fileName = get(hObject,'String');
 if exist(fileName, 'file') == 2
     y = loadData(fileName);
     handles.NBSPredict.data.y = y;
-    if numel(unique(y(:,2))) < length(y(:,2))/2
-        mlOptions = {'Auto (optimize models)','Decision Tree Classification','SVM Classification'};
-        MLfunNames = {'','decisionTreeC','svmC'};
+    ifClass = numel(unique(y(:,2))) < length(y(:,2))/2;
+    if ifClass
+        mlOptions = {'Auto (optimize models)','Decision Tree Classification',...
+            'SVM Classification','Logistic Regression','Linear Discriminant Analysis'};
+        MLfunNames = {'','decisionTreeC','svmC','LogReg','lda'};
         set(handles.testpop,'String',{'t-test','F-test'})
         set(handles.metricpop,'String',{'Accuracy','Sensitivity','Specificity',...
             'Precision','Recall','F1','Matthews_CC','Cohens_Kappa','AUC'})
         set(handles.mlModelpop,'String',mlOptions);
     else
-        mlOptions = {'Auto (optimize models)','SVM Regression','Decision Tree Regression'};
-        MLfunNames = {'','svmR','decisionTreeR'};
+        mlOptions = {'Auto (optimize models)','SVM Regression','Decision Tree Regression','Linear Regression'};
+        MLfunNames = {'','svmR','decisionTreeR','LinReg'};
         set(handles.testpop,'String',{'F-test'})
-        set(handles.metricpop,'String',{'RMSE','R_squared','Explained_Variance','MAD'})
+        set(handles.metricpop,'String',{'RMSE','MSE','MAD','Correlation','Explained_Variance','R_squared'})
         set(handles.mlModelpop,'String',mlOptions);
+%         handles.NBSPredict.parameter.test = 'F-test';
     end
     handles.MLfunNames = MLfunNames;
     handles.guiHistory.MLfunNames = MLfunNames;
@@ -671,7 +709,7 @@ function aboutPush_Callback(hObject, eventdata, handles)
 % hObject    handle to aboutPush (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-verNBSPredict = '\bf1.0.0-alpha1';
+verNBSPredict = '\bf1.0.0-alpha2';
 msg = {'NBS-Predict';['Version: ',verNBSPredict];...
     '\rmAuthor: Emin Serin';...
     'Contact: eminserinn@gmail.com'};
@@ -700,9 +738,15 @@ function runNBSPredict_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 handles.guiHistory.data = handles.NBSPredict.data;
 handles.guiHistory.parameter = handles.NBSPredict.parameter;
-guiHistory = handles.guiHistory;
+if isfield(handles.guiHistory.parameter,'MLmodels') 
+    handles.guiHistory.parameter = rmfield(handles.guiHistory.parameter,{'MLmodels','ifModelOpt'});
+end
+if isfield(handles.guiHistory.parameter,'metric')
+    handles.guiHistory.parameter = rmfield(handles.guiHistory.parameter,'metric');
+end
 referenceFile = 'start_NBSPredict.m';
 saveDir = fileparts(which(referenceFile));
+guiHistory = handles.guiHistory;
 save([saveDir,filesep,'history.mat'],'guiHistory');
 set(handles.runNBSPredict,'ForegroundColor',[0,0.7,0]);
 run_NBSPredict(handles.NBSPredict);

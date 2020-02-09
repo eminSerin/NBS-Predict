@@ -22,7 +22,7 @@ function varargout = view_NBSPredict(varargin)
 
 % Edit the above text to modify the response to help view_NBSPredict
 
-% Last Modified by GUIDE v2.5 26-Sep-2019 22:47:18
+% Last Modified by GUIDE v2.5 21-Jan-2020 17:02:29
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -72,34 +72,40 @@ end
 handles.plotData = NBSPredict.results;
 handles.plotData.MLmodels = NBSPredict.parameter.MLmodels;
 handles.plotData.brainRegions = NBSPredict.data.brainRegions;
+handles.plotData.X = NBSPredict.data.X;
+handles.plotData.y = NBSPredict.data.y;
 handles.plotData.nodes = NBSPredict.data.nodes;
 handles.plotData.edgeIdx = NBSPredict.data.edgeIdx;
-handles.plotData.ifPlotScaled = 0;
+handles.plotData.ifPlotScaled = 1;
 handles.ifShowLabel = 0;
-
 if isfield(NBSPredict.results,'bestEstimator')
     cModel = handles.plotData.bestEstimator;
 else
     cModel = handles.plotData.MLmodels{1};
 end
 handles.cModel = cModel;
-
 y = NBSPredict.data.y;
 ifClass = numel(unique(y(:,2))) < length(y(:,2))/2;
 handles.ifClass = ifClass;
-if ifClass
-    handles.confMatPush.Visible = 'on';
-    handles =  updateConfMat(handles);
-    set(handles.metricPopUp,'String',{'Accuracy','Sensitivity','Specificity',...
-        'Precision','Recall','F1','Matthews_CC','Cohens_Kappa','AUC'});
-else
-    set(handles.metricPopUp,'String',{'MSE','RMSE','Correlation',...
-        'R_squared','Explained_Variance','MAD'});
-end
-
 metric = NBSPredict.parameter.metric;
 handles.plotData.metric = metric;
 handles.plotResults.metric = metric;
+handles.plotResults.truePredLabels = handles.plotData.(cModel).truePredLabels;
+if ifClass
+    handles.confMatPush.Visible = 'on';
+    handles =  updateConfMat(handles);
+    metrics = {'Accuracy','Sensitivity','Specificity',...
+        'Precision','Recall','F1','Matthews_CC','Cohens_Kappa','AUC'};
+    set(handles.metricPopUp,'String',metrics);
+else
+    metrics = {'MSE','RMSE','Correlation','R_squared','Explained_Variance','MAD'};
+    set(handles.metricPopUp,'String',metrics);
+end
+[~,metricLoc] = ismember(handles.plotData.metric,lower(metrics));
+if metricLoc
+    set(handles.metricPopUp,'Value',metricLoc);
+end
+
 handles.figureTitle = sprintf('%s: %.3f (%.3f, %.3f)',...
     [upper(metric(1)),metric(2:end)],...
     handles.plotData.(handles.cModel).meanRepCVscore,...
@@ -107,6 +113,8 @@ handles.figureTitle = sprintf('%s: %.3f (%.3f, %.3f)',...
 
 % Set MLmodelPop handle.
 set(handles.MLmodelsPop,'String',handles.plotData.MLmodels);
+MLmodelLoc = find(strcmpi(cModel, handles.plotData.MLmodels));
+set(handles.MLmodelsPop,'Value',MLmodelLoc);
 
 % Update handles structure
 handles.plotResults.wThresh = 0;
@@ -449,20 +457,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-% --- Executes on button press in minMaxButton.
-function minMaxButton_Callback(hObject, eventdata, handles)
-% hObject    handle to minMaxButton (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-% Hint: get(hObject,'Value') returns toggle state of minMaxButton
-ifPlotScaled = get(hObject,'Value');
-handles.plotData.ifPlotScaled = ifPlotScaled;
-
-% Update data and plot.
-handles = plotUpdatedData(handles);
-
-guidata(hObject,handles)
-
 % --- Executes on button press in labelButton.
 function labelButton_Callback(hObject, eventdata, handles)
 % hObject    handle to labelButton (see GCBO)
@@ -478,6 +472,23 @@ if isfield(handles,'brainNetFig') && isgraphics(handles.brainNetFig)
     pause(0.1)
     brainNetPush_Callback(handles.brainNetPush, [], handles);
 end
+guidata(hObject,handles)
+
+% --- Executes on button press in evalButton.
+function evalButton_Callback(hObject, eventdata, handles)
+% hObject    handle to evalButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+ifEval = get(hObject, 'Value');
+handles.ifEval = ifEval;
+if ifEval
+    handles.subNetEvalText.Visible = 'on';
+else
+    handles.subNetEvalText.Visible = 'off';
+end
+if ifEval
+    meanCVscore = evalSubnet(handles);
+end 
 guidata(hObject,handles)
 
 
@@ -546,7 +557,11 @@ handles.sizeNetworkText.String = sprintf('Nodes : %d\nEdges : %d',...
     numel(handles.plotResults.labels),size(handles.plotResults.G.Edges,1));
 sortedTable = sortrows(table(handles.plotResults.labels,...
     degree(handles.plotResults.G)),2,'descend');
+if handles.evalButton.Value
+    evalSubnet(handles);
+end
 handles.uitable1.Data = table2cell(sortedTable);
+
 
 function [handles] =  updateConfMat(handles)
 % Generate confusion matrix.
@@ -579,6 +594,43 @@ function [handles] = pcFontSize(handles)
 if ispc || isunix
     set(handles.figureAxes,'FontSize',8,'FontName','default');
 end
+
+function [meanCVscore] = evalSubnet(handles)
+    % Evaluates prediction performance of identified subnetwork. 
+    % Set parameters. 
+    kFold = 10; 
+    repCV = 10; % Run CV n times. 
+    
+    CVscores = zeros(repCV,kFold); % preallocate. 
+    
+    % Extract edge weights from suprathreshold subnetwork. 
+    subnetIdx = find(triu(handles.plotResults.adj));
+    [~,extIdx] = ismember(subnetIdx,handles.plotData.edgeIdx); % find indexes of edges to be extracted 
+    X = handles.plotData.X(:,extIdx);
+    y = handles.plotData.y(:,2);
+    data.X = X;
+    data.y = y;
+    
+    for i = 1: repCV
+        subnetEvalFun = @(data) subnetEvaluate(data,handles);
+        CVscores(i,:) = crossValidation(subnetEvalFun,data,'kfold',kFold); % Run handler in CV.
+    end
+    
+    meanCVscore = mean2(CVscores);
+    stdCVscore = std(mean(CVscores));
+    seCVscore = stdCVscore/sqrt(repCV);
+    confScore = seCVscore*1.96; % p < .05
+    upperCI = meanCVscore + confScore;
+    lowerCI = meanCVscore - confScore; 
+    strCVscore = sprintf('Score : %.3f\n[%.3f, %.3f]',meanCVscore,lowerCI,upperCI);
+    set(handles.subNetEvalText,'String',strCVscore);
+    
+    
+function score = subnetEvaluate(data,handles)
+        MLhandle = gen_MLhandles(handles.cModel);
+        Mdl = MLhandle();
+        score = modelFitScore(Mdl,data,handles.plotResults.metric);
+  
     
 % --- Executes during object deletion, before destroying properties.
 function viewNBSPredictFig_DeleteFcn(hObject, eventdata, handles)

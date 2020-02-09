@@ -30,6 +30,7 @@ default.parameter.ifHyperOpt = 0;
 default.parameter.verbose = 1;
 default.parameter.ifSave = 1;
 default.parameter.ifView = 0; 
+default.parameter.scalingMethod = [];
 
 if isfield(NBSPredict.parameter,'ifHyperOpt')
     % Set default hyperOptSteps parameter if ifHyperOpt exists and set to 1
@@ -48,11 +49,11 @@ selMethod = NBSPredict.parameter.selMethod;
 switch selMethod
     % Set default parameters for feature selection method.
     case {'divSelect','divSelectWide'}
-        default.parameter.nDiv = 20;
-        default.parameter.selRound = 3;
+        default.parameter.nDiv = 10;
+        default.parameter.selRound = 2;
         featSelParamNames = {'nDiv','selRound'};
     case {'simulatedAnnealing','randomSearch'}
-        default.parameter.nIter = 60;
+        default.parameter.nIter = 10;
         featSelParamNames = {'nIter'};
         if strcmpi('simulatedAnnealing',selMethod)
             default.parameter.T = 5;
@@ -72,7 +73,7 @@ ifClassif = nClasses < length(NBSPredict.data.y(:,2))/2;
 if ifClassif
     % Set default models.
     if ifModelOpt
-        default.parameter.MLmodels = {'decisionTreeC','svmC'};
+        default.parameter.MLmodels = {'decisionTreeC','svmC','LogReg','lda'};
     else
         default.parameter.MLmodels = {'decisionTreeC'};
     end
@@ -84,7 +85,7 @@ if ifClassif
     end
 else
     if ifModelOpt
-        default.parameter.MLmodels = {'decisionTreeR','svmR'};
+        default.parameter.MLmodels = {'decisionTreeR','svmR','LinReg'};
     else
         default.parameter.MLmodels = {'decisionTreeR'};
     end
@@ -124,6 +125,18 @@ end
 assert(isfield(default.data,'y'),'Design matrix is not provided!');
 assert(isfield(default.parameter,'contrast'),'Contrast vector is not provided!');
 
+% Check if confound variable is provided. 
+nuisanceIdx = find(default.parameter.contrast == 0); 
+if ~isempty(nuisanceIdx)
+    confoundsIdx = nuisanceIdx(nuisanceIdx~=1);
+    default.data.confounds = default.data.y(:,confoundsIdx);
+    default.data.y(:,confoundsIdx) = [];
+    default.parameter.originalContrast = default.parameter.contrast;
+    default.parameter.contrast(confoundsIdx) = [];
+else
+    default.data.confounds = [];
+end
+
 %% Hyperparameters
 nFeatures = size(default.data.X,2);
 maxK = round(nFeatures * (default.parameter.maxPercent/100));
@@ -134,9 +147,13 @@ for m = 1:numel(default.parameter.MLmodels)
             case 'svmC'
                 default.parameter.paramGrids(m).C = logspace(-1,3,hyperOptSteps);
             case 'svmR'
-                default.parameter.paramGrids(m).nu = linspace(0.001,1,hyperOptSteps);
+                default.parameter.paramGrids(m).epsilon = logspace(-1,2,hyperOptSteps);
             case {'decisionTreeC','decisionTreeR'}
                 default.parameter.paramGrids(m).MinLeafSize = linspace(1,50,hyperOptSteps);
+            case {'LinReg','LogReg'}
+                default.parameter.paramGrids(m).lambda = 0;
+            case {'lda'}
+                default.parameter.paramGrids(m).gamma = linspace(0,1,5);
         end
     end
     default.parameter.paramGrids(m).kBest = linspace(1,maxK,maxK); 
@@ -144,7 +161,7 @@ end
 
 %% Best parameter selection metric. 
 if ~isfield(default.parameter,'bestParamMethod')
-    if ifClassif || ismember(default.parameter.metric,{'r_squared','explained_variance'})
+    if ifClassif || ismember(default.parameter.metric,{'r_squared','explained_variance','correlation'})
         default.parameter.bestParamMethod = 'max';
     else
         default.parameter.bestParamMethod = 'min';
@@ -156,9 +173,9 @@ else
             'classification are max,ose or median!']);
     else
         assert(ismember(default.parameter.bestParamMethod,{'min'}) &&...
-            ~ismember(default.parameter.metric,{'r_squared','explained_variance'}),...
+            ~ismember(default.parameter.metric,{'r_squared','explained_variance','correlation'}),...
             ['Wrong best parameter metric chosen!. Best parameter metrics for ',...
-            'are min or median if your prediction metric is not R_squared!']);
+            'are min or median if your prediction metric is not R_squared, Explained Variance or Correlation!']);
     end
 end
 

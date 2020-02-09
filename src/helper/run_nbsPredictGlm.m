@@ -1,10 +1,10 @@
 function [stats] = run_nbsPredictGlm(X,y,contrast,test)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%   RUN_NBSPREDICTGLM performs a simple version of GLM used in NBS toolbox.
+%   run_nbsPredictGlm performs a simple version of GLM used in NBS toolbox.
 %   (Zalesky et.al., 2010)
 %   Input:
-%       y: data (dependent variables.)
 %       X: design matrix (independent variables).
+%       y: data (dependent variables.)
 %       contrast: contrast values.
 %       test: 't-test' or 'f-test'
 %   Output:
@@ -25,7 +25,7 @@ nuisance = find(~contrast);
 % Define some parameters and calcualte betas and residuals.
 nSub = size(y,1); % number of subjects/observations
 nPred = size(X,2); % number of predictors
-betas = X\y; % Least squares (alt. pinv(X)*y)
+betas = linsolve(X,y); % Least squares (alt. X\y)
 resid = y-X*betas; % residuals (i.e. error)
 
 if strcmpi(test,'t-test')

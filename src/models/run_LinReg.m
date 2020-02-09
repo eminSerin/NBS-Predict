@@ -1,24 +1,23 @@
-function [Mdl] = run_svmC(params)
+function [Mdl] = run_LinReg(params)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% run_svmC returns Mdl structure including function handles of
-% builtin fit, predict and score functions for support vector
-% classification.
+% run_LogReg returns Mdl structure including function handles of fit,
+% predict and score functions for linear regression. 
 %
 % Optional arguement: 
 %   params: Structure including following hyperparameters:
-%   lambda: Lambda parameter. 
+%   lambda: Lambda parameter (default = 0). 
 % 
 % Output: 
 %   Mdl: Structure that includes fit, predict and score function handles. 
 %
 % Reference:
-%   https://en.wikipedia.org/wiki/Support_vector_machine
+%   https://en.wikipedia.org/wiki/Linear_regression
 %
 % Emin Serin - 10.08.2019
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Default parameters.
-defaultParams.C = [];
+defaultParams.lambda = 0;
 
 if nargin < 1 || isempty(params)
     % Create struct if no provided.
@@ -28,11 +27,7 @@ end
 params = check_MLparams(params,defaultParams);
 
 % Function handles.
-if isempty(params.C)
-    Mdl.fit = @(X,y) fitclinear(X,y,'Learner','svm','Lambda', 0,'Solver','sgd');
-else
-    Mdl.fit = @(X,y) fitcsvm(X,y,'BoxConstraint',params.C,'KernelFunction','linear');
-end
+Mdl.fit = @(X,y) fitrlinear(X,y,'Learner','leastsquares','Lambda', params.lambda);
 Mdl.pred = @(clf,newX) clf.predict(newX);
 Mdl.score = @compute_modelMetrics;
 end

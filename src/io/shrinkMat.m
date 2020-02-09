@@ -36,8 +36,11 @@ for i = 1:subjects
     edgeMat(i,:)=cMat(edgeIdx); % extract edge values. 
 end
 
-% Remove edges with zero values to fasten the ML algorithm later on.
-nzEdgeIdx = find(edgeMat(1,:)); % Non-zero edge indices.
-edgeMat = edgeMat(:,nzEdgeIdx); % EdgeMat with non-zero edges.
-edgeIdx = edgeIdx(nzEdgeIdx);
+% Remove features where nonzero features are 10% or less.
+SMR = 0.1; % Signal to missing value ratio (default = 0.1, at least %10 of nonzero)
+logicalEdgeMat = edgeMat;
+logicalEdgeMat((logicalEdgeMat ~= 0)&(~isnan(logicalEdgeMat))) = 1;
+SMRmask = mean(logicalEdgeMat,1) > SMR;
+edgeMat = edgeMat(:,SMRmask); % EdgeMat with non-zero edges.
+edgeIdx = edgeIdx(SMRmask);
 end

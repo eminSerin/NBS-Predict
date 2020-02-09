@@ -7,7 +7,8 @@ function [CVresults] = crossValidation(fun,data,varargin)
 %   fun = Objective function (e.g., estimator).
 %   data = Data structure were current features and labels are stored.
 %   kFold = Number of CV folds. 
-%   ifParallel = Parallelize CV (1 or 0, default = 0). 
+%   ifParallel = Parallelize CV (1 or 0, default = 0).
+%   ifRand = if randomized (default = true)
 %
 % Output:
 %   CVscore = Cross-validation score. 
@@ -22,12 +23,14 @@ function [CVresults] = crossValidation(fun,data,varargin)
 % Set default inputs.
 % Default parameters.
 defaultVals.kFold = 10; defaultVals.ifParallel = 0; 
+defaultVals.ifRand = 1;
 
 % Input Parser
 validationNumeric = @(x) isnumeric(x);
 p = inputParser(); p.PartialMatching = 0; % deactivate partial matching.
 addParameter(p,'kFold',defaultVals.kFold,validationNumeric);
 addParameter(p,'ifParallel',defaultVals.ifParallel,validationNumeric);
+addParameter(p,'ifRand',defaultVals.ifRand,validationNumeric);
 
 % Parse input
 parse(p,varargin{:});
@@ -35,10 +38,11 @@ parse(p,varargin{:});
 % Input 
 kFold = p.Results.kFold;
 ifParallel = p.Results.ifParallel;
+ifRand =  p.Results.ifRand;
 
 %%
 % Generate CV indices.
-cvFoldIdx = gen_cvpartition(data.y,kFold);
+cvFoldIdx = gen_cvpartition(data.y,kFold,ifRand);
 
 % Preallocate.
 trainTestData = prepare_trainTestData(data,cvFoldIdx(1));
@@ -60,9 +64,11 @@ end
 
 
 function [trainTestData] = prepare_trainTestData(data,foldIdx)
-% Train-test split.
-trainTestData.X_train = data.X(foldIdx.trainIdx,:);
-trainTestData.X_test = data.X(foldIdx.testIdx,:);
-trainTestData.y_train = data.y(foldIdx.trainIdx,:);
-trainTestData.y_test = data.y(foldIdx.testIdx,:);
+dataNames = fieldnames(data);
+for dn = 1: numel(dataNames)
+    % Train-test split.
+    cDataName = dataNames{dn};
+    trainTestData.([cDataName,'_train']) = data.(cDataName)(foldIdx.trainIdx,:);
+    trainTestData.([cDataName,'_test']) = data.(cDataName)(foldIdx.testIdx,:);
+end
 end
