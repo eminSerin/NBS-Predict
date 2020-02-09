@@ -1,0 +1,14 @@
+## [v1.0.0-alpha2] - 09.02.2019
+- NBS-Predict is now in v1.0.0-alpha2.
+- Fix several bugs in the GUI.
+- Fix bug in correlation metric. 
+- Change default parameters for searching algorithms. Now they have more liberal parameters (e.g., reduced number of iterations).
+- Add function to control confounds.
+- Add a menu in GUI to choose a scaling method.
+- SVM Regression is now built-in function instead of LIBSVM.
+- Add Linear Regression, Logistic Regression and Linear Discriminant Analysis
+- Add MinMaxScaler, StandardScaler and MaxAbsScaler
+- LIBSVM is now removed. Instead, builtin SVM functions are now available to use. They give the same prediction performance as LIBSVM, but are significantly faster. 
+- Add preprocessing step in shrinkMat function, that features where information is less than 10% are removed. In this way, very sparse features are now removed. It might be increased to 20% in future updates.
+
+
