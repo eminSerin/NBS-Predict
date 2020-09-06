@@ -2988,7 +2988,11 @@ if EC.edg.color == 2
     cb=colorbar('location','South');
     if EC.edg.color_map_type == 1 % Modified by Mingrui, 20170303, support fixed color mapping
         if EC.edg.color_abs == 0
-            caxis([min(surf.cylinder(:,3)),max(surf.cylinder(:,3))]);
+            if numel(unique(surf.cylinder(:,3))) == 1
+                caxis([0,1]);
+            else
+                caxis([min(surf.cylinder(:,3)),max(surf.cylinder(:,3))]);
+            end
         else
             caxis([min(abs(surf.cylinder(:,3))),max(abs(surf.cylinder(:,3)))]);
         end
@@ -3039,7 +3043,11 @@ if EC.edg.color == 2
     cb=colorbar('location','East');
     if EC.edg.color_map_type == 1 % Modified by Mingrui, 20170303, support fixed color mapping
         if EC.edg.color_abs == 0
-            caxis([min(surf.cylinder(:,3)),max(surf.cylinder(:,3))]);
+            if numel(unique(surf.cylinder(:,3))) == 1
+                caxis([0,1]);
+            else
+                caxis([min(surf.cylinder(:,3)),max(surf.cylinder(:,3))]);
+            end
         else
             caxis([min(abs(surf.cylinder(:,3))),max(abs(surf.cylinder(:,3)))]);
         end
@@ -3116,7 +3124,11 @@ if EC.edg.color == 2
     cb=colorbar('location','South');
     if EC.edg.color_map_type == 1 % Modified by Mingrui, 20170303, support fixed color mapping
         if EC.edg.color_abs == 0
-            caxis([min(surf.cylinder(:,3)),max(surf.cylinder(:,3))]);
+            if numel(unique(surf.cylinder(:,3))) == 1
+                caxis([0,1]);
+            else
+                caxis([min(surf.cylinder(:,3)),max(surf.cylinder(:,3))]);
+            end
         else
             caxis([min(abs(surf.cylinder(:,3))),max(abs(surf.cylinder(:,3)))]);
         end
@@ -3190,7 +3202,11 @@ if EC.edg.color == 2
     cb = colorbar('location','South');
     if EC.edg.color_map_type == 1 % Modified by Mingrui, 20170303, support fixed color mapping
         if EC.edg.color_abs == 0
-            caxis([min(surf.cylinder(:,3)),max(surf.cylinder(:,3))]);
+            if numel(unique(surf.cylinder(:,3))) == 1
+                caxis([0,1]);
+            else
+                caxis([min(surf.cylinder(:,3)),max(surf.cylinder(:,3))]);
+            end
         else
             caxis([min(abs(surf.cylinder(:,3))),max(abs(surf.cylinder(:,3)))]);
         end
@@ -3259,7 +3275,11 @@ if EC.edg.color == 2
     cb=colorbar('location','South');
     if EC.edg.color_map_type == 1 % Modified by Mingrui, 20170303, support fixed color mapping
         if EC.edg.color_abs == 0
-            caxis([min(surf.cylinder(:,3)),max(surf.cylinder(:,3))]);
+            if numel(unique(surf.cylinder(:,3))) == 1
+                caxis([0,1]);
+            else
+                caxis([min(surf.cylinder(:,3)),max(surf.cylinder(:,3))]);
+            end
         else
             caxis([min(abs(surf.cylinder(:,3))),max(abs(surf.cylinder(:,3)))]);
         end
@@ -3354,7 +3374,11 @@ if EC.edg.color == 2
     cb=colorbar('location','South');
     if EC.edg.color_map_type == 1 % Modified by Mingrui, 20170303, support fixed color mapping
         if EC.edg.color_abs == 0
-            caxis([min(surf.cylinder(:,3)),max(surf.cylinder(:,3))]);
+            if numel(unique(surf.cylinder(:,3))) == 1
+                caxis([0,1]);
+            else
+                caxis([min(surf.cylinder(:,3)),max(surf.cylinder(:,3))]);
+            end
         else
             caxis([min(abs(surf.cylinder(:,3))),max(abs(surf.cylinder(:,3)))]);
         end

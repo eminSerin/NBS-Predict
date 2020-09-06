@@ -1,4 +1,4 @@
-## [v1.0.0-alpha2] - 09.02.2019
+## [v1.0.0-alpha2] - 09.02.2020
 - NBS-Predict is now in v1.0.0-alpha2.
 - Fix several bugs in the GUI.
 - Fix bug in correlation metric. 
@@ -11,4 +11,18 @@
 - LIBSVM is now removed. Instead, builtin SVM functions are now available to use. They give the same prediction performance as LIBSVM, but are significantly faster. 
 - Add preprocessing step in shrinkMat function, that features where information is less than 10% are removed. In this way, very sparse features are now removed. It might be increased to 20% in future updates.
 
-
+## [v1.0.0-alpha2] - 06.09.2020
+- NBS-Predict is now in v1.0.0-alpha3.
+- Fix several bugs in the GUI.
+- Fix bug in the contrast network generation algorithm. 
+- Fix minor bugs in assert statements. 
+- Minor tweaks in BrainNetViewer to visualize 3D Brain Image better.
+- Add functionality to generate synthetic data for regression problems.
+- Replace maximum percentile with p-value for pre-filtering. 
+- Changed several functions with regards to change in pre-filtering.
+- Fix minor issue in function generating parameter combinations.
+- divSelect, divSelectWide, simulatedAnnealing search algorithms were removed. 
+- Bayesian Optimization is now usable.
+- Update hyperparameter space for decision tree estimator.
+- Drop weight distribution plot as it might be misleading for interpretation of feature importance. 
+- Import circularGraph toolbox written by Paul Kassebaum to NBS-Predict to display circular network figures.

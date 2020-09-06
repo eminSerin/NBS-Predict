@@ -13,49 +13,50 @@ function [bestParam,bestParamScore,bestParamIdx] = randomSearch(objFun,data,para
 %   data = Data structure including X and y matrices. 
 %   paramGrid = Parameter grid.
 %   nIter: Number of iteration (default = 10).
-%   bestParamMethod = Method to choose best parameter ('max','ose','median','min', default = "max").
-%       Check help section of bestParamMetric for detailed information.     
-%   sortDirection = Direction of sorting ('ascend' or 'descend', default= 'ascend'). 
-%       Check help section of bestParamMetric for detailed information.
+%   bestParamMethod = Method to choose best parameter ('best','median', default = "best").
+%       Check help section of bestParamMetric for detailed information. 
+%   metric = Performance metric used to evaluate model performance. 
 %   kFold = Number of CV folds (default = 10). 
-%   ifParallel = Parallelize CV (1 or 0, default = 0). 
+%   ifParallel = Parallelize CV (1 or 0, default = 0).
+%   randomState: Controls the randomness. Pass an integer value for
+%       reproducible results (default = 'shuffle').  
 %
 % Output:
 %   bestParam = Parameter with best CV score. 
 %   bestParamScore = Cross-validation score of best parameters found. 
 %   bestParamIdx = Index of best parameter in a parameter space given.
 %
-% Emin Serin - 01.08.2019
+% Emin Serin - 05.07.2020
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% Input
+%%
+% Input
 % validate parameters and return default parameters if no provided. 
 searchInputs = get_searchInputs('randomSearch',varargin{:}); 
 nIter = searchInputs.nIter; kFold = searchInputs.kFold;
-%%
-% Set the random seed based on current time.
-rng('shuffle');
 
 % Draw an uniform random sample from parameter space without replacement.
 [~,nComb] = get_paramGridShapeComb(paramGrid);
+if nIter > nComb
+    nIter = nComb; 
+end
 randomParamSpace = randperm(nComb,nIter);
 
 % Preallocation
 CVscore = zeros(kFold,nIter);
-
 for iter = 1 : nIter
     paramGridIdx = randomParamSpace(iter);
     params = get_paramItem(paramGrid,paramGridIdx);
     CVfun = @(data) objFun(data,params);
-    % Run cv feature selection.
-    CVscore(:,iter) = crossValidation(CVfun,data,...
+    cvResults = crossValidation(CVfun,data,...
         'ifParallel',searchInputs.ifParallel,...
         'kFold',kFold);
+    % Run cv feature selection.
+    CVscore(:,iter) = [cvResults.score];
 end
 
 % Find best parameter
-[bestParam,bestParamScore,bestParamIdx] = get_bestParam(CVscore,randomParamSpace,paramGrid...
-    ,'metric',searchInputs.bestParamMethod,...
-    'sortDirection',searchInputs.sortDirection);
+[bestParam,bestParamScore,bestParamIdx] = get_bestParam(CVscore,...
+    randomParamSpace,paramGrid,searchInputs.bestParamMethod);
 end

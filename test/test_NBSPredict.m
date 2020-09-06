@@ -10,15 +10,14 @@ function [NBSPredict] = test_NBSPredict(varargin)
 %       ifParallel = Performs repeated nested CV parallel 
 %           (1 or 0, default = 0). 
 %       metrics = Performance metrics (accuracy,f1,auc,precision,
-%           matthews_cc,cohens_kappa, default = f1).
+%           matthews_cc,cohens_kappa, default = auc).
 %       ifModelOpt = If performs model optimization
 %           (i.e., runs repeated nested CV with different estimators,
 %           default = 1).
 %       MLmodels = Estimator (svmC or decisionTreeC, default = svmC).
 %       bestParamMethod = Method to choose best parameter during feature
-%           selection (max,median,ose, default = max).
-%       maxPercent = The maximum percentile which feature selection 
-%            algorithm can pick (default = 10).
+%           selection (best,median default = best).
+%       pVal = p-value used for pre-filtering (default = 0.05).
 %       verbose = Whether display current nested CV score on command
 %           window (default = 1).
 %       ifHyperOpt = Whether perform hyperparameter optimization (default = 1). 
@@ -40,10 +39,14 @@ function [NBSPredict] = test_NBSPredict(varargin)
 %           done (default = false).
 %   
 %   The following parameters are specific to the synthetic data generation.
+%       ifRegression = Generates data for regression problems (default = 0).
+%       noise = Noise in target data. Only available in regression problems.
+%           (default = 0.0)
 %       nNodes = Number of nodes in synthetic network (default = 100).
-%       cnr = Contrast-to-noise ratio (default = 0.75).
+%       cnr = Contrast-to-noise ratio. Only available in classification 
+%           problems (default = 0.50).
 %       nn = The number of control-contrast network couples generated.
-%           (default = 20, i.e. sample size of 40 observations). 
+%           (default = 25, i.e. sample size of 50 observations). 
 %       network = Type of network (default = 'smallworld')
 %           Scale-free network:
 %               m: Number of edges through which a new node connects to
@@ -53,7 +56,9 @@ function [NBSPredict] = test_NBSPredict(varargin)
 %               k: k-nearest neightbors each node is connected (default = 10). 
 %               beta: rewiring probability. (default = .05)
 %           Random network. 
-%   
+%       randomState = Controls the randomness. Pass an integer value for
+%           reproducible results (default = 'shuffle').  
+%       
 %   Output:
 %       NBSPredict: NBSPredict structure with results. 
 %   
@@ -61,122 +66,74 @@ function [NBSPredict] = test_NBSPredict(varargin)
 %       test_NBSPredict();
 %       test_NBSPredict('kFold',5,'ifParallel',1,'model','svmC','network','scalefree');
 %   
-%   Last edited by Emin Serin, 03.09.2019.
+%   Last edited by Emin Serin, 24.04.2020.
 %   
 % See also, run_NBSPredict, gen_synthData, get_NBSPredictInput, get_searchInputs
 
-%% Input parser.
-% Default parameters for NBSPredict.
-defaultVals.kFold = 10; defaultVals.ifParallel = false;
-defaultVals.metrics = 'accuracy'; defaultVals.MLmodels = 'svmC'; 
-defaultVals.selMethod = 'randomSearch'; defaultVals.bestParamMethod = 'max'; 
-defaultVals.maxPercent = 10; defaultVals.repCViter = 10; 
-defaultVals.verbose = 1; defaultVals.ifHyperOpt = 1; 
-defaultVals.hyperOptSteps = 5; defaultVals.T = 5;
-defaultVals.alpha = 0.95; defaultVals.nIter = 60;
-defaultVals.nRound = 3; defaultVals.nDiv = 20;
-defaultVals.ifModelOpt = 1; defaultVals.ifSave = 0;
-metricsOptions = {'accuracy','f1','auc','precision','matthews_cc','cohens_kappa'};
-MLmodelsOptions = {'svmC','decisionTree'};
-selMethodOptions = {'divSelect','divSelectWide','randomSearch',...
-    'simulatedAnnealing'};
-bestParamMethodOptions = {'max','ose','median'}; 
-
-% Default parameters for synthetic data generation. 
-defaultVals.nNodes = 100; defaultVals.nEdges= 50; 
-defaultVals.cnr = 0.5; defaultVals.network = 'smallworld';
-defaultVals.m = 2; defaultVals.m0 = 40;
-defaultVals.k = 10; defaultVals.beta = .05;
-defaultVals.n = 25;
-networkOptions = {'scalefree','smallworld','random'};
-
-% Validation
-validationMetric = @(x) any(validatestring(x,metricsOptions));
-validationModel = @(x) any(validatestring(x,MLmodelsOptions));
-validationSelMethod = @(x) any(validatestring(x,selMethodOptions));
-validationBestParamMethod = @(x) any(validatestring(x,bestParamMethodOptions));
-validationNumeric = @(x) isnumeric(x);
-validationNetwork = @(x) any(validatestring(x,networkOptions));
-
-% Add NBSPredict parameters. 
-p = inputParser();
-p.PartialMatching = 0; % deactivate partial matching.
-addParameter(p,'kFold',defaultVals.kFold,validationNumeric);
-addParameter(p,'ifParallel',defaultVals.ifParallel,validationNumeric);
-addParameter(p,'metrics',defaultVals.metrics,validationMetric);
-addParameter(p,'MLmodels',defaultVals.MLmodels,validationModel);
-addParameter(p,'selMethod',defaultVals.selMethod,validationSelMethod);
-addParameter(p,'bestParamMethod',defaultVals.bestParamMethod,validationBestParamMethod);
-addParameter(p,'maxPercent',defaultVals.maxPercent,validationNumeric);
-addParameter(p,'repCViter',defaultVals.repCViter,validationNumeric);
-addParameter(p,'verbose',defaultVals.verbose,validationNumeric);
-addParameter(p,'ifHyperOpt',defaultVals.ifHyperOpt,validationNumeric);
-addParameter(p,'hyperOptSteps',defaultVals.hyperOptSteps,validationNumeric);
-addParameter(p,'T',defaultVals.T,validationNumeric);
-addParameter(p,'nIter',defaultVals.nIter,validationNumeric);
-addParameter(p,'alpha',defaultVals.alpha,validationNumeric);
-addParameter(p,'nRound',defaultVals.nRound,validationNumeric);
-addParameter(p,'nDiv',defaultVals.nDiv,validationNumeric);
-addParameter(p,'ifModelOpt',defaultVals.ifModelOpt,validationNumeric);
-addParameter(p,'ifSave',defaultVals.ifSave,validationNumeric);
-
-
-% Add Synthetic data generation parameters. 
-addParameter(p,'network',defaultVals.network,validationNetwork);
-addParameter(p,'nNodes',defaultVals.nNodes,validationNumeric);
-addParameter(p,'cnr',defaultVals.cnr,validationNumeric);
-addParameter(p,'m',defaultVals.m,validationNumeric);
-addParameter(p,'m0',defaultVals.m0,validationNumeric);
-addParameter(p,'k',defaultVals.k,validationNumeric);
-addParameter(p,'beta',defaultVals.beta,validationNumeric);
-addParameter(p,'nEdges',defaultVals.nEdges,validationNumeric);
-addParameter(p,'n',defaultVals.n,validationNumeric);
-
-% Parse inputs. 
-parse(p,varargin{:});
-
 %% Organize user inputs.
-NBSPredict.parameter.contrast = [1,-1];
-NBSPredict.parameter.test = 't-test';
-NBSPredict.parameter.kFold = p.Results.kFold;
-NBSPredict.parameter.ifParallel = p.Results.ifParallel; 
-NBSPredict.parameter.metrics = p.Results.metrics;
-NBSPredict.parameter.selMethod = p.Results.selMethod;
-NBSPredict.parameter.maxPercent = p.Results.maxPercent;
-NBSPredict.parameter.verbose = p.Results.verbose;
-NBSPredict.parameter.ifModelOpt = p.Results.ifModelOpt;
-NBSPredict.parameter.ifSave = p.Results.ifSave;
+[testInputs] = get_testInput(varargin{:});
+NBSPredict.parameter.kFold = testInputs.kFold;
+NBSPredict.parameter.ifParallel = testInputs.ifParallel; 
+NBSPredict.parameter.metric = testInputs.metric;
+NBSPredict.parameter.selMethod = testInputs.selMethod;
+NBSPredict.parameter.pVal = testInputs.pVal;
+NBSPredict.parameter.verbose = testInputs.verbose;
+NBSPredict.parameter.ifModelOpt = testInputs.ifModelOpt;
+NBSPredict.parameter.ifHyperOpt = testInputs.ifHyperOpt;
+NBSPredict.parameter.ifSave = testInputs.ifSave;
 NBSPredict.parameter.ifTest = 1; % This is a tag for testing. DO NOT CHANGE!
-if ~NBSPredict.parameter.ifModelOpt
-    NBSPredict.parameter.MLmodels = {p.Results.MLmodels};
-end
-switch NBSPredict.parameter.selMethod
-    case {'divSelect','divSelectWide'}
-        NBSPredict.parameter.nDiv = p.Results.nDiv;
-        NBSPredict.parameter.nRound = p.Results.nRound;
-    case {'randomSearch','simulatedAnnealing'}
-        NBSPredict.parameter.nIter = p.Results.nIter;
-        if strcmpi(NBSPredict.parameter.selMethod,'simulatedAnnealing')
-            NBSPredict.parameter.T = p.Results.T;
-            NBSPredict.parameter.alpha = p.Results.alpha;
-        end
+
+if testInputs.ifRegression
+    NBSPredict.parameter.test = 'f-test';
+    NBSPredict.parameter.contrast = [0,1];
+else
+    NBSPredict.parameter.contrast = [1,-1];
+    NBSPredict.parameter.test = 't-test';
 end
 
-netParameters = {'nNodes',p.Results.nNodes,'nEdges',defaultVals.nEdges,...
-    'n',p.Results.n,'network',p.Results.network,'cnr',p.Results.cnr};
-switch p.Results.network
-    case 'smallworld'
-        netParameters = {netParameters{:},'k',p.Results.k,...
-            'beta',p.Results.beta};
-    case 'scalefree'
-        netParameters = {netParameters{:},'m',p.Results.m,...
-            'm0',p.Results.m0};
+if ~NBSPredict.parameter.ifModelOpt
+    NBSPredict.parameter.MLmodels = {testInputs.MLmodels};
+end
+
+switch NBSPredict.parameter.selMethod
+    case {'randomSearch','bayesOpt'}
+        NBSPredict.parameter.nIter = testInputs.nIter;
+        if strcmpi(NBSPredict.parameter.selMethod,'bayesOpt')
+            NBSPredict.parameter.acquisitionFun = testInputs.acquisitionFun;
+        end     
+end
+
+netParameters = {'nEdges',testInputs.nEdges,'n',testInputs.n,...
+    'randomState',testInputs.randomState};
+
+if testInputs.ifRegression
+    netParameters = {netParameters{:},'noise',testInputs.noise,...
+        'ifRegression',1};
+else
+    netParameters = {netParameters{:},'cnr',testInputs.cnr,...
+        'ifRegression',0};
+end
+
+if ~testInputs.ABIDE
+    netParameters = {netParameters{:},'nNodes',testInputs.nNodes};
+    switch testInputs.network
+        case 'smallworld'
+            netParameters = {netParameters{:},'k',testInputs.k,...
+                'beta',testInputs.betam,'network','smallworld'};
+        case 'scalefree'
+            netParameters = {netParameters{:},'m',testInputs.m,...
+                'm0',testInputs.m0,'network','scalefree'};
+    end
 end
 
 %% Run analysis. 
 
 % Generate data.
-NBSPredict.data = gen_synthData(netParameters{:});
+if testInputs.ABIDE
+    NBSPredict.data = gen_synthDataABIDE(netParameters{:});
+else
+    NBSPredict.data = gen_synthData(netParameters{:});
+end
 [NBSPredict.data.X,NBSPredict.data.nodes,...
     NBSPredict.data.edgeIdx] = shrinkMat(NBSPredict.data.subData);
 
@@ -193,7 +150,9 @@ contrastedEdges(trueFeatureIdx) = 1;
 NBSPredict.data.contrastedEdges = contrastedEdges;
 
 % Run 
-NBSPredict = run_NBSPredict(NBSPredict);
+if ~ testInputs.simPreAllocate
+    NBSPredict = run_NBSPredict(NBSPredict);
+end
 
 end
 

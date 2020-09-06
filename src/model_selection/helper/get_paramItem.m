@@ -37,13 +37,22 @@ if isrow(pGrid{mIdx})
     pGrid{mIdx} = pGrid{mIdx}';
 end
 pGrid{mIdx} = sort(repmat(pGrid{mIdx},[nComb/maxParam,1])); % sort by parameter with highest candidate. 
-shapeParam(mIdx) = nComb; % parameter grid shape. 
+shapeParamMultiplied = shapeParam;
+shapeParamMultiplied(mIdx) = nComb; % parameter grid shape. 
 
 lenParam = numel(paramNames);
 
-
 for i = 1:lenParam
-    idx = mod(ind,shapeParam(i))+1;
+    idx = mod(ind,shapeParamMultiplied(i));
+    if idx == 0
+        divs = [ind,shapeParamMultiplied(i)];
+        divVal = max(divs)/min(divs);
+        if round(divVal) == divVal
+            idx = min(divs); 
+        else
+            idx = 1;
+        end
+    end
     params.(paramNames{i}) = pGrid{i}(idx);
 end
 

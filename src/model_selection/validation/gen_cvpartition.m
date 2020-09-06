@@ -6,7 +6,7 @@ function [idx] = gen_cvpartition(y,varargin)
 %   Input:
 %       y: labels.
 %       kFold: number of cv folds (default: 10).
-%       ifRand: if randomized (default: true)
+%       ifRand: if randomized (default: 1)
 %   Output:
 %       idx = Structure of test and train indices.
 %
@@ -22,7 +22,7 @@ if numvarargs > 3
     % maximum number of optional inputs.
     error('too many inputs.')
 end
-optargs = {10,true}; % default inputs.
+optargs = {10,1}; % default inputs.
 optargs(1:numvarargs) = varargin; %overwrite given inputs to defaults.
 [kFold,ifRand] = optargs{:};
 

@@ -18,13 +18,13 @@ function [mainNBSPredict] = get_NBSPredictInput(NBSPredict)
 % Example usage:
 %   [NBSPredict] = get_NBSPredictInput(NBSPredict);
 %
-% Emin Serin - 29.08.2019
+% Emin Serin - 05.07.2020
 %
 
 %% Set default parameters
 default.parameter.kFold = 10;
 default.parameter.repCViter = 10;
-default.parameter.maxPercent = 10;
+default.parameter.pVal = 0.05;
 default.parameter.ifParallel = 0;
 default.parameter.ifHyperOpt = 0;
 default.parameter.verbose = 1;
@@ -43,25 +43,21 @@ end
 
 % Set default feature selection method if no provided.
 if ~isfield(NBSPredict.parameter,'selMethod')
-    NBSPredict.parameter.selMethod = 'divSelect';
+    NBSPredict.parameter.selMethod = 'randomSearch';
 end
-selMethod = NBSPredict.parameter.selMethod;
-switch selMethod
+hyperOptMethods = NBSPredict.parameter.selMethod;
+switch hyperOptMethods
     % Set default parameters for feature selection method.
-    case {'divSelect','divSelectWide'}
-        default.parameter.nDiv = 10;
-        default.parameter.selRound = 2;
-        featSelParamNames = {'nDiv','selRound'};
-    case {'simulatedAnnealing','randomSearch'}
-        default.parameter.nIter = 10;
-        featSelParamNames = {'nIter'};
-        if strcmpi('simulatedAnnealing',selMethod)
-            default.parameter.T = 5;
-            default.parameter.alpha = 0.95;
-            featSelParamNames = {featSelParamNames{:},'T','alpha'};
+    case {'bayesOpt','randomSearch'}
+        default.parameter.nIter = 20;
+        hyperOptParamNames = {'nIter'};
+        if strcmpi(hyperOptMethods,'bayesOpt')
+            default.parameter.acquisitionFun = 'expected-improvement';
         end
+    case 'gridSearch'
+        hyperOptParamNames = {};
 end
-featSelParamNames = {featSelParamNames{:},'kFold','bestParamMethod'};
+hyperOptParamNames = {hyperOptParamNames{:},'kFold','bestParamMethod','metric'};
 
 if ~isfield(NBSPredict.parameter,'ifModelOpt')
     % Set ifModelOpt parameter if no provided.
@@ -69,7 +65,8 @@ if ~isfield(NBSPredict.parameter,'ifModelOpt')
 end
 ifModelOpt = NBSPredict.parameter.ifModelOpt;
 nClasses = numel(unique(NBSPredict.data.y(:,2)));
-ifClassif = nClasses < length(NBSPredict.data.y(:,2))/2;
+% ifClassif = nClasses < length(NBSPredict.data.y(:,2))/2;
+ifClassif = nClasses < 10;
 if ifClassif
     % Set default models.
     if ifModelOpt
@@ -79,7 +76,7 @@ if ifClassif
     end
     default.parameter.metric = 'accuracy';
     if nClasses > 2
-        default.parameter.test = 'f-test';
+        error('NBS-Predict can only be used binary classification and regression problems!');
     else
         default.parameter.test = 't-test';
     end
@@ -128,18 +125,22 @@ assert(isfield(default.parameter,'contrast'),'Contrast vector is not provided!')
 % Check if confound variable is provided. 
 nuisanceIdx = find(default.parameter.contrast == 0); 
 if ~isempty(nuisanceIdx)
-    confoundsIdx = nuisanceIdx(nuisanceIdx~=1);
-    default.data.confounds = default.data.y(:,confoundsIdx);
-    default.data.y(:,confoundsIdx) = [];
-    default.parameter.originalContrast = default.parameter.contrast;
-    default.parameter.contrast(confoundsIdx) = [];
+    if ~isfield(NBSPredict.data,'confounds')
+        confoundsIdx = nuisanceIdx(nuisanceIdx~=1); 
+        default.data.confounds = default.data.y(:,confoundsIdx);
+        default.data.y(:,confoundsIdx) = [];
+        default.parameter.originalContrast = default.parameter.contrast;
+        default.parameter.contrast(confoundsIdx) = [];
+    end
 else
     default.data.confounds = [];
 end
 
+%% Check if Linear Model
+linearModels = {'svmC','svmR','LinReg','LogReg'};
+ifLinear = ismember(default.parameter.MLmodels,linearModels);
+default.parameter.ifLinear = ifLinear; 
 %% Hyperparameters
-nFeatures = size(default.data.X,2);
-maxK = round(nFeatures * (default.parameter.maxPercent/100));
 % Set default hyperparameters for given model.
 for m = 1:numel(default.parameter.MLmodels)
     if default.parameter.ifHyperOpt
@@ -149,45 +150,33 @@ for m = 1:numel(default.parameter.MLmodels)
             case 'svmR'
                 default.parameter.paramGrids(m).epsilon = logspace(-1,2,hyperOptSteps);
             case {'decisionTreeC','decisionTreeR'}
-                default.parameter.paramGrids(m).MinLeafSize = linspace(1,50,hyperOptSteps);
+                %Rafael Gomes Mantovani, Tomáš Horváth, Ricardo Cerri,
+                %Sylvio Barbon Junior, Joaquin Vanschoren, André Carlos
+                %Ponce de Leon Ferreira de Carvalho, “An empirical study on
+                %hyperparameter tuning of decision trees” arXiv:1812.02207
+                default.parameter.paramGrids(m).MinLeafSize = linspace(1,20,hyperOptSteps);
             case {'LinReg','LogReg'}
-                default.parameter.paramGrids(m).lambda = 0;
+                default.parameter.paramGrids(m).lambda = logspace(-2,3,hyperOptSteps);
             case {'lda'}
-                default.parameter.paramGrids(m).gamma = linspace(0,1,5);
+                default.parameter.paramGrids(m).gamma = linspace(0,1,hyperOptSteps);
         end
     end
-    default.parameter.paramGrids(m).kBest = linspace(1,maxK,maxK); 
 end
 
 %% Best parameter selection metric. 
 if ~isfield(default.parameter,'bestParamMethod')
-    if ifClassif || ismember(default.parameter.metric,{'r_squared','explained_variance','correlation'})
-        default.parameter.bestParamMethod = 'max';
-    else
-        default.parameter.bestParamMethod = 'min';
-    end
-else
-    if ifClassif
-        assert(ismember(default.parameter.bestParamMethod,{'max','ose'}),...
-            ['Wrong best parameter metric chosen!. Best parameter metrics for ',...
-            'classification are max,ose or median!']);
-    else
-        assert(ismember(default.parameter.bestParamMethod,{'min'}) &&...
-            ~ismember(default.parameter.metric,{'r_squared','explained_variance','correlation'}),...
-            ['Wrong best parameter metric chosen!. Best parameter metrics for ',...
-            'are min or median if your prediction metric is not R_squared, Explained Variance or Correlation!']);
-    end
+    default.parameter.bestParamMethod = 'best';
 end
 
 %% Feature selection
 % Prepare a cell array including feature selection parameters.
-nFeatSelparams = numel(featSelParamNames);
+nFeatSelparams = numel(hyperOptParamNames);
 featSelParams = cell(nFeatSelparams*2,1);
-featSelParams(linspace(1,nFeatSelparams*2-1,nFeatSelparams)) = featSelParamNames; 
+featSelParams(linspace(1,nFeatSelparams*2-1,nFeatSelparams)) = hyperOptParamNames; 
 cFeatParamIdx = 0;
 for i = 1:nFeatSelparams
     cFeatParamIdx = cFeatParamIdx+2;
-    featSelParams(cFeatParamIdx) = {default.parameter.(featSelParamNames{i})};
+    featSelParams(cFeatParamIdx) = {default.parameter.(hyperOptParamNames{i})};
 end
 
 % assign feature selection function handle

@@ -61,7 +61,7 @@ fprintf(welcomeMsg);
 
 handles.output = hObject;
 if isempty(varargin)
-    % Ask to load NBSPredict file if no provided. 
+    % Ask to load NBSPredict file if no provided.
     [NBSPredictFile, path] = uigetfile('*.mat',...
         'Please select NBSPredict structure saved by NBS-Predict toolbox at the end of the analysis.');
     NBSPredict = load([path NBSPredictFile]);
@@ -147,7 +147,7 @@ function thresholdEdit_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of thresholdEdit as text
 %        str2double(get(hObject,'String')) returns contents of thresholdEdit as a double
 handles.plotResults.wThresh = str2double(get(hObject,'String'));
-[handles] = plotUpdatedData(handles); % Update and plot. 
+[handles] = plotUpdatedData(handles); % Update and plot.
 guidata(hObject,handles)
 
 % --- Executes during object creation, after setting all properties.
@@ -176,7 +176,7 @@ colormap(parula);
 colorbar;
 caxis([0,1])
 set(gca,'XTick',[],'YTick',[]);
-title(handles.figureTitle,'Interpreter','none'); 
+title(handles.figureTitle,'Interpreter','none');
 % set(gca, 'FontSize',10,'FontName','default');
 dcm_obj = datacursormode(gcf);
 set(dcm_obj,'Enable','on','UpdateFcn',{@dataCursorUpdateFun,handles});
@@ -189,53 +189,22 @@ function networkPush_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 handles.labelButton.Visible = 'on';
+cla reset;
+set(gca,'DefaultTextInterpreter','none');
+title(handles.figureAxes,handles.figureTitle);
+axes(handles.figureAxes);
+nWeight = numel(unique(handles.plotData.(handles.cModel).scaledMeanEdgeWeight));
 if handles.ifShowLabel
-    labels = handles.plotResults.labels;
+    labels = handles.plotData.brainRegions.labels;
+    cG = circularGraph(handles.plotResults.adj,'Label',labels,'nUniqueWeight',nWeight);
 else
-    labels = [];
+    cG = circularGraph(handles.plotResults.adj);
 end
-plot(handles.plotResults.G,'EdgeCData',handles.plotResults.G.Edges.Weight,...
-    'MarkerSize',degree(handles.plotResults.G),'LineWidth',3,...
-    'NodeLabel',labels);
-title(handles.figureTitle,'Interpreter','none');  
-set(gca,'XTick',[],'YTick',[]);
-colormap(parula);
-colorbar;
-caxis([0,1])
 handles.cFig = 'net';
 dcm_obj = datacursormode(gcf);
 set(dcm_obj,'Enable','on','UpdateFcn',{@dataCursorUpdateFun,handles});
 [handles] = pcFontSize(handles);
-guidata(hObject,handles)
-
-% --- Executes on button press in distPush.
-function distPush_Callback(hObject, ~, handles)
-% hObject    handle to distPush (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-colormap(parula);
-handles.labelButton.Visible = 'off';
-ifScaled = handles.plotData.ifPlotScaled; 
-cModel = handles.cModel;
-if ifScaled
-    histData = handles.plotData.(cModel).scaledMeanEdgeWeight;
-else
-    histData = handles.plotData.(cModel).meanEdgeWeight;
-end
-histData(histData == 0) = [];
-minHistData = min(histData);
-nBins = 50;
-[~,handles.plotResults.binEdges] = histcounts(histData,nBins,'BinLimits',...
-    [minHistData,max(histData)]);
-hist(histData,nBins);
-xlabel('Weight')
-handles.distYlabel = 'Number of Edges';
-xlim([minHistData,1])
-title(handles.figureTitle,'Interpreter','none');
-handles.cFig = 'dist';
-dcm_obj = datacursormode(gcf);
-set(dcm_obj,'Enable','on','UpdateFcn',{@dataCursorUpdateFun,handles});
-[handles] = pcFontSize(handles);
+handles.cG = cG;
 guidata(hObject,handles)
 
 % --- Executes on button press in brainNetPush.
@@ -332,25 +301,17 @@ if ~(figFilePath==0)
     saveFigH = figure('Visible','off','PaperUnits','centimeters','Units','centimeters');
     copyobj(handles.figureAxes,saveFigH);
     pos=get(saveFigH,'Position');
-    if strcmpi(handles.cFig,'dist')
-        % Specific configs for distribution figure. 
-        yLabelH = ylabel(handles.distYlabel);
-        yLabelPos = yLabelH.Position;
-        yLabelH.Position = [yLabelPos(1)*.7, yLabelPos(2), yLabelPos(3)];
-        set(saveFigH,'PaperSize', [pos(3)*.80 pos(4)*1.02],...
-            'PaperPositionMode', 'manual','PaperPosition',[0.4 0.5 pos(3) pos(4)]);
-    else
-        % Configs for other figures.
-        set(saveFigH,'PaperSize', [pos(3)*.75 pos(4)],...
-            'PaperPositionMode', 'manual','PaperPosition',[0 0 pos(3) pos(4)]);
-        if ismember(handles.cFig,{'adj','net'})
-            % Add colorbar if adjacency or network plots are to be printed.
-            colorbar;
-        elseif ismember(handles.cFig,{'confMat'})
-            colormap(flipud(gray));
-        end
+    
+    % Configs for other figures.
+    set(saveFigH,'PaperSize', [pos(3)*.75 pos(4)],...
+        'PaperPositionMode', 'manual','PaperPosition',[0 0 pos(3) pos(4)]);
+    if ismember(handles.cFig,{'adj','net'})
+        % Add colorbar if adjacency or network plots are to be printed.
+        colorbar;
+    elseif ismember(handles.cFig,{'confMat'})
+        colormap(flipud(gray));
     end
-   
+    
     if filterIdx == 2
         % Save as figure.
         set(saveFigH,'Visible','on');
@@ -360,7 +321,7 @@ if ~(figFilePath==0)
             fileFormat = 'tiffn';
         elseif filterIdx == 7
             fileFormat = 'epsc';
-        else    
+        else
             fileFormat = formatFiltes{filterIdx,1};
             fileFormat = fileFormat(3:end);
         end
@@ -408,7 +369,7 @@ handles.plotResults.truePredLabels = handles.plotData.(handles.cModel).truePredL
 % Update handles structure and plot
 handles = plotUpdatedData(handles);
 handles = updateTitle(handles);
-if handles.ifClass 
+if handles.ifClass
     [handles] =  updateConfMat(handles);
     if strcmpi(handles.cFig,'confMat')
         confMatPush_Callback(handles.confMatPush,[],handles);
@@ -465,6 +426,7 @@ function labelButton_Callback(hObject, eventdata, handles)
 % Hint: get(hObject,'Value') returns toggle state of labelButton
 ifShowLabel = get(hObject,'Value');
 handles.ifShowLabel = ifShowLabel;
+guidata(hObject,handles)
 if strcmpi(handles.cFig,'net')
     networkPush_Callback(handles.networkPush,[],handles);
 end
@@ -472,7 +434,6 @@ if isfield(handles,'brainNetFig') && isgraphics(handles.brainNetFig)
     pause(0.1)
     brainNetPush_Callback(handles.brainNetPush, [], handles);
 end
-guidata(hObject,handles)
 
 % --- Executes on button press in evalButton.
 function evalButton_Callback(hObject, eventdata, handles)
@@ -488,13 +449,13 @@ else
 end
 if ifEval
     meanCVscore = evalSubnet(handles);
-end 
+end
 guidata(hObject,handles)
 
 
 %% Helper functions
 function [adjDataCursorTxt] = dataCursorUpdateFun(~,event_obj,handles)
-% dataCursorUpdateFun returns information for given data cursor position. 
+% dataCursorUpdateFun returns information for given data cursor position.
 pos = get(event_obj,'Position');
 switch handles.cFig
     case 'adj'
@@ -509,19 +470,23 @@ switch handles.cFig
             ['Weight: ',num2str(cWeight,4)]};
     case 'net'
         graphHandle = get(event_obj,'Target');
-        nodeIdx = find(graphHandle.XData == pos(1) & graphHandle.YData == pos(2), 1);
-        cDegree = handles.plotResults.G.degree(nodeIdx);
-        nodeName = handles.plotResults.labels(nodeIdx);
-        adjDataCursorTxt = {['Region: ',nodeName{:}],...
-            ['Nodal degree: ',num2str(cDegree)]};
-    case 'dist'
-        nodeCount = pos(2);
-        binCentre = round(pos(1),3);
-        binIdx = find(binCentre==round(mean(event_obj.Target.XData,1),3),1,'first');
-        binEdges = handles.plotResults.binEdges;
-        adjDataCursorTxt = {['Edge Count: ',num2str(nodeCount)],...
-            ['Mean weight: ',num2str(binCentre)],...
-            sprintf('Range: [%.3f, %.3f]',binEdges(binIdx),binEdges(binIdx+1))};
+        if isfield(graphHandle.UserData,'cWeight')
+            edgeWeight = graphHandle.UserData.cWeight;
+            adjDataCursorTxt = {['Weight: ',num2str(edgeWeight)]};
+        else
+            cG = handles.cG;
+            cLabel = graphHandle.UserData.Label;
+            intLabel = str2double(cLabel);
+            if ~isempty(intLabel)
+                [~,nodeIdx] = ismember(cLabel,cG.Label);
+            else
+                nodeIdx = intLabel;
+            end
+            cDegree = cG.Degree(nodeIdx);
+            nodeName = cG.Label(nodeIdx);
+            adjDataCursorTxt = {['Region: ',nodeName{:}],...
+                ['Nodal degree: ',num2str(cDegree)]};
+        end
 end
 
 function [handles] = plotUpdatedData(handles)
@@ -536,8 +501,8 @@ else
         update_NBSPredictFigure(handles.plotData.(handles.cModel).wAdjMat,...
         handles.plotData.brainRegions.labels,handles.plotResults.wThresh);
 end
-% Create weight table to access edge weights easily. 
-weightTable = table; 
+% Create weight table to access edge weights easily.
+weightTable = table;
 [weightTable.X,weightTable.Y,weightTable.Weight] = find(handles.plotResults.adj);
 handles.plotResults.weightTable = weightTable;
 % Plots thresholded data.
@@ -546,8 +511,6 @@ switch handles.cFig
         adjacencyPush_Callback(handles.adjacencyPush,[],handles);
     case 'net'
         networkPush_Callback(handles.networkPush,[],handles);
-    case 'dist'
-        distPush_Callback(handles.distPush,[],handles);  
 end
 if isfield(handles,'brainNetFig') && isgraphics(handles.brainNetFig)
     pause(0.1)
@@ -562,20 +525,19 @@ if handles.evalButton.Value
 end
 handles.uitable1.Data = table2cell(sortedTable);
 
-
 function [handles] =  updateConfMat(handles)
 % Generate confusion matrix.
 % truePredLabels = handles.
 truePredLabels = handles.plotData.(handles.cModel).truePredLabels;
-[~,TP,FP,TN,FN] = compute_modelMetrics(truePredLabels(:,1),...
-    truePredLabels(:,2),'accuracy');
-confMat = [TP,FN;FP,TN];
-handles.plotResults.truePredLabels = truePredLabels; 
+CM = compute_modelMetrics(truePredLabels(:,1),...
+    truePredLabels(:,2),'confusionMatrix');
+confMat = [CM.TP,CM.FN;CM.FP,CM.TN];
+handles.plotResults.truePredLabels = truePredLabels;
 handles.plotResults.confMat = confMat;
 
 function [handles] = updateTitle(handles)
-% updateTitle updates title with given metric. 
-metric = handles.plotResults.metric; 
+% updateTitle updates title with given metric.
+metric = handles.plotResults.metric;
 metricName = [upper(metric(1)),metric(2:end)];
 if strcmpi(handles.plotData.metric,metric)
     figTitle = sprintf('%s: %.3f (%.3f, %.3f)',metricName,...
@@ -590,48 +552,48 @@ handles.figureTitle = figTitle;
 title(figTitle);
 
 function [handles] = pcFontSize(handles)
-% Set font and font size if pc. 
+% Set font and font size if pc.
 if ispc || isunix
     set(handles.figureAxes,'FontSize',8,'FontName','default');
 end
 
 function [meanCVscore] = evalSubnet(handles)
-    % Evaluates prediction performance of identified subnetwork. 
-    % Set parameters. 
-    kFold = 10; 
-    repCV = 10; % Run CV n times. 
-    
-    CVscores = zeros(repCV,kFold); % preallocate. 
-    
-    % Extract edge weights from suprathreshold subnetwork. 
-    subnetIdx = find(triu(handles.plotResults.adj));
-    [~,extIdx] = ismember(subnetIdx,handles.plotData.edgeIdx); % find indexes of edges to be extracted 
-    X = handles.plotData.X(:,extIdx);
-    y = handles.plotData.y(:,2);
-    data.X = X;
-    data.y = y;
-    
-    for i = 1: repCV
-        subnetEvalFun = @(data) subnetEvaluate(data,handles);
-        CVscores(i,:) = crossValidation(subnetEvalFun,data,'kfold',kFold); % Run handler in CV.
-    end
-    
-    meanCVscore = mean2(CVscores);
-    stdCVscore = std(mean(CVscores));
-    seCVscore = stdCVscore/sqrt(repCV);
-    confScore = seCVscore*1.96; % p < .05
-    upperCI = meanCVscore + confScore;
-    lowerCI = meanCVscore - confScore; 
-    strCVscore = sprintf('Score : %.3f\n[%.3f, %.3f]',meanCVscore,lowerCI,upperCI);
-    set(handles.subNetEvalText,'String',strCVscore);
-    
-    
+% Evaluates prediction performance of identified subnetwork.
+% Set parameters.
+kFold = 10;
+repCV = 10; % Run CV n times.
+
+CVscores = zeros(repCV,kFold); % preallocate.
+
+% Extract edge weights from suprathreshold subnetwork.
+subnetIdx = find(triu(handles.plotResults.adj));
+[~,extIdx] = ismember(subnetIdx,handles.plotData.edgeIdx); % find indexes of edges to be extracted
+X = handles.plotData.X(:,extIdx);
+y = handles.plotData.y(:,2);
+data.X = X;
+data.y = y;
+
+for i = 1: repCV
+    subnetEvalFun = @(data) subnetEvaluate(data,handles);
+    CVscores(i,:) = crossValidation(subnetEvalFun,data,'kfold',kFold); % Run handler in CV.
+end
+
+meanCVscore = mean2(CVscores);
+stdCVscore = std(mean(CVscores));
+seCVscore = stdCVscore/sqrt(repCV);
+confScore = seCVscore*1.96; % p < .05
+upperCI = meanCVscore + confScore;
+lowerCI = meanCVscore - confScore;
+strCVscore = sprintf('Score : %.3f\n[%.3f, %.3f]',meanCVscore,lowerCI,upperCI);
+set(handles.subNetEvalText,'String',strCVscore);
+
+
 function score = subnetEvaluate(data,handles)
-        MLhandle = gen_MLhandles(handles.cModel);
-        Mdl = MLhandle();
-        score = modelFitScore(Mdl,data,handles.plotResults.metric);
-  
-    
+MLhandle = gen_MLhandles(handles.cModel);
+Mdl = MLhandle();
+score = modelFitScore(Mdl,data,handles.plotResults.metric);
+
+
 % --- Executes during object deletion, before destroying properties.
 function viewNBSPredictFig_DeleteFcn(hObject, eventdata, handles)
 % hObject    handle to viewNBSPredictFig (see GCBO)

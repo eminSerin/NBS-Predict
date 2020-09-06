@@ -12,7 +12,8 @@ function [varargout] = modelFitScore(Mdl,trainTestData,metrics)
 %
 % Output:
 %   score = Prediction score.
-%   truePredLabels = True and predicted labels.    
+%   truePredLabels = True and predicted labels.
+%   estimator = Estimator structure. 
 %
 % Example: 
 %   acc = modelFitScore(Mdl,trainTestData,{'accuracy'});
@@ -22,16 +23,26 @@ function [varargout] = modelFitScore(Mdl,trainTestData,metrics)
 % Emin Serin - 24.09.2019
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-clf = Mdl.fit(trainTestData.X_train,trainTestData.y_train); % fit
-y_pred = Mdl.pred(clf,trainTestData.X_test); % predict
 if ischar(metrics)
     metrics = {metrics};
 end
 nMetrics = numel(metrics);
-varargout = cell(1,nMetrics+1);
-for i = 1:nMetrics
-    varargout{i} = Mdl.score(trainTestData.y_test,...
-        y_pred,metrics{i}); % score
+varargout = cell(1,nMetrics+2);
+
+if isempty(trainTestData.X_train)
+    for i = 1:nMetrics
+        varargout{i} = nan;
+    end
+    varargout{i+1} = {single(trainTestData.y_test),nan(numel(trainTestData.y_test),1)};
+    varargout{i+2} = nan; 
+else
+    clf = Mdl.fit(trainTestData.X_train,trainTestData.y_train); % fit
+    y_pred = Mdl.pred(clf,trainTestData.X_test); % predict
+    for i = 1:nMetrics
+        varargout{i} = Mdl.score(trainTestData.y_test,...
+            y_pred,metrics{i}); % score
+    end
+    varargout{i+1} = {single(trainTestData.y_test),single(y_pred)}; % y_true & y_pred
+    varargout{i+2} = clf; % estimator.
 end
-varargout{i+1} = {single(trainTestData.y_test),single(y_pred)};
 end

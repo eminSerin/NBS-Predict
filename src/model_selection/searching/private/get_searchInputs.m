@@ -6,10 +6,8 @@ function [searchInputs] = get_searchInputs(searchMethod,varargin)
 %   
 % Arguements: 
 %   searchMethod = Following searching methods can be used:
-%       divSelect and divSelectWide: Division and selection searching.
 %       randomSearch: Randomized search. 
 %       gridSearch: Grid search
-%       simulatedAnnealing: Simulated annealing
 %       bayesOpt: Bayesian optimization
 %   varargin = varargin cell array that you obtained in searching
 %       algorithms.
@@ -23,38 +21,33 @@ function [searchInputs] = get_searchInputs(searchMethod,varargin)
 %% Input
 % Set default inputs.
 % Default parameters.
-defaultVals.nIter = 10; defaultVals.nDiv = 20; defaultVals.selRound = 3;
-defaultVals.kFold = 10; defaultVals.bestParamMethod = 'max';
-defaultVals.sortDirection = 'ascend';  defaultVals.kFold = 10; 
-defaultVals.ifParallel = 0; defaultVals.alpha = .90; defaultVals.T = 5;
+defaultVals.nIter = 20; defaultVals.bestParamMethod = 'best'; 
+defaultVals.kFold = 10; defaultVals.ifParallel = 0; 
 defaultVals.acquisitionFun = 'expected-improvement';
-bestParamMethodOptions = {'max','ose','median','min'}; 
-sortDirectionOptions = {'ascend','descend'};
+bestParamMethodOptions = {'best','median'}; 
 acquisitionFunOptions = {'probability-of-improvement',...
     'expected-improvement','lower-confidence-bound'};
+defaultVals.randomState = 'shuffle';
+
 
 % Input Parser
 validationNumeric = @(x) isnumeric(x);
 validationBestParamMethod = @(x) any(validatestring(x,bestParamMethodOptions));
-validationSortDirection= @(x) any(validatestring(x,sortDirectionOptions));
 validationAcquisitionFun= @(x) any(validatestring(x,acquisitionFunOptions));
 p = inputParser(); p.PartialMatching = 0; % deactivate partial matching.
-addParameter(p,'selRound',defaultVals.selRound,validationNumeric);
-addParameter(p,'nDiv',defaultVals.nDiv,validationNumeric);
 addParameter(p,'nIter',defaultVals.nIter,validationNumeric);
-addParameter(p,'T',defaultVals.T,validationNumeric);
-addParameter(p,'alpha',defaultVals.alpha,validationNumeric);
 addParameter(p,'kFold',defaultVals.kFold,validationNumeric);
 addParameter(p,'ifParallel',defaultVals.ifParallel,validationNumeric);
 addParameter(p,'bestParamMethod',defaultVals.bestParamMethod,validationBestParamMethod);
-addParameter(p,'sortDirection',defaultVals.sortDirection,validationSortDirection);
 addParameter(p,'acquisitionFun',defaultVals.acquisitionFun,validationAcquisitionFun);
+addParameter(p,'metric',[]);
+addParameter(p,'randomState',defaultVals.randomState);
 
 % Parse input
 parse(p,varargin{:});
 
-availSearchMethods = {'divSelect','divSelectWide','gridSearch','randomSearch',...
-    'simulatedAnnealing','bayesOpt'}; % available search methods you can use this function with. 
+% available search methods you can use this function with.
+availSearchMethods = {'gridSearch','randomSearch','bayesOpt'};  
 
 % Retun error if incorrect searching method given. 
 assert(any(strcmpi(searchMethod,availSearchMethods)),['Incorrect searching method provided!',...
@@ -65,22 +58,28 @@ assert(any(strcmpi(searchMethod,availSearchMethods)),['Incorrect searching metho
 % Base parameters which found in all searching algorithms.
 searchInputs.ifParallel = p.Results.ifParallel;
 searchInputs.kFold = p.Results.kFold;
-searchInputs.bestParamMethod = p.Results.bestParamMethod;
-searchInputs.sortDirection = p.Results.sortDirection; 
+bestParamMethod = p.Results.bestParamMethod;
 
 switch lower(searchMethod)
-    case {'divselect','divselectwide'}
-        searchInputs.selRound = p.Results.selRound;
-        searchInputs.nDiv = p.Results.nDiv;
-    case {'randomsearch','simulatedannealing','bayesopt'}
+    case {'randomsearch','bayesopt'}
         searchInputs.nIter = p.Results.nIter;
-        if strcmpi(searchMethod,'simulatedAnnealing')
-            searchInputs.T = p.Results.T;
-            searchInputs.alpha = p.Results.alpha;
-        elseif strcmpi(searchMethod,'bayesOpt')
+        if strcmpi(searchMethod,'bayesOpt')
             searchInputs.acquisitionFun = p.Results.acquisitionFun;
+            bestParamMethod = 'best'; % No median option for bayes. 
         end
 end
+
+minMetrics = {'mse','rmse','mad'};
+if strcmpi(bestParamMethod,'best') 
+    if ismember(p.Results.metric,minMetrics)
+        searchInputs.bestParamMethod = 'min';
+    else
+        searchInputs.bestParamMethod = 'max';
+    end
+end
+
+% Set random state. 
+rng(p.Results.randomState);
 
 end
 

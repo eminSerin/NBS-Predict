@@ -10,7 +10,10 @@ function [varargout] = gen_synthData(varargin)
 %       nEdges: Number of edges with contrast. (default = 10)
 %       cnr: Contrast-to-noise ratio. (default = 0.5)
 %       n: The number of control-contrast network couples generated.
-%           (default = 20, i.e. sample size of 40 observations). 
+%           (default = 25, i.e. sample size of 50 observations).
+%       ifRegression: Generates data for regression problem. (default = 0)
+%       noise: Noise level in the target variable. Only available in 
+%           regression problems (default = 0.0). 
 %       ifSave: Whether save the data to .mat file or not 
 %           (default = 0).
 %       network: Type of network (default = 'scalefree')
@@ -22,6 +25,8 @@ function [varargout] = gen_synthData(varargin)
 %               k: k-nearest neightbors each node is connected (default = 2). 
 %               beta: rewiring probability. (default = .05)
 %           Random network. 
+%       randomState: Controls the randomness. Pass an integer value for
+%           reproducible results (default = 'shuffle').  
 %       
 %   Output:
 %       synthData: A data structure which includes control and contrast
@@ -42,7 +47,7 @@ function [varargout] = gen_synthData(varargin)
 %           statistic: identifying differences in brain networks.
 %           Neuroimage, 53(4), 1197-1207.
 %
-%   Last edited by Emin Serin, 03.09.2019
+%   Last edited by Emin Serin, 30.05.2020
 %
 %   See also: test_NBSPredict, gen_BAnet, gen_SWnet, search_BF
 
@@ -50,11 +55,14 @@ function [varargout] = gen_synthData(varargin)
 
 % Default parameters.
 defaultVals.nNodes = 100; defaultVals.nEdges= 10; 
-defaultVals.cnr = 0.5; defaultVals.network = 'smallworld';
+defaultVals.cnr = 0.5; defaultVals.network = 'scalefree';
 defaultVals.m = 2; defaultVals.m0 = 5;
 defaultVals.k = 2; defaultVals.beta = .05;
-defaultVals.n = 20; defaultVals.ifSave = 0;
+defaultVals.n = 25; defaultVals.ifSave = 0;
+defaultVals.noise = 0.0; defaultVals.ifRegression = 0;
+defaultVals.randomState = 'shuffle';
 networkOptions = {'scalefree','smallworld','random'};
+
 
 % Input Parser
 validationNumeric = @(x) isnumeric(x);
@@ -71,6 +79,10 @@ addParameter(p,'beta',defaultVals.beta,validationNumeric);
 addParameter(p,'nEdges',defaultVals.nEdges,validationNumeric);
 addParameter(p,'n',defaultVals.n,validationNumeric);
 addParameter(p,'ifSave',defaultVals.ifSave,validationNumeric);
+addParameter(p,'noise',defaultVals.noise,validationNumeric);
+addParameter(p,'ifRegression',defaultVals.ifRegression,validationNumeric);
+addParameter(p,'randomState',defaultVals.randomState);
+
 
 % Parse inputs. 
 parse(p,varargin{:});
@@ -78,58 +90,33 @@ parse(p,varargin{:});
 network = p.Results.network;
 ifSave = p.Results.ifSave;
 nNodes = p.Results.nNodes;
-n = p.Results.n;
 
 % Create output directory
 if ifSave
     outputDir = [pwd filesep 'SynthData' filesep];
-    if ~exist(outputDir)
+    if ~exist(outputDir,7)
         mkdir(outputDir)
     end
 end
 
-% Create data structure including synthetic data and design matrix. 
-data.subData = zeros(nNodes,nNodes,n*2);
-designMat = (1:n*2) ./ (n*2);
-designMat = designMat' > 0.5;
-designMat(:,2) = ~designMat(:,1);
-data.designMat = designMat;
-
-%% Create control network.
+rng(p.Results.randomState);
+%% Generate networks.
 % Check network generation method.
-
 if strcmpi(network,'scalefree')
-    g = gen_BAnet(p.Results.nNodes,p.Results.m0,p.Results.m); % generate scale-free network.
+    g = gen_BAnet(nNodes,p.Results.m0,p.Results.m); % generate scale-free network.
 elseif strcmpi(network,'smallworld')
     g = gen_SWnet(nNodes,p.Results.k,p.Results.beta); % generates small-world network.
 elseif strcmpi(network,'random')
     g = normrnd(0,1,nNodes); % generates normally distributed random network. 
 end
 
-[path,prev] = search_BF(g,randi(size(g,1),1),p.Results.nEdges+1); % Find edges.
-path = path(~isnan(prev)); % nodes.
-prev = prev(~isnan(prev)); % Previous nodes.
-    
-for j = 1: p.Results.n % number of networks generated.    
-    weightEdge = triu(g).*normrnd(0,1,size(g)); % Weighted edges (0 mean 1 std).
-    controlNet = weightEdge + weightEdge'; % control network.
-    
-    %% Add Contrast
-    contrastNet = controlNet;
-    contrast = normrnd(p.Results.cnr,1,length(prev),1); % generate contrast.
-    for i  = 1: length(contrast)
-        % Generate contrast network.
-        contrastNet(prev(i),path(i)) = contrast(i);
-        contrastNet(path(i),prev(i)) = contrast(i);
-    end
-    data.subData(:,:,j) = controlNet;
-    data.subData(:,:,j+p.Results.n) = contrastNet;
-    
+if ~p.Results.ifRegression
+    [data] = make_classification(g,p.Results.n,p.Results.cnr,...
+        p.Results.nEdges,nNodes);
+else
+    [data] = make_regression(g,p.Results.n,p.Results.noise,...
+        p.Results.nEdges,nNodes);
 end
-data.designMat = double(data.designMat); % design matrix. 
-
-% Indices of edges with contrast. 
-data.contrastEdgeIdx = find(triu(contrastNet ~= controlNet));
 
 if ifSave
     % Save design matrix.
@@ -139,4 +126,108 @@ end
 varargout{:} = data;
 end
 
+function [data] = make_classification(g,n,cnr,nEdges,nNodes)
+% make_classification synthetic generates network data for classification 
+% problems using given graph network. 
+% Arguements: 
+%       g = graph structure.  
+%   Please check help section of the main function for other arguements. 
+%
+%   Output:
+%       data: A data structure which includes control and contrast
+%           data, design matrix and indices of contrast links
+%       contIdxAdj = Vector containing indices of contrasted edges. 
+%
+% Find indices for contrasted networks. 
+[~,~,contrastEdgeIdx,edgeIdx] = find_contrastEdges(g,nEdges,nNodes);
+[~,cEdgeLoc] = ismember(contrastEdgeIdx,edgeIdx);
+nTotalEdges = numel(edgeIdx);
 
+% Embed contrast-of-interest. 
+edgeWeight = randn(nTotalEdges,n*2); % Edges. 
+contrast = randn(nEdges,n) + cnr; % generate contrast.
+edgeWeight(cEdgeLoc,n+1:end) = contrast;   
+
+% Embed data to networks. 
+[synthNet] = embed_dataToNetwork(g,n,edgeWeight,edgeIdx);
+
+% Prepare design matrix for classification problem. 
+designMat = (1:n*2) ./ (n*2);
+designMat = designMat' > 0.5;
+designMat(:,2) = ~designMat(:,1);
+
+% Save networks and design matrix into data structure. 
+data.subData = synthNet;
+data.contrastEdgeIdx = contrastEdgeIdx;
+data.designMat = double(designMat);
+end
+
+function [data] = make_regression(g,n,noise,nEdges,nNodes)
+% make_regression synthetic generates network data for regression 
+% problems using given graph network. 
+% Arguements: 
+%       g = graph structure.  
+%       Please check help section of the main function for other arguements. 
+%
+%   Output:
+%       data: A data structure which includes control and contrast
+%           data, design matrix and indices of contrast links
+%
+% Find indices for contrasted networks. 
+[~,~,contrastEdgeIdx,edgeIdx] = find_contrastEdges(g,nEdges,nNodes);
+[~,cEdgeLoc] = ismember(contrastEdgeIdx,edgeIdx);
+nTotalEdges = numel(edgeIdx);
+
+% Generate normally distributed random data. 
+X = randn(nTotalEdges,n*2); % Edges. 
+groundTruth = zeros(nTotalEdges,1);
+groundTruth(cEdgeLoc,:) = rand(nEdges,1); 
+y = X'*groundTruth;
+if noise > 0.0
+    % Add noise to target variable.
+    y = randn(size(y)).*noise + y;
+end
+
+% Embed data to networks. 
+[synthNet] = embed_dataToNetwork(g,n,X,edgeIdx);
+
+% Save networks and design matrix into data structure. 
+data.subData = synthNet;
+data.designMat = [ones(numel(y),1),y]; % design matrix.
+data.contrastEdgeIdx = contrastEdgeIdx;
+end
+
+%% Helper Functions
+function [path,prev,contrastEdgeIdx,edgeIdx] = find_contrastEdges(g,nEdges,nNodes)
+% find_contrastEdges find edges embedded with contrast of interest using
+% breadth-first search algorithm, and return indices of contrasted edges. 
+[path,prev] = find_edges(g,nEdges);
+% Indices of edges with contrast.
+contIdxAdj = spalloc(nNodes,nNodes,nEdges*2);
+for i  = 1: nEdges
+    contIdxAdj(prev(i),path(i)) = 1;
+    contIdxAdj(path(i),prev(i)) = 1;
+end
+contrastEdgeIdx = find(triu(contIdxAdj));
+edgeIdx = find(triu(g));
+end
+
+function [path,prev] = find_edges(g,nEdges)
+% find_edges finds edges using Breadth-First Search algorithm. 
+[path,prev] = search_BF(g,randi(size(g,1),1),nEdges+1); % Find edges.
+path = path(~isnan(prev)); % nodes.
+prev = prev(~isnan(prev)); % Previous nodes.
+end
+
+function [synthNet] = embed_dataToNetwork(g,n,edgeWeight,edgeIdx)
+% embed_dataToNetwork embeds to network structure using the indices for
+% edges of network. 
+gSize = size(g); % size of graph.
+
+% Embed data to networks. 
+synthNet = zeros(gSize(1),gSize(2),size(edgeWeight,2));
+synthNet = reshape(synthNet,[],n*2);
+synthNet(edgeIdx,:) = edgeWeight;
+synthNet = reshape(synthNet,[gSize(1),gSize(2),n*2]);
+synthNet = synthNet + permute(synthNet,[2,1,3]); % synthetic network.
+end

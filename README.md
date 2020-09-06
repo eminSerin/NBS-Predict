@@ -1,8 +1,8 @@
 # NBS-Predict
-NBS-Predict is a prediction-based extension of the Network-based Statistic (Zalesky et. al., 2010). NBS-Predict aims to close the gap between group-level analysis and subject-specific prediction based on individually important network variations by combining a repeated nested cross-validation structure with machine learning models and graph theoretical networks.
+NBS-Predict is a prediction-based extension of the Network-based Statistic (Zalesky et. al., 2010). NBS-Predict aims to close the gap between group-level analysis and subject-specific prediction based on individually important network variations by combining machine learning models and graph theoretical networks in a cross-validation structure.
 
 ## Overview
-NBS-Predict performs in a repeated nested cross-validation structure where model evaluation is conducted in the outer loop and feature selection (or suprathreshold edge optimization) including hyperparameter optimization is performed in the inner loop. 
+NBS-Predict performs in a repeated cross-validation structure where suprathreshold edge selection and model evaluation is conducted and, if desired, hyperparameter optimization is performed in the inner loop. 
 
 ## Prerequisites
 
@@ -67,7 +67,7 @@ NBS-Predict was developed on Matlab R2017b and tested on Matlab R2017b and R2018
 
 ## Authors
 
-NBS-Predict was designed by Emin Serin, Johann D. Kruschwitz and Andrew Zalesky, and developed by Emin Serin. 
+NBS-Predict was designed by Emin Serin, Andrew Zalesky, Johann D. Kruschwitz and Henrik Walter, and developed by Emin Serin. 
 
 ## Contributing
 
@@ -75,7 +75,7 @@ You may contribute in this project in many ways such as bringing new features to
 
 ## License
 
-This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details
+This project is licensed under the GNU General Public License v3.0 - see the [LICENSE.md](LICENSE.md) file for details
 
 ## References
 
@@ -83,6 +83,7 @@ References for the functions or toolboxes used in NBS-Predict toolbox:
 
 1. Chang, C. C., & Lin, C. J. (2011). LIBSVM: A library for support vector machines. ACM transactions on intelligent systems and technology (TIST), 2(3), 27.
 2. Roland Pfister (2019). dlmcell (https://www.mathworks.com/matlabcentral/fileexchange/25387-dlmcell), MATLAB Central File Exchange. Retrieved September 3, 2019.
-3. Xia, M., Wang, J., & He, Y. (2013). BrainNet Viewer: a network visualization tool for human brain connectomics. PloS one, 8(7), e68910.
-4. Zalesky, A., Fornito, A., & Bullmore, E. T. (2010). Network-based statistic: identifying differences in brain networks. Neuroimage, 53(4), 1197-1207.
+3. Paul Kassebaum (2020). circularGraph (https://github.com/paul-kassebaum-mathworks/circularGraph), GitHub. Retrieved September 6, 2020.
+4. Xia, M., Wang, J., & He, Y. (2013). BrainNet Viewer: a network visualization tool for human brain connectomics. PloS one, 8(7), e68910.
+5. Zalesky, A., Fornito, A., & Bullmore, E. T. (2010). Network-based statistic: identifying differences in brain networks. Neuroimage, 53(4), 1197-1207.
 

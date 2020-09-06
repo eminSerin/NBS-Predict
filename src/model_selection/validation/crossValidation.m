@@ -8,7 +8,9 @@ function [CVresults] = crossValidation(fun,data,varargin)
 %   data = Data structure were current features and labels are stored.
 %   kFold = Number of CV folds. 
 %   ifParallel = Parallelize CV (1 or 0, default = 0).
-%   ifRand = if randomized (default = true)
+%   ifRand = if randomized (default = 1)
+%   randomState: Controls the randomness. Pass an integer value for
+%       reproducible results (default = 'shuffle').  
 %
 % Output:
 %   CVscore = Cross-validation score. 
@@ -23,7 +25,7 @@ function [CVresults] = crossValidation(fun,data,varargin)
 % Set default inputs.
 % Default parameters.
 defaultVals.kFold = 10; defaultVals.ifParallel = 0; 
-defaultVals.ifRand = 1;
+defaultVals.ifRand = 1; defaultVals.randomState = 'shuffle';
 
 % Input Parser
 validationNumeric = @(x) isnumeric(x);
@@ -31,6 +33,7 @@ p = inputParser(); p.PartialMatching = 0; % deactivate partial matching.
 addParameter(p,'kFold',defaultVals.kFold,validationNumeric);
 addParameter(p,'ifParallel',defaultVals.ifParallel,validationNumeric);
 addParameter(p,'ifRand',defaultVals.ifRand,validationNumeric);
+addParameter(p,'randomState',defaultVals.randomState);
 
 % Parse input
 parse(p,varargin{:});
@@ -39,6 +42,9 @@ parse(p,varargin{:});
 kFold = p.Results.kFold;
 ifParallel = p.Results.ifParallel;
 ifRand =  p.Results.ifRand;
+
+% Set random state. 
+rng(p.Results.randomState);
 
 %%
 % Generate CV indices.

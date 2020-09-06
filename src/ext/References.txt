@@ -1,5 +1,9 @@
 References: 
 
+Chang, C. C., & Lin, C. J. (2011). LIBSVM: A library for support vector machines. 
+    ACM transactions on intelligent systems and technology (TIST), 2(3), 27.
+Paul Kassebaum (2020). circularGraph (https://github.com/paul-kassebaum-mathworks/
+    circularGraph), GitHub. Retrieved September 6, 2020.
 Roland Pfister (2019). dlmcell (https://www.mathworks.com/matlabcentral/fileexchange/
     25387-dlmcell), MATLAB Central File Exchange. Retrieved September 3, 2019.
 Xia, M., Wang, J., & He, Y. (2013). BrainNet Viewer: a network visualization tool 

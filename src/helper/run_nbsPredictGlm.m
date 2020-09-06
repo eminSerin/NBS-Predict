@@ -1,4 +1,4 @@
-function [stats] = run_nbsPredictGlm(X,y,contrast,test)
+function [varargout] = run_nbsPredictGlm(X,y,contrast,test)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   run_nbsPredictGlm performs a simple version of GLM used in NBS toolbox.
 %   (Zalesky et.al., 2010)
@@ -9,13 +9,15 @@ function [stats] = run_nbsPredictGlm(X,y,contrast,test)
 %       test: 't-test' or 'f-test'
 %   Output:
 %       stats = test statistics. 
+%       p = p-values. 
 %
 %   Example:
-%       [stats] = run_nbsPredictGlm(X,y,contrast,test)
+%       stats = run_nbsPredictGlm(X,y,contrast,test)
+%       [stats, p] = run_nbsPredictGlm(X,y,contrast,test)
 %
 %   TODO: Implement better nuisance control method!.
 %
-%   Last edited by Emin Serin, 29.08.2019
+%   Last edited by Emin Serin, 03.06.2020
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -33,6 +35,7 @@ if strcmpi(test,'t-test')
     mse = sum(resid.^2)/(nSub-nPred); % mean squared error
     se = sqrt(mse*(contrast*inv(X'*X)*contrast')); % standard error
     stats = (contrast*betas)./se; % t-values.
+    p = tcdf(stats,nSub-2,'upper');
 elseif strcmpi(test,'f-test')
     % Run f-test.
     sse = sum(resid.^2); % SSE - sum of squares error
@@ -59,9 +62,12 @@ elseif strcmpi(test,'f-test')
         newSSR=sum((newX*betas-repmat(mean(y),n,1)).^2);
         stats=((ssr-newSSR)/varLeft)./(sse/(n-nPred));
     end
+    p = fcdf(1./stats,size(X,1)-2,size(sse,1));
 else
     error('Wrong test parameter provided! Please check help section!')
 end
+varargout{1} = stats;
+varargout{2} = p;
 end
 
 

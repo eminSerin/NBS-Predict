@@ -22,7 +22,7 @@ function varargout = run_NBSPredictGUI(varargin)
 
 % Edit the above text to modify the response to manualPush run_NBSPredictGUI
 
-% Last Modified by GUIDE v2.5 09-Feb-2020 15:39:15
+% Last Modified by GUIDE v2.5 05-Jul-2020 18:33:10
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -269,34 +269,6 @@ tmp = cellfun(@(x) str2double(x),tmp);
 handles.NBSPredict.parameter.contrast = tmp;
 guidata(hObject,handles)
 
-% --- Executes on selection change in testpop.
-function testpop_Callback(hObject, eventdata, handles)
-% hObject    handle to testpop (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: contents = cellstr(get(hObject,'String')) returns testpop contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from testpop
-tmp = get(hObject,'String');
-tmpIdx = get(hObject,'Value');
-handles.NBSPredict.parameter.test = tmp{tmpIdx};
-% handles.guiHistory.UI.Value.testpop = tmpIdx;
-guidata(hObject,handles)
-
-% --- Executes during object creation, after setting all properties.
-function testpop_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to testpop (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: popupmenu controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-testOpt = {'t-test','F-test'};
-set(hObject,'String',testOpt);
-
 % --- Executes on selection change in mlModelpop.
 function mlModelpop_Callback(hObject, eventdata, handles)
 % hObject    handle to mlModelpop (see GCBO)
@@ -353,19 +325,18 @@ fileName = get(hObject,'String');
 if exist(fileName, 'file') == 2
     y = loadData(fileName);
     handles.NBSPredict.data.y = y;
-    ifClass = numel(unique(y(:,2))) < length(y(:,2))/2;
+%     ifClass = numel(unique(y(:,2))) < length(y(:,2))/2;
+    ifClass = numel(unique(y(:,2))) < 10;
     if ifClass
         mlOptions = {'Auto (optimize models)','Decision Tree Classification',...
             'SVM Classification','Logistic Regression','Linear Discriminant Analysis'};
         MLfunNames = {'','decisionTreeC','svmC','LogReg','lda'};
-        set(handles.testpop,'String',{'t-test','F-test'})
         set(handles.metricpop,'String',{'Accuracy','Sensitivity','Specificity',...
             'Precision','Recall','F1','Matthews_CC','Cohens_Kappa','AUC'})
         set(handles.mlModelpop,'String',mlOptions);
     else
         mlOptions = {'Auto (optimize models)','SVM Regression','Decision Tree Regression','Linear Regression'};
         MLfunNames = {'','svmR','decisionTreeR','LinReg'};
-        set(handles.testpop,'String',{'F-test'})
         set(handles.metricpop,'String',{'RMSE','MSE','MAD','Correlation','Explained_Variance','R_squared'})
         set(handles.mlModelpop,'String',mlOptions);
 %         handles.NBSPredict.parameter.test = 'F-test';
@@ -474,8 +445,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
 % --- Executes on button press in brainRegionsPush.
 function brainRegionsPush_Callback(hObject, eventdata, handles)
 % hObject    handle to brainRegionsPush (see GCBO)
@@ -487,21 +456,21 @@ if path ~= 0
     brainRegionsEdit_Callback(handles.brainRegionsEdit,[],handles);
 end
 
-function maxPercentEdit_Callback(hObject, eventdata, handles)
-% hObject    handle to maxPercentEdit (see GCBO)
+function pValEdit_Callback(hObject, eventdata, handles)
+% hObject    handle to pValEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of maxPercentEdit as text
-%        str2double(get(hObject,'String')) returns contents of maxPercentEdit as a double
-maxPercent = get(hObject,'String');
-handles.NBSPredict.parameter.maxPercent = str2double(maxPercent);
-handles.guiHistory.UI.String.maxPercentEdit = maxPercent;
+% Hints: get(hObject,'String') returns contents of pValEdit as text
+%        str2double(get(hObject,'String')) returns contents of pValEdit as a double
+pVal = get(hObject,'String');
+handles.NBSPredict.parameter.pVal = str2double(pVal);
+handles.guiHistory.UI.String.pValEdit = pVal;
 guidata(hObject,handles)
 
 % --- Executes during object creation, after setting all properties.
-function maxPercentEdit_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to maxPercentEdit (see GCBO)
+function pValEdit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to pValEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -523,21 +492,15 @@ featMethod = get(hObject,'String');
 featMetIdx = get(hObject,'Value');
 featMethod = featMethod{featMetIdx};
 switch featMethod
-    case 'Divide and Select'
-        handles.NBSPredict.parameter.selMethod = 'divSelect';
-        handles.divSelectPanel.Visible = 'on';
+    case 'Grid Search'
+        handles.NBSPredict.parameter.selMethod = 'gridSearch';
         handles.randomSearchPanel.Visible = 'off';
-        handles.simulatedAnnealingPanel.Visible = 'off';
     case 'Random Search'
         handles.NBSPredict.parameter.selMethod = 'randomSearch';
-        handles.divSelectPanel.Visible = 'off';
         handles.randomSearchPanel.Visible = 'on';
-        handles.simulatedAnnealingPanel.Visible = 'off';
-    case 'Simulated Annealing'
-        handles.NBSPredict.parameter.selMethod = 'simulatedAnnealing';
-        handles.divSelectPanel.Visible = 'off';
-        handles.randomSearchPanel.Visible = 'off';
-        handles.simulatedAnnealingPanel.Visible = 'on';
+    case 'Bayesian Optimization'
+        handles.NBSPredict.parameter.selMethod = 'bayesOpt';
+        handles.randomSearchPanel.Visible = 'on';
 end
 handles.guiHistory.UI.Value.featureSelPopUp = featMetIdx;
 guidata(hObject,handles)
@@ -553,9 +516,9 @@ function featureSelPopUp_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-featureSelOptions = {'Divide and Select','Random Search','Simulated Annealing'};
+featureSelOptions = {'Grid Search','Random Search','Bayesian Optimization'};
 set(hObject,'String',featureSelOptions);
-handles.NBSPredict.parameter.selMethod = 'divSelect';
+handles.NBSPredict.parameter.selMethod = 'gridSearch';
 guidata(hObject,handles)
 
 function nIterEdit_Callback(hObject, eventdata, handles)
@@ -582,126 +545,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-function tempEdit_Callback(hObject, eventdata, handles)
-% hObject    handle to tempEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of tempEdit as text
-%        str2double(get(hObject,'String')) returns contents of tempEdit as a double
-T = get(hObject,'String');
-handles.NBSPredict.parameter.T = str2double(T);
-handles.guiHistory.UI.String.tempEdit = T;
-guidata(hObject,handles)
-
-% --- Executes during object creation, after setting all properties.
-function tempEdit_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to tempEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-function alphaEdit_Callback(hObject, eventdata, handles)
-% hObject    handle to alphaEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of alphaEdit as text
-%        str2double(get(hObject,'String')) returns contents of Edit as a double
-alpha = get(hObject,'String');
-handles.NBSPredict.parameter.alpha = str2double(alpha);
-handles.guiHistory.UI.String.alphaEdit = alpha;
-guidata(hObject,handles)
-
-% --- Executes during object creation, after setting all properties.
-function alphaEdit_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to alphaEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-function selRoundEdit_Callback(hObject, eventdata, handles)
-% hObject    handle to selRoundEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of selRoundEdit as text
-%        str2double(get(hObject,'String')) returns contents of selRoundEdit as a double
-selRound = get(hObject,'String');
-handles.NBSPredict.parameter.selRound = str2double(selRound);
-handles.guiHistory.UI.String.selRoundEdit = selRound;
-guidata(hObject,handles)
-
-% --- Executes during object creation, after setting all properties.
-function selRoundEdit_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to selRoundEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-function nDivEdit_Callback(hObject, eventdata, handles)
-% hObject    handle to nDivEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of nDivEdit as text
-%        str2double(get(hObject,'String')) returns contents of nDivEdit as a double
-nDiv = get(hObject,'String');
-handles.NBSPredict.parameter.nDiv = str2double(nDiv);
-handles.guiHistory.UI.String.nDivEdit = nDiv;
-guidata(hObject,handles)
-
-% --- Executes during object creation, after setting all properties.
-function nDivEdit_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to nDivEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-function nIter_Callback(hObject, eventdata, handles)
-% hObject    handle to nIter (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of nIter as text
-%        str2double(get(hObject,'String')) returns contents of nIter as a double
-nIter = get(hObject,'String');
-handles.NBSPredict.parameter.nIter = str2double(nIter);
-handles.guiHistory.UI.String.nIter = nIter;
-guidata(hObject,handles)
-
-% --- Executes during object creation, after setting all properties.
-function nIter_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to nIter (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
 
 %% About & manualpush & Run
 % --- Executes on button press in aboutPush.
@@ -709,7 +552,7 @@ function aboutPush_Callback(hObject, eventdata, handles)
 % hObject    handle to aboutPush (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-verNBSPredict = '\bf1.0.0-alpha2';
+verNBSPredict = '\bf1.0.0-alpha3';
 msg = {'NBS-Predict';['Version: ',verNBSPredict];...
     '\rmAuthor: Emin Serin';...
     'Contact: eminserinn@gmail.com'};

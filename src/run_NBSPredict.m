@@ -1,6 +1,7 @@
 function [NBSPredict] = run_NBSPredict(NBSPredict)
-% run_NBSPredict is a function which consists main nested cross-validation
-% structure. It performs cross-validated prediction on given data.
+% run_NBSPredict is a function which consists main nested
+% cross-validation structure. It performs cross-validated prediction on
+% given data.
 %
 % Arguements:
 %   NBSPredict - Structure including data and parameters. NBSPredict
@@ -36,29 +37,50 @@ meanRepCVscore = zeros(nModels,1);
 meanRepCVscoreCI = zeros(nModels,2);
 edgeWeight = zeros(totalRepCViter,NBSPredict.parameter.kFold,...
     nEdges,'single');
+activationPattern = edgeWeight;
+stability = zeros(totalRepCViter,1,'single');
 truePredLabels = zeros(totalRepCViter,nSub,2,'single');
 
 fileDir = save_NBSPredict(NBSPredict);
 cNBSPredict = NBSPredict; % current NBSPredict.
 for cModelIdx = 1: nModels
+    modelTime = tic;
     % Run repeated nested CV using ML models provided.
     cModel = NBSPredict.parameter.MLmodels{cModelIdx};
-    cNBSPredict.parameter.paramGrid = NBSPredict.parameter.paramGrids(cModelIdx);
+    ifLinear = NBSPredict.parameter.ifLinear(cModelIdx);
+    if isfield(NBSPredict.parameter,'paramGrids')
+        cNBSPredict.parameter.paramGrids = NBSPredict.parameter.paramGrids(cModelIdx);
+    end
     cNBSPredict.parameter.model = cModel; % TODO: remove after oop progress fun.
+    cNBSPredict.parameter.ifLinear = ifLinear;
     MLhandle = gen_MLhandles(cNBSPredict.parameter.model);
     cNBSPredict.MLhandle = MLhandle;
     show_NBSPredictProgress(cNBSPredict,0);
     if cNBSPredict.parameter.ifParallel
         % Run parallelly.
         parfor repCViter = 1: totalRepCViter
-            [outerCVscore,edgeWeight(repCViter,:,:),truePredLabels(repCViter,:,:)] = outerFold(cNBSPredict);
+            if ifLinear
+                [outerCVscore,edgeWeight(repCViter,:,:),...
+                    truePredLabels(repCViter,:,:),stability(repCViter),...
+                    activationPattern(repCViter,:,:)] = outerFold(cNBSPredict);
+            else
+                [outerCVscore,edgeWeight(repCViter,:,:),...
+                    truePredLabels(repCViter,:,:),stability(repCViter)] = outerFold(cNBSPredict);
+            end
             repCVscore(repCViter) = outerCVscore;
             show_NBSPredictProgress(cNBSPredict,repCViter,outerCVscore);
         end
     else
         % Run sequentially.
         for repCViter = 1: totalRepCViter
-            [outerCVscore,edgeWeight(repCViter,:,:),truePredLabels(repCViter,:,:)] = outerFold(cNBSPredict);
+            if ifLinear
+                [outerCVscore,edgeWeight(repCViter,:,:),...
+                    truePredLabels(repCViter,:,:),stability(repCViter),...
+                    activationPattern(repCViter,:,:)] = outerFold(cNBSPredict);
+            else
+                [outerCVscore,edgeWeight(repCViter,:,:),...
+                    truePredLabels(repCViter,:,:),stability(repCViter)] = outerFold(cNBSPredict);
+            end
             repCVscore(repCViter) = outerCVscore;
             show_NBSPredictProgress(cNBSPredict,repCViter,repCVscore);
         end
@@ -77,26 +99,32 @@ for cModelIdx = 1: nModels
     truePredLabelsR = reshape(ipermute(truePredLabels,[2 1 3]),[],2);
     NBSPredict.results.(cModel).truePredLabels = truePredLabelsR;
     
-    % Edge Weights
-    reshapedEdgeWeight = reshape(ipermute(edgeWeight,[3 2 1]),nEdges,[]);
-    meanEdgeWeight = mean(reshapedEdgeWeight,2);
-    NBSPredict.results.(cModel).edgeWeight = reshapedEdgeWeight;
+    % Stability
+    NBSPredict.results.(cModel).stability = stability;
+    NBSPredict.results.(cModel).meanStability = mean(stability);
     
-    % Mean edge weight.
-    NBSPredict.results.(cModel).meanEdgeWeight = meanEdgeWeight; % mean
-    [NBSPredict.results.(cModel).wAdjMat] = gen_weightedAdjMat(NBSPredict.data.nodes,...
-        NBSPredict.data.edgeIdx,NBSPredict.results.(cModel).meanEdgeWeight); % weighted Adj matrix.
+    % EdgeWeights
+    [NBSPredict.results.(cModel).edgeWeight,NBSPredict.results.(cModel).meanEdgeWeight,...
+        NBSPredict.results.(cModel).wAdjMat,NBSPredict.results.(cModel).scaledMeanEdgeWeight,...
+        NBSPredict.results.(cModel).scaledWAdjMat] = compute_meanWeights(edgeWeight,NBSPredict,nEdges);
     
-    % Scaled mean edge weight
-    NBSPredict.results.(cModel).scaledMeanEdgeWeight = rescale(meanEdgeWeight); % Min-max scaled mean weights
-    NBSPredict.results.(cModel).scaledWAdjMat = gen_weightedAdjMat(NBSPredict.data.nodes,...
-        NBSPredict.data.edgeIdx,NBSPredict.results.(cModel).scaledMeanEdgeWeight); % weighted Adj matrix.
+    if ifLinear
+        % ActivationPatterns
+        [NBSPredict.results.(cModel).actPattern,NBSPredict.results.(cModel).mActPattern,...
+            NBSPredict.results.(cModel).actAdjMat,NBSPredict.results.(cModel).scaledMeanActPattern,...
+            NBSPredict.results.(cModel).scaledActAdjMat] = compute_meanWeights(activationPattern,NBSPredict,nEdges);
+    end
     
     % Save values to NBSPredict.
     NBSPredict.results.(cModel).repCVscore = repCVscore;
     NBSPredict.results.(cModel).meanCVscoreCI = [lowerBoundRCVscore,upperBoundRCVscore];
     NBSPredict.results.(cModel).meanRepCVscore = meanRepCVscore(cModelIdx);
     show_NBSPredictProgress(cNBSPredict,-1,repCVscore);
+    
+    if NBSPredict.parameter.verbose
+        toc(modelTime);
+    end
+    
     if fileDir
         save(fileDir,'NBSPredict');
     end
@@ -131,14 +159,13 @@ if fileDir
     save(fileDir,'NBSPredict');
 end
 
-
 if NBSPredict.parameter.ifView
     % Run post analysis view window.
     view_NBSPredict(NBSPredict);
 end
 end
 
-function [meanCVscore,edgeWeights,truePredLabels] = outerFold(NBSPredict)
+function varargout = outerFold(NBSPredict)
 % outerFold is the first (or outer) layer of the 2-layer nested
 % cross-validation structure. outerFold performs model evaluation.
 % Prepare data.
@@ -155,77 +182,95 @@ modelEvaluateFun = @(data) modelEvaluate(data,NBSPredict);
     'kfold',NBSPredict.parameter.kFold); % Run handler in CV.
 
     function [modelEvalResults] = modelEvaluate(data,NBSPredict)
-        
         %Prepare data for middle fold.
         middleFoldData.X = data.X_train;
         middleFoldData.y = data.y_train;
         if isfield(data,'confounds_train')
             middleFoldData.confounds = data.confounds_train;
-            
         end
-        middleFoldBestParams = middleFold(middleFoldData,NBSPredict); % run middleFold.
         
         % Preprocess data.
         data = preprocess_data(data,NBSPredict.parameter.scalingMethod);
         
+        if NBSPredict.parameter.ifHyperOpt
+            middleFoldBestParams = middleFoldHyperOpt(middleFoldData,NBSPredict);
+        end
+        
+        filterData.X = data.X_train;
+        filterData.y = data.y_train;
+        extIdx = run_graphPval(filterData,NBSPredict);
+        
         % Transform data for model evaluation using parameters found in middle fold.
         modelEvalData.X = data.X_train;
         modelEvalData.y = data.y_train;
-        [X_train_transformed,transformMask] = fsTransform(modelEvalData,NBSPredict,middleFoldBestParams.kBest);
+        
+        selectedEdges = false(size(modelEvalData.X,2),1);
+        selectedEdges(extIdx) = true;
+        X_train_transformed = modelEvalData.X(:,extIdx);
         
         % Reconstruct data structure.
         data.X_train = X_train_transformed;
-        data.X_test  = data.X_test(:,transformMask);
+        data.X_test  = data.X_test(:,selectedEdges);
         data.y_test = data.y_test(:,2);
         data.y_train = data.y_train(:,2);
-        
-        params = middleFoldBestParams;
         if ~NBSPredict.parameter.ifHyperOpt
             params = [];
+        else
+            params = middleFoldBestParams;
         end
-        [modelEvalResults.score,modelEvalResults.truePredLabels] = fit_hyperParam(data,...
-            params,NBSPredict.MLhandle,NBSPredict.parameter.metric);
+        
+        [modelEvalResults.score,modelEvalResults.truePredLabels,...
+            estimator] = fit_hyperParam(data,params,NBSPredict.MLhandle,...
+            NBSPredict.parameter.metric);
         weightScore = modelEvalResults.score;
+        if NBSPredict.parameter.ifLinear
+            modelEvalResults.activationPattern = double(selectedEdges);
+            modelEvalResults.activationPattern(extIdx) =...
+                abs(transform_toActivationPattern(data.X_train,estimator.Beta));
+        end
+        
         if ismember(NBSPredict.parameter.metric,{'rmse','mad'})
             weightScore = compute_modelMetrics(modelEvalResults.truePredLabels{1},...
                 modelEvalResults.truePredLabels{1},'r_squared');
         end
         % Multiply features selected with test score of model to compute
         % weight for each feature.
-        modelEvalResults.outerFoldEdgeWeight = transformMask .* weightScore;
+        modelEvalResults.outerFoldEdgeWeight = selectedEdges .* weightScore;
     end
-meanCVscore = mean([outerFoldCVresults.score]);
-edgeWeights = [outerFoldCVresults.outerFoldEdgeWeight]';
-truePredLabels = cell2mat(reshape([outerFoldCVresults.truePredLabels],2,[])');
+if NBSPredict.parameter.ifLinear
+    varargout = cell(1,5);
+    varargout{5} = [outerFoldCVresults.activationPattern]';
+else
+    varargout = cell(1,4);
 end
 
-function [bestParam] = middleFold(data,NBSPredict)
+varargout{1} = mean([outerFoldCVresults.score]);
+varargout{2} = [outerFoldCVresults.outerFoldEdgeWeight]';
+varargout{3} = cell2mat(reshape([outerFoldCVresults.truePredLabels],2,[])');
+varargout{4} = compute_stability(single([outerFoldCVresults.outerFoldEdgeWeight]' > 0));
+end
+
+function [bestParam] = middleFoldHyperOpt(data,NBSPredict)
 % middleFold is the second (or middle) layer of the 2-layer nested
 % cross-validation structure. middleFold performs feature selection using a
 % searching algorithm selected. If requested, a function for hyperparameter
 % optimization (i.e., inner layer) is called in this function.
-featureSelFun = @(data,param) run_featureSel(data,NBSPredict,param);
+featureSelFun = @(data,param) optimize_hyperOpt(data,NBSPredict,param);
 [bestParam] = NBSPredict.featSelHandle(featureSelFun,data,...
-    NBSPredict.parameter.paramGrid);
+    NBSPredict.parameter.paramGrids);
 
-    function [score] = run_featureSel(data,NBSPredict,params)
+    function [hyperOptResults] = optimize_hyperOpt(data,NBSPredict,params)
         % Preprocess data.
         data = preprocess_data(data,NBSPredict.parameter.scalingMethod);
         
-        % Run GLM and get test statistics
-        testStats = run_nbsPredictGlm(data.y_train,data.X_train,NBSPredict.parameter.contrast,...
-            NBSPredict.parameter.test);
-        [~,I] = sort(testStats,'descend'); % Rank features based on their test statistics.
+        % Select features.
+        filterData.X = data.X_train;
+        filterData.y = data.y_train;
+        extIdx = run_graphPval(filterData,NBSPredict);
         
         % Construct labels.
         data.y_test = data.y_test(:,2);
         data.y_train = data.y_train(:,2);
-        
-        % Select n features.
-        cEdgesIdx = I(1:getfieldi(params,'kBest'));
-        % Extract features found in the biggest graph component.
-        [extIdx] = extractComponentIdx(NBSPredict.data.nodes,...
-            NBSPredict.data.edgeIdx,cEdgesIdx);
         
         % Transform data with selected features.
         data.X_train = data.X_train(:,extIdx);
@@ -235,10 +280,20 @@ featureSelFun = @(data,param) run_featureSel(data,NBSPredict,param);
         if ~NBSPredict.parameter.ifHyperOpt
             params = [];
         end
-        score = fit_hyperParam(data,params,NBSPredict.MLhandle,...
+        hyperOptResults.score = fit_hyperParam(data,params,NBSPredict.MLhandle,...
             NBSPredict.parameter.metric);
     end
+end
 
+function [extIdx] = run_graphPval(data,NBSPredict)
+% run_graphPval is a univariate feature selection method that combines
+% univariate statistical methods (t-test or F-test) and graph theoretical
+% concept of connected component.
+[~, pVal] = run_nbsPredictGlm(data.y,data.X,NBSPredict.parameter.contrast,...
+    NBSPredict.parameter.test);
+cEdgesIdx = find(pVal < NBSPredict.parameter.pVal);
+[extIdx] = extractComponentIdx(NBSPredict.data.nodes,...
+    NBSPredict.data.edgeIdx,cEdgesIdx);
 end
 
 %% Helper functions
@@ -269,9 +324,30 @@ if ischar(metrics)
     metrics = {metrics};
 end
 nMetrics = numel(metrics);
-varargout = cell(1,nMetrics+1);
+varargout = cell(1,nMetrics+2);
 
 [varargout{:}] = modelFitScore(Mdl,data,metrics);
+end
+
+function [reshapedEdgeWeight,meanEdgeWeight,wAdjMat,scaledMeanEdgeWeight,scaledWAdjMat]...
+    = compute_meanWeights(edgeWeight,NBSPredict,nEdges)
+% compute_meanWeights computes vector and adjacency matrix of mean edge
+% weights. It also returns scaled version of those outputs using
+% MinMaxScaler. 
+
+% Edge Weights
+reshapedEdgeWeight = reshape(ipermute(edgeWeight,[3 2 1]),nEdges,[]);
+
+% Mean edge weight.
+meanEdgeWeight = mean(reshapedEdgeWeight,2);
+wAdjMat = gen_weightedAdjMat(NBSPredict.data.nodes,...
+    NBSPredict.data.edgeIdx,meanEdgeWeight); % weighted Adj matrix.
+
+% Scaled mean edge weight
+scaler = MinMaxScaler;
+scaledMeanEdgeWeight = scaler.fit_transform(meanEdgeWeight); % Min-max scaled mean weights
+scaledWAdjMat = gen_weightedAdjMat(NBSPredict.data.nodes,...
+    NBSPredict.data.edgeIdx,scaledMeanEdgeWeight); % weighted Adj matrix.
 end
 
 function [fileDir] = save_NBSPredict(NBSPredict)
