@@ -24,13 +24,14 @@ function [mainNBSPredict] = get_NBSPredictInput(NBSPredict)
 %% Set default parameters
 default.parameter.kFold = 10;
 default.parameter.repCViter = 10;
-default.parameter.pVal = 0.05;
+default.parameter.pVal = 0.01;
 default.parameter.ifParallel = 0;
 default.parameter.ifHyperOpt = 0;
 default.parameter.verbose = 1;
 default.parameter.ifSave = 1;
 default.parameter.ifView = 0; 
 default.parameter.scalingMethod = [];
+default.parameter.randSeed = 42; 
 
 if isfield(NBSPredict.parameter,'ifHyperOpt')
     % Set default hyperOptSteps parameter if ifHyperOpt exists and set to 1

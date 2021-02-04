@@ -78,6 +78,8 @@ handles.plotData.nodes = NBSPredict.data.nodes;
 handles.plotData.edgeIdx = NBSPredict.data.edgeIdx;
 handles.plotData.ifPlotScaled = 1;
 handles.ifShowLabel = 0;
+handles.plotData.confounds = NBSPredict.data.confounds;
+handles.plotData.scalingMethod = NBSPredict.parameter.scalingMethod;
 if isfield(NBSPredict.results,'bestEstimator')
     cModel = handles.plotData.bestEstimator;
 else
@@ -558,6 +560,7 @@ if ispc || isunix
 end
 
 function [meanCVscore] = evalSubnet(handles)
+% TODO: Implement better way to evaluate the suprathreshold subnetwork. 
 % Evaluates prediction performance of identified subnetwork.
 % Set parameters.
 kFold = 10;
@@ -572,14 +575,17 @@ X = handles.plotData.X(:,extIdx);
 y = handles.plotData.y(:,2);
 data.X = X;
 data.y = y;
+if ~isempty(handles.plotData.confounds)
+    data.confounds = handles.plotData.confounds; 
+end
 
 for i = 1: repCV
     subnetEvalFun = @(data) subnetEvaluate(data,handles);
     CVscores(i,:) = crossValidation(subnetEvalFun,data,'kfold',kFold); % Run handler in CV.
 end
 
-meanCVscore = mean2(CVscores);
-stdCVscore = std(mean(CVscores));
+meanCVscore = mean(nanmean(CVscores));
+stdCVscore = std(nanmean(CVscores));
 seCVscore = stdCVscore/sqrt(repCV);
 confScore = seCVscore*1.96; % p < .05
 upperCI = meanCVscore + confScore;
@@ -591,6 +597,7 @@ set(handles.subNetEvalText,'String',strCVscore);
 function score = subnetEvaluate(data,handles)
 MLhandle = gen_MLhandles(handles.cModel);
 Mdl = MLhandle();
+data = preprocess_data(data,handles.plotData.scalingMethod);
 score = modelFitScore(Mdl,data,handles.plotResults.metric);
 
 

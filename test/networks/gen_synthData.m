@@ -195,6 +195,7 @@ end
 data.subData = synthNet;
 data.designMat = [ones(numel(y),1),y]; % design matrix.
 data.contrastEdgeIdx = contrastEdgeIdx;
+data.groundTruth = groundTruth; 
 end
 
 %% Helper Functions

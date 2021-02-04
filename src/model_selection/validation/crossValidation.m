@@ -25,7 +25,7 @@ function [CVresults] = crossValidation(fun,data,varargin)
 % Set default inputs.
 % Default parameters.
 defaultVals.kFold = 10; defaultVals.ifParallel = 0; 
-defaultVals.ifRand = 1; defaultVals.randomState = 'shuffle';
+defaultVals.ifRand = 1; defaultVals.randomState = false;
 
 % Input Parser
 validationNumeric = @(x) isnumeric(x);
@@ -44,7 +44,9 @@ ifParallel = p.Results.ifParallel;
 ifRand =  p.Results.ifRand;
 
 % Set random state. 
-rng(p.Results.randomState);
+if p.Results.randomState
+    rng(p.Results.randomState);
+end
 
 %%
 % Generate CV indices.

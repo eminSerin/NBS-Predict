@@ -31,16 +31,23 @@ nodes = dataShape(1);
 edgeIdx = single(find(triu(ones(nodes,nodes),1))); % finds edge indices.
 edgeMat = zeros(subjects,length(edgeIdx)); % pre-allocate.
 
-for i = 1:subjects
-    cMat = data(:,:,i); % Select current matrix. 
-    edgeMat(i,:)=cMat(edgeIdx); % extract edge values. 
+if dataDim == 2
+    edgeMat(1,:)=data(edgeIdx); % extract edge values.
+else
+    for i = 1:subjects
+        cMat = data(:,:,i); % Select current matrix.
+        edgeMat(i,:)=cMat(edgeIdx); % extract edge values.
+    end
 end
 
 % Remove features where nonzero features are 10% or less.
-SMR = 0.1; % Signal to missing value ratio (default = 0.1, at least %10 of nonzero)
-logicalEdgeMat = edgeMat;
-logicalEdgeMat((logicalEdgeMat ~= 0)&(~isnan(logicalEdgeMat))) = 1;
-SMRmask = mean(logicalEdgeMat,1) > SMR;
-edgeMat = edgeMat(:,SMRmask); % EdgeMat with non-zero edges.
-edgeIdx = edgeIdx(SMRmask);
+ifAdjMat = (numel(unique(edgeMat))==2)& all(ismember(edgeMat,[0,1]));
+if ~ifAdjMat
+    SMR = 0.1; % Signal to missing value ratio (default = 0.1, at least %10 of nonzero)
+    logicalEdgeMat = edgeMat;
+    logicalEdgeMat((logicalEdgeMat ~= 0)&(~isnan(logicalEdgeMat))) = 1;
+    SMRmask = mean(logicalEdgeMat,1) > SMR;
+    edgeMat = edgeMat(:,SMRmask); % EdgeMat with non-zero edges.
+    edgeIdx = edgeIdx(SMRmask);
+end
 end

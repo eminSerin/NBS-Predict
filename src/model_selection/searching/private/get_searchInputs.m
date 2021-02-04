@@ -27,7 +27,7 @@ defaultVals.acquisitionFun = 'expected-improvement';
 bestParamMethodOptions = {'best','median'}; 
 acquisitionFunOptions = {'probability-of-improvement',...
     'expected-improvement','lower-confidence-bound'};
-defaultVals.randomState = 'shuffle';
+defaultVals.randomState = false;
 
 
 % Input Parser
@@ -79,7 +79,9 @@ if strcmpi(bestParamMethod,'best')
 end
 
 % Set random state. 
-rng(p.Results.randomState);
+if p.Results.randomState
+    rng(p.Results.randomState);
+end
 
 end
 

@@ -16,7 +16,7 @@ function [testInputs] = get_testInput(varargin)
 %% Input parser.
 % Default parameters for NBSPredict.
 defaultVals.kFold = 10; defaultVals.ifParallel = 0;
-defaultVals.selMethod = 'randomSearch';
+defaultVals.selMethod = 'randomSearch'; defaultVals.pVal = 0.01; 
 defaultVals.maxPercent = 10; defaultVals.repCViter = 10; 
 defaultVals.verbose = 1; defaultVals.ifHyperOpt = 0; 
 defaultVals.hyperOptSteps = 5; defaultVals.T = 5;
@@ -48,6 +48,7 @@ addParameter(p,'ifParallel',defaultVals.ifParallel,validationNumeric);
 addParameter(p,'metric',[]);
 addParameter(p,'MLmodels',[]);
 addParameter(p,'selMethod',defaultVals.selMethod,validationSelMethod);
+addParameter(p,'pVal',defaultVals.pVal,validationNumeric);
 addParameter(p,'bestParamMethod',[]);
 addParameter(p,'maxPercent',defaultVals.maxPercent,validationNumeric);
 addParameter(p,'repCViter',defaultVals.repCViter,validationNumeric);

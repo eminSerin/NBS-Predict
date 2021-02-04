@@ -22,7 +22,7 @@ function varargout = run_NBSPredictGUI(varargin)
 
 % Edit the above text to modify the response to manualPush run_NBSPredictGUI
 
-% Last Modified by GUIDE v2.5 05-Jul-2020 18:33:10
+% Last Modified by GUIDE v2.5 04-Feb-2021 12:59:00
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -53,7 +53,7 @@ function run_NBSPredictGUI_OpeningFcn(hObject, eventdata, handles, varargin)
 %            command line (see VARARGIN)
 % Choose default command line output for run_NBSPredictGUI
 handles.output = hObject;
-handles.NBSPredict.parameter.ifView = 1;
+handles.NBSPredict.parameter.ifView = 1; % run NBS_Predict_view after analysis. 
 handles = loadHistory(handles);
 % Update handles structure
 guidata(hObject, handles);
@@ -91,7 +91,7 @@ function hyperOptStepsEdit_Callback(hObject, eventdata, handles)
 %        str2double(get(hObject,'String')) returns contents of hyperOptStepsEdit as a double
 hyperOptSteps = get(hObject,'String');
 handles.NBSPredict.parameter.hyperOptSteps = str2double(hyperOptSteps);
-handles.guiHistory.UI.String.hyperOptSteps = hyperOptSteps;
+handles.guiHistory.UI.String.hyperOptStepsEdit = hyperOptSteps;
 guidata(hObject,handles)
 
 % --- Executes during object creation, after setting all properties.
@@ -141,7 +141,7 @@ function metricpop_Callback(hObject, eventdata, handles)
 tmp = get(hObject,'String');
 tmpIdx = get(hObject,'Value');
 handles.NBSPredict.parameter.metric = lower(tmp{tmpIdx});
-% handles.guiHistory.UI.Value.metricpop = tmpIdx;
+handles.guiHistory.UI.Value.metricpop = tmpIdx;
 guidata(hObject,handles);
 
 
@@ -211,7 +211,7 @@ function repCViterEdit_Callback(hObject, eventdata, handles)
 %        str2double(get(hObject,'String')) returns contents of repCViterEdit as a double
 repCViter = get(hObject,'String');
 handles.NBSPredict.parameter.repCViter = str2double(repCViter);
-handles.guiHistory.UI.String.repCViter = repCViter;
+handles.guiHistory.UI.String.repCViterEdit = repCViter;
 guidata(hObject,handles)
 
 % --- Executes during object creation, after setting all properties.
@@ -237,6 +237,7 @@ ifParallel = get(hObject,'Value');
 handles.NBSPredict.parameter.ifParallel = ifParallel;
 handles.guiHistory.UI.Value.ifParallelCheck = ifParallel;
 guidata(hObject,handles)
+
 
 function contrastEdit_Callback(hObject, eventdata, handles)
 % hObject    handle to contrastEdit (see GCBO)
@@ -289,7 +290,7 @@ else
     handles.NBSPredict.parameter.ifModelOpt = 0;
     handles.NBSPredict.parameter.MLmodels = MLmodelNames(MLidx);
 end
-% handles.guiHistory.UI.Value.mlModelpop = MLidx;
+handles.guiHistory.UI.Value.mlModelpop = MLidx;
 guidata(hObject,handles)
 
 % --- Executes during object creation, after setting all properties.
@@ -323,24 +324,25 @@ function designMatEdit_Callback(hObject, eventdata, handles)
 %        str2double(get(hObject,'String')) returns contents of designMatEdit as a double
 fileName = get(hObject,'String');
 if exist(fileName, 'file') == 2
-    y = loadData(fileName);
-    handles.NBSPredict.data.y = y;
-%     ifClass = numel(unique(y(:,2))) < length(y(:,2))/2;
-    ifClass = numel(unique(y(:,2))) < 10;
+    if ~handles.ifHistory
+        y = loadData(fileName);
+        handles.NBSPredict.data.y = y;
+    end
+    %     ifClass = numel(unique(y(:,2))) < length(y(:,2))/2;
+    ifClass = numel(unique(handles.NBSPredict.data.y(:,2))) < 10;
     if ifClass
         mlOptions = {'Auto (optimize models)','Decision Tree Classification',...
             'SVM Classification','Logistic Regression','Linear Discriminant Analysis'};
         MLfunNames = {'','decisionTreeC','svmC','LogReg','lda'};
         set(handles.metricpop,'String',{'Accuracy','Sensitivity','Specificity',...
             'Precision','Recall','F1','Matthews_CC','Cohens_Kappa','AUC'})
-        set(handles.mlModelpop,'String',mlOptions);
     else
         mlOptions = {'Auto (optimize models)','SVM Regression','Decision Tree Regression','Linear Regression'};
         MLfunNames = {'','svmR','decisionTreeR','LinReg'};
         set(handles.metricpop,'String',{'RMSE','MSE','MAD','Correlation','Explained_Variance','R_squared'})
-        set(handles.mlModelpop,'String',mlOptions);
-%         handles.NBSPredict.parameter.test = 'F-test';
+        %         handles.NBSPredict.parameter.test = 'F-test';
     end
+    set(handles.mlModelpop,'String',mlOptions);
     handles.MLfunNames = MLfunNames;
     handles.guiHistory.MLfunNames = MLfunNames;
     handles.guiHistory.UI.String.designMatEdit = fileName;
@@ -426,7 +428,6 @@ if exist(fileName, 'file') == 2
     brainRegions.Properties.VariableNames = {'X','Y','Z','labels'};
     handles.NBSPredict.data.brainRegions = brainRegions;
     handles.guiHistory.UI.String.brainRegionsEdit = fileName;
-    set(handles.corrMatEdit,'String',path);
     set(handles.brainRegionsPush,'ForegroundColor',[0,0.7,0]);
     guidata(hObject,handles)
 else
@@ -545,6 +546,35 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
+function seedEdit_Callback(hObject, eventdata, handles)
+% hObject    handle to seedEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of seedEdit as text
+%        str2double(get(hObject,'String')) returns contents of seedEdit as a double
+randSeed = str2double(get(hObject,'String'));
+ifStr = isnan(randSeed);
+if ifStr
+    warning('Please enter a number!');
+else
+    handles.guiHistory.UI.String.seedEdit = randSeed;
+    handles.NBSPredict.parameter.randSeed = randSeed;
+    guidata(hObject,handles);
+end
+
+% --- Executes during object creation, after setting all properties.
+function seedEdit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to seedEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
 
 %% About & manualpush & Run
 % --- Executes on button press in aboutPush.
@@ -581,12 +611,12 @@ function runNBSPredict_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 handles.guiHistory.data = handles.NBSPredict.data;
 handles.guiHistory.parameter = handles.NBSPredict.parameter;
-if isfield(handles.guiHistory.parameter,'MLmodels') 
-    handles.guiHistory.parameter = rmfield(handles.guiHistory.parameter,{'MLmodels','ifModelOpt'});
-end
-if isfield(handles.guiHistory.parameter,'metric')
-    handles.guiHistory.parameter = rmfield(handles.guiHistory.parameter,'metric');
-end
+% if isfield(handles.guiHistory.parameter,'MLmodels') 
+%     handles.guiHistory.parameter = rmfield(handles.guiHistory.parameter,{'MLmodels','ifModelOpt'});
+% end
+% if isfield(handles.guiHistory.parameter,'metric')
+%     handles.guiHistory.parameter = rmfield(handles.guiHistory.parameter,'metric');
+% end
 referenceFile = 'start_NBSPredict.m';
 saveDir = fileparts(which(referenceFile));
 guiHistory = handles.guiHistory;
@@ -596,21 +626,31 @@ run_NBSPredict(handles.NBSPredict);
 
 %% Helper
 function [handles] = loadHistory(handles)
-try 
-    load('history')
-    UI = guiHistory.UI;
-    UIproperty = fieldnames(UI);
-    handles.MLfunNames = guiHistory.MLfunNames;
-    for i = 1:numel(UIproperty)
-        callbacks = fieldnames(UI.(UIproperty{i}));
-        for j = 1: numel(callbacks)
-            val = UI.(UIproperty{i}).(callbacks{j});
-            handles.(callbacks{j}).(UIproperty{i}) = val;
-            fun = str2func([callbacks{j},'_Callback']);
-            fun(handles.(callbacks{j}),[],handles);
+ifHistory = exist('history.mat', 'file') == 2;
+if ifHistory
+    handles.ifHistory = 1;
+    try
+        load('history')
+        UI = guiHistory.UI;
+        UIproperty = fieldnames(UI);
+        handles.MLfunNames = guiHistory.MLfunNames;
+        handles.NBSPredict.data = guiHistory.data;
+        handles.NBSPredict.parameter = guiHistory.parameter;
+        handles.guiHistory = guiHistory;
+        for i = 1:numel(UIproperty)
+            callbacks = fieldnames(UI.(UIproperty{i}));
+            nCallbacks = numel(callbacks);
+            for j = 1: nCallbacks
+                val = UI.(UIproperty{i}).(callbacks{j});
+                handles.(callbacks{j}).(UIproperty{i}) = val;
+                fun = str2func([callbacks{j},'_Callback']);
+                fun(handles.(callbacks{j}),[],handles);
+            end
         end
     end
-    handles.guiHistory = guiHistory;
-    handles.NBSPredict.parameter = guiHistory.parameter;
-    handles.NBSPredict.data = guiHistory.data;
+else
+    handles.ifHistory = 0; 
 end
+
+
+

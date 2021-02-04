@@ -10,6 +10,7 @@ function [varargout] = run_nbsPredictGlm(X,y,contrast,test)
 %   Output:
 %       stats = test statistics. 
 %       p = p-values. 
+%       betas = Coeffiecients. 
 %
 %   Example:
 %       stats = run_nbsPredictGlm(X,y,contrast,test)
@@ -68,6 +69,7 @@ else
 end
 varargout{1} = stats;
 varargout{2} = p;
+varargout{3} = betas; 
 end
 
 

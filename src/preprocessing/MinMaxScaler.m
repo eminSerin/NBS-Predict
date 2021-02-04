@@ -3,11 +3,22 @@ classdef MinMaxScaler < baseScaler
     % between 0 and 1. 
     
     methods
+        function obj = MinMaxScaler(featureRange)
+            % featureRange: List of desired range of transformed data. 
+            if nargin == 0
+            else
+                obj.fitParams.minVals = featureRange(1);
+                obj.fitParams.maxVals = featureRange(2);
+            end
+        end
+        
         function obj = fit(obj,data)
             % Fit transformation object to find parameters required for
             % feature transformation.
-            obj.fitParams.minVals = min(data);
-            obj.fitParams.maxVals = max(data);
+            if ~isfield(obj.fitParams,'minVals')
+                obj.fitParams.minVals = min(data);
+                obj.fitParams.maxVals = max(data);
+            end
         end
         
         function transformedData = transform(obj,data)
