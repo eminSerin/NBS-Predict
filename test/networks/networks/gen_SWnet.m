@@ -29,10 +29,10 @@ function [g] = gen_SWnet(n,k,beta)
 %   
 %
 %% Inputs
-if nargin < 3 beta = .05; end % Default m value.
+if nargin < 3 beta = .05; end % Default beta value.
 if nargin < 2 k = 5; end % Default k value. 
-if nargin < 1 n = 100; end % Default beta value. 
-
+if nargin < 1 n = 100; end % Default n value. 
+assert(k*2~=n,"k*2 must be lower than n");
 %% Ring Lattice. 
 % Each node is connected with k-nearest neighbour nodes which constructs
 % a ring lattice. 

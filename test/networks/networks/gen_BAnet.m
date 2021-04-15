@@ -29,7 +29,7 @@ if nargin < 2 m0 = 5; end % Default m0 value.
 if nargin < 1 n = 100; end % Default n value. 
 
 % Check if m0 is greater than m (must be!)
-if m0 < m
+if m0 <= m
     error('m0 value must be greater than m.')
 end
 

@@ -5,9 +5,11 @@ function [varargout] = gen_synthData(varargin)
 %   structure including network matrices, design matrix and list of indices
 %   of contrasted edges. 
 %
-%   Arguements: 
+%   Arguments: 
 %       nNodes: Number of nodes in the network. (default = 100)
-%       nEdges: Number of edges with contrast. (default = 10)
+%       nEdges: Number of edges with ground truth. (default = 10)
+%       formNetwork: Whether the edges with ground truth form network
+%           (default = True).
 %       cnr: Contrast-to-noise ratio. (default = 0.5)
 %       n: The number of control-contrast network couples generated.
 %           (default = 25, i.e. sample size of 50 observations).
@@ -26,7 +28,7 @@ function [varargout] = gen_synthData(varargin)
 %               beta: rewiring probability. (default = .05)
 %           Random network. 
 %       randomState: Controls the randomness. Pass an integer value for
-%           reproducible results (default = 'shuffle').  
+%           reproducible results or 'shuffle' to randomize (default = 42).  
 %       
 %   Output:
 %       synthData: A data structure which includes control and contrast
@@ -47,7 +49,7 @@ function [varargout] = gen_synthData(varargin)
 %           statistic: identifying differences in brain networks.
 %           Neuroimage, 53(4), 1197-1207.
 %
-%   Last edited by Emin Serin, 30.05.2020
+%   Last edited by Emin Serin, 09.04.2021
 %
 %   See also: test_NBSPredict, gen_BAnet, gen_SWnet, search_BF
 
@@ -55,12 +57,13 @@ function [varargout] = gen_synthData(varargin)
 
 % Default parameters.
 defaultVals.nNodes = 100; defaultVals.nEdges= 10; 
+defaultVals.formNetwork = true;
 defaultVals.cnr = 0.5; defaultVals.network = 'scalefree';
 defaultVals.m = 2; defaultVals.m0 = 5;
 defaultVals.k = 2; defaultVals.beta = .05;
 defaultVals.n = 25; defaultVals.ifSave = 0;
 defaultVals.noise = 0.0; defaultVals.ifRegression = 0;
-defaultVals.randomState = 'shuffle';
+defaultVals.randomState = false;
 networkOptions = {'scalefree','smallworld','random'};
 
 
@@ -77,6 +80,7 @@ addParameter(p,'m0',defaultVals.m0,validationNumeric);
 addParameter(p,'k',defaultVals.m0,validationNumeric);
 addParameter(p,'beta',defaultVals.beta,validationNumeric);
 addParameter(p,'nEdges',defaultVals.nEdges,validationNumeric);
+addParameter(p,'formNetwork',defaultVals.nEdges);
 addParameter(p,'n',defaultVals.n,validationNumeric);
 addParameter(p,'ifSave',defaultVals.ifSave,validationNumeric);
 addParameter(p,'noise',defaultVals.noise,validationNumeric);
@@ -99,7 +103,9 @@ if ifSave
     end
 end
 
-rng(p.Results.randomState);
+if p.Results.randomState
+    rng(p.Results.randomState);
+end
 %% Generate networks.
 % Check network generation method.
 if strcmpi(network,'scalefree')
@@ -112,10 +118,10 @@ end
 
 if ~p.Results.ifRegression
     [data] = make_classification(g,p.Results.n,p.Results.cnr,...
-        p.Results.nEdges,nNodes);
+        p.Results.nEdges,nNodes,p.Results.formNetwork);
 else
     [data] = make_regression(g,p.Results.n,p.Results.noise,...
-        p.Results.nEdges,nNodes);
+        p.Results.nEdges,nNodes,p.Results.formNetwork);
 end
 
 if ifSave
@@ -126,10 +132,10 @@ end
 varargout{:} = data;
 end
 
-function [data] = make_classification(g,n,cnr,nEdges,nNodes)
+function [data] = make_classification(g,n,cnr,nEdges,nNodes,formNetwork)
 % make_classification synthetic generates network data for classification 
 % problems using given graph network. 
-% Arguements: 
+% Arguments: 
 %       g = graph structure.  
 %   Please check help section of the main function for other arguements. 
 %
@@ -138,10 +144,17 @@ function [data] = make_classification(g,n,cnr,nEdges,nNodes)
 %           data, design matrix and indices of contrast links
 %       contIdxAdj = Vector containing indices of contrasted edges. 
 %
-% Find indices for contrasted networks. 
-[~,~,contrastEdgeIdx,edgeIdx] = find_contrastEdges(g,nEdges,nNodes);
-[~,cEdgeLoc] = ismember(contrastEdgeIdx,edgeIdx);
+
+% Find indices for contrasted edges. 
+edgeIdx = find(triu(g));
 nTotalEdges = numel(edgeIdx);
+if formNetwork
+    [~,~,contrastEdgeIdx] = find_contrastEdges(g,nEdges,nNodes);
+    [~,cEdgeLoc] = ismember(contrastEdgeIdx,edgeIdx);
+else
+    cEdgeLoc = randperm(nTotalEdges,nEdges);
+    contrastEdgeIdx = edgeIdx(cEdgeLoc);
+end
 
 % Embed contrast-of-interest. 
 edgeWeight = randn(nTotalEdges,n*2); % Edges. 
@@ -162,10 +175,10 @@ data.contrastEdgeIdx = contrastEdgeIdx;
 data.designMat = double(designMat);
 end
 
-function [data] = make_regression(g,n,noise,nEdges,nNodes)
+function [data] = make_regression(g,n,noise,nEdges,nNodes,formNetwork)
 % make_regression synthetic generates network data for regression 
 % problems using given graph network. 
-% Arguements: 
+% Arguments: 
 %       g = graph structure.  
 %       Please check help section of the main function for other arguements. 
 %
@@ -173,10 +186,16 @@ function [data] = make_regression(g,n,noise,nEdges,nNodes)
 %       data: A data structure which includes control and contrast
 %           data, design matrix and indices of contrast links
 %
-% Find indices for contrasted networks. 
-[~,~,contrastEdgeIdx,edgeIdx] = find_contrastEdges(g,nEdges,nNodes);
-[~,cEdgeLoc] = ismember(contrastEdgeIdx,edgeIdx);
+% Find indices for contrasted edges. 
+edgeIdx = find(triu(g));
 nTotalEdges = numel(edgeIdx);
+if formNetwork
+    [~,~,contrastEdgeIdx] = find_contrastEdges(g,nEdges,nNodes);
+    [~,cEdgeLoc] = ismember(contrastEdgeIdx,edgeIdx);
+else
+    cEdgeLoc = randperm(nTotalEdges,nEdges);
+    contrastEdgeIdx = edgeIdx(cEdgeLoc);
+end
 
 % Generate normally distributed random data. 
 X = randn(nTotalEdges,n*2); % Edges. 
@@ -199,7 +218,7 @@ data.groundTruth = groundTruth;
 end
 
 %% Helper Functions
-function [path,prev,contrastEdgeIdx,edgeIdx] = find_contrastEdges(g,nEdges,nNodes)
+function [path,prev,contrastEdgeIdx] = find_contrastEdges(g,nEdges,nNodes)
 % find_contrastEdges find edges embedded with contrast of interest using
 % breadth-first search algorithm, and return indices of contrasted edges. 
 [path,prev] = find_edges(g,nEdges);
@@ -210,7 +229,6 @@ for i  = 1: nEdges
     contIdxAdj(path(i),prev(i)) = 1;
 end
 contrastEdgeIdx = find(triu(contIdxAdj));
-edgeIdx = find(triu(g));
 end
 
 function [path,prev] = find_edges(g,nEdges)

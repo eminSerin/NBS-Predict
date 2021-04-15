@@ -11,10 +11,14 @@ function [MLhandle] = gen_MLhandles(modelName)
 %           'decisionTreeC':    Decision Tree Classification 
 %           'lda':              Linear Discriminant Analysis
 %           'LogReg':           Logistic Regression
+%           'ElasticNetC':      Elastic Net Classification
+%           'LassoC':           Lasso Classification
 %       Regression:
 %           'svmR':             Support Vector Machine Regression
 %           'decisionTreeR':    Decision Tree Regression
 %           'LinReg':           Linear Regression
+%           'ElasticNetR':      Elastic Net Regression
+%           'LassoR':           Lasso Regression
 %
 %   Output:
 %       MLhandles = Function handle to initiate fit, predict and score
@@ -33,8 +37,8 @@ function [MLhandle] = gen_MLhandles(modelName)
 assert(nargin == 1, 'Inaccurate inputs given. Please check help section!');
 
 % Check if model name given is correct. 
-availableModels = {'svmC','decisionTreeC','LogReg','lda',...
-    'decisionTreeR','svmR','LinReg'};
+availableModels = {'svmC','decisionTreeC','LogReg','lda','ElasticNetC',...
+    'LassoC','decisionTreeR','svmR','LinReg','ElasticNetR','LassoR'};
 assert(ismember(modelName,availableModels),...
     'Model name is incorrect! Please check help section!')
 

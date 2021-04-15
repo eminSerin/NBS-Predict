@@ -5,9 +5,9 @@ classdef ConfoundRegression < baseScaler
     % removes variance in the data associated with confounds. 
     %   
     % Parameters: 
-    %   data = Data matrix to be corrected. confound = Matrix containing
-    %   confound values (Make sure that number of rows is similar to those
-    %       in data).
+    %   data = Data matrix to be corrected. 
+    %   confound = Matrix containing confound values 
+    %       (Make sure that number of rows is similar to those in data).
     %   
     % Attributes: 
     %   fitParams.weights = Weights for the confounds. 
@@ -18,7 +18,7 @@ classdef ConfoundRegression < baseScaler
     %   correctedData = correctConfound.transform(data);
     %
     % Reference:
-    %   Snoek, L., Mileti?, S., & Scholte, H. S. (2019). How to control for
+    %   Snoek, L., Mileti, S., & Scholte, H. S. (2019). How to control for
     %   confounds in decoding analyses of neuroimaging data. NeuroImage,
     %   184, 741-760.
     %

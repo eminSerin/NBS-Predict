@@ -1,7 +1,7 @@
 function [Mdl] = run_svmR(params)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % run_svmR returns Mdl structure including function handles of fit,
-% predict and score functions for linear regression. 
+% predict and score functions for support vector regression. 
 %
 % Optional arguement: 
 %   params: Structure including following hyperparameters:

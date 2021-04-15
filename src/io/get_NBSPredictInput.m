@@ -33,6 +33,15 @@ default.parameter.ifView = 0;
 default.parameter.scalingMethod = [];
 default.parameter.randSeed = 42; 
 
+if isstring(NBSPredict) || ischar(NBSPredict)
+    assert(exist(NBSPredict, 'file') == 2, "The input file is not found!") 
+    load(NBSPredict)
+end
+
+if isfield(NBSPredict,'info')
+    default.info = NBSPredict.info;
+end
+
 if isfield(NBSPredict.parameter,'ifHyperOpt')
     % Set default hyperOptSteps parameter if ifHyperOpt exists and set to 1
     % in the NBSPredict struct provided.

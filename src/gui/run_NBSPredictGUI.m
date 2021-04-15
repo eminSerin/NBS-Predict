@@ -54,6 +54,8 @@ function run_NBSPredictGUI_OpeningFcn(hObject, eventdata, handles, varargin)
 % Choose default command line output for run_NBSPredictGUI
 handles.output = hObject;
 handles.NBSPredict.parameter.ifView = 1; % run NBS_Predict_view after analysis. 
+handles.verNBSPredict = '1.0.0-beta1';
+handles.NBSPredict.info.version = handles.verNBSPredict;
 handles = loadHistory(handles);
 % Update handles structure
 guidata(hObject, handles);
@@ -576,16 +578,14 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-%% About & manualpush & Run
 % --- Executes on button press in aboutPush.
 function aboutPush_Callback(hObject, eventdata, handles)
 % hObject    handle to aboutPush (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-verNBSPredict = '\bf1.0.0-alpha3';
-msg = {'NBS-Predict';['Version: ',verNBSPredict];...
+msg = {'NBS-Predict';['Version: ',handles.verNBSPredict];...
     '\rmAuthor: Emin Serin';...
-    'Contact: eminserinn@gmail.com'};
+    'Contact: emin.serin@charite.de'};
 CreateStruct.Interpreter = 'tex';
 CreateStruct.WindowStyle = 'modal';
 mb = msgbox(msg,'About','Value',CreateStruct);
@@ -598,11 +598,12 @@ function manualPush_Callback(hObject, eventdata, handles)
 % hObject    handle to manualPush (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-% if exist('BrainNet_Manual.pdf','file')==2
-%     open('NBS-Predict_Manual.pdf');
-% else
-%     msgbox('Cannot find the manual file!','Error','error');
-% end
+if exist('MANUAL.pdf','file')==2
+    open('MANUAL.pdf');
+else
+    msgbox('Cannot find the manual file!','Error','error');
+end
+
 
 % --- Executes on button press in runNBSPredict.
 function runNBSPredict_Callback(hObject, eventdata, handles)

@@ -1,12 +1,14 @@
 References: 
 
-Chang, C. C., & Lin, C. J. (2011). LIBSVM: A library for support vector machines. 
-    ACM transactions on intelligent systems and technology (TIST), 2(3), 27.
-Paul Kassebaum (2020). circularGraph (https://github.com/paul-kassebaum-mathworks/
+Glmnet for Matlab (2013) Qian, J., Hastie, T., Friedman, J., Tibshirani, R. and Simon, N.
+    http://www.stanford.edu/~hastie/glmnet_matlab/
+Morel, (2018). Gramm: grammar of graphics plotting in Matlab. Journal of Open Source Software, 3(23), 	     		       
+    568, https://doi.org/10.21105/joss.00568
+Paul Kassebaum, (2020). circularGraph (https://github.com/paul-kassebaum-mathworks/
     circularGraph), GitHub. Retrieved September 6, 2020.
-Roland Pfister (2019). dlmcell (https://www.mathworks.com/matlabcentral/fileexchange/
+Roland Pfister, (2019). dlmcell (https://www.mathworks.com/matlabcentral/fileexchange/
     25387-dlmcell), MATLAB Central File Exchange. Retrieved September 3, 2019.
-Xia, M., Wang, J., & He, Y. (2013). BrainNet Viewer: a network visualization tool 
+Xia, M., Wang, J., & He, Y., (2013). BrainNet Viewer: a network visualization tool 
     for human brain connectomics. PloS one, 8(7), e68910.
 Zalesky, A., Fornito, A., & Bullmore, E. T. (2010). Network-based statistic: 
     identifying differences in brain networks. Neuroimage, 53(4), 1197-1207.	

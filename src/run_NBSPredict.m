@@ -1,24 +1,49 @@
 function [NBSPredict] = run_NBSPredict(NBSPredict)
-% run_NBSPredict is a function which consists main nested
-% cross-validation structure. It performs cross-validated prediction on
-% given data.
+% run_NBSPredict is the main function which consists combines machine
+% learning with graph theoretical concept of connected components.
+% Specifically, it selects features(i.e. edges) using graph-based feature
+% selection algorithm and performs prediction in a repeated
+% cross-validation structure (nested CV if desired). 
 %
-% Arguements:
+% Arguments:
 %   NBSPredict - Structure including data and parameters. NBSPredict
 %       structure is prepared by NBSPredict GUI. However it could also be
 %       provided by user to bypass the GUI (see MANUAL for details).
 %
 % Output:
-%   NBSPredict - Structure provided by the user or GUI with results saved in.
+%   NBSPredict = Output structure as follows:
+%       info = Several information and parameters.
+%       parameter: Toolbox parameters.
+%       data: Substructure comprising data, contrast, directories and brain
+%           parcellation..
+%       featSelHandle: Function handle for selection algorithm.
+%       results: Substructure containing results.
+%   This structure is also saved in
+%       ~/Results/date/NBSPredict.mat directory.
 %
-% Last edited by Emin Serin, 03.09.2019.
+% Last edited by Emin Serin, 08.04.2021.
+%
 %
 % See also: start_NBSPredictGUI, get_NBSPredictInput
-
+%
+%%
 NBSPredict = get_NBSPredictInput(NBSPredict);
+totalRepCViter = NBSPredict.parameter.repCViter;
 
+% Random Seed
+randSeed = NBSPredict.parameter.randSeed;
+if randSeed ~= -1 % -1 refers to random shuffle.
+    if NBSPredict.parameter.ifParallel
+        rndSeeds = linspace(randSeed,randSeed+totalRepCViter-1,totalRepCViter);
+    else
+        rng(randSeed);
+    end
+else
+    rng('shuffle');
+end
+
+% Init parallel pool if desired.
 if NBSPredict.parameter.ifParallel && isempty(gcp('nocreate'))
-    % Init parallel pool.
     parpool('local');
 end
 
@@ -29,7 +54,6 @@ startTime = tic;
 nEdges = numel(NBSPredict.data.edgeIdx);
 nModels = numel(NBSPredict.parameter.MLmodels);
 nSub = size(NBSPredict.data.y,1);
-totalRepCViter = NBSPredict.parameter.repCViter;
 
 % Preallocation
 repCVscore = zeros(totalRepCViter,1,'single');
@@ -59,6 +83,7 @@ for cModelIdx = 1: nModels
     if cNBSPredict.parameter.ifParallel
         % Run parallelly.
         parfor repCViter = 1: totalRepCViter
+            rng(rndSeeds(repCViter));
             if ifLinear
                 [outerCVscore,edgeWeight(repCViter,:,:),...
                     truePredLabels(repCViter,:,:),stability(repCViter),...
@@ -104,15 +129,18 @@ for cModelIdx = 1: nModels
     NBSPredict.results.(cModel).meanStability = mean(stability);
     
     % EdgeWeights
+    totalFold = NBSPredict.parameter.repCViter*NBSPredict.parameter.kFold;
     [NBSPredict.results.(cModel).edgeWeight,NBSPredict.results.(cModel).meanEdgeWeight,...
         NBSPredict.results.(cModel).wAdjMat,NBSPredict.results.(cModel).scaledMeanEdgeWeight,...
-        NBSPredict.results.(cModel).scaledWAdjMat] = compute_meanWeights(edgeWeight,NBSPredict,nEdges);
+        NBSPredict.results.(cModel).scaledWAdjMat] =...
+        compute_meanWeights(edgeWeight,meanRCVscore,NBSPredict.data.nodes,nEdges,NBSPredict.data.edgeIdx,0,totalFold);
     
     if ifLinear
         % ActivationPatterns
         [NBSPredict.results.(cModel).actPattern,NBSPredict.results.(cModel).mActPattern,...
             NBSPredict.results.(cModel).actAdjMat,NBSPredict.results.(cModel).scaledMeanActPattern,...
-            NBSPredict.results.(cModel).scaledActAdjMat] = compute_meanWeights(activationPattern,NBSPredict,nEdges);
+            NBSPredict.results.(cModel).scaledActAdjMat] =...
+            compute_meanWeights(edgeWeight,meanRCVscore,NBSPredict.data.nodes,nEdges,NBSPredict.data.edgeIdx,1,totalFold);
     end
     
     % Save values to NBSPredict.
@@ -138,15 +166,17 @@ end
 
 if NBSPredict.parameter.ifModelOpt
     NBSPredict.results.bestEstimator = NBSPredict.parameter.MLmodels{bestEstimatorIdx};
-    % Print summary results if more than one estimators are used.
-    fprintf('\n\n\n\t\t\t<strong>OVERALL RESULTS:</strong>\n\n');
-    for cModelIdx = 1:nModels
-        fprintf(['ML Estimator: %s,\n\tMean Repeated Nested CV Score: %.2f,\n\t',...
-            'Confidence Interval: [%.2f,%.2f]\n'],...
-            NBSPredict.parameter.MLmodels{cModelIdx},meanRepCVscore(cModelIdx),...
-            meanRepCVscoreCI(cModelIdx,:))
+    if NBSPredict.parameter.verbose
+        % Print summary results if more than one estimators are used.
+        fprintf('\n\n\n\t\t\t<strong>OVERALL RESULTS:</strong>\n\n');
+        for cModelIdx = 1:nModels
+            fprintf(['ML Estimator: %s,\n\tMean Repeated CV Score: %.2f,\n\t',...
+                'Confidence Interval: [%.2f,%.2f]\n'],...
+                NBSPredict.parameter.MLmodels{cModelIdx},meanRepCVscore(cModelIdx),...
+                meanRepCVscoreCI(cModelIdx,:))
+        end
+        fprintf('Estimator with minimum error is <strong>%s</strong> \n',NBSPredict.results.bestEstimator);
     end
-    fprintf('Estimator with minimum error is <strong>%s</strong> \n',NBSPredict.results.bestEstimator);
 end
 
 NBSPredict.info.endDate = date;
@@ -297,25 +327,6 @@ cEdgesIdx = find(pVal < NBSPredict.parameter.pVal);
 end
 
 %% Helper functions
-function data = preprocess_data(data,scalingMethod)
-% preprocess_data performs preprocessing on data provided.
-% Preprocessing consists of rescaling and, if provided, removing
-% confounds from data.
-% Preprocess data
-if ~isempty(scalingMethod)
-    % Rescale data.
-    scaler = feval(scalingMethod);
-    data.X_train = scaler.fit_transform(data.X_train);
-    data.X_test = scaler.transform(data.X_test);
-end
-if isfield(data,'confounds_train')
-    % Remove variance associated with confounds from data.
-    confcorr = ConfoundRegression;
-    data.X_train = confcorr.fit_transform(data.X_train,data.confounds_train);
-    data.X_test = confcorr.transform(data.X_test,data.confounds_test);
-end
-end
-
 function varargout = fit_hyperParam(data,hyperparam,MLhandle,metrics)
 % fit_hyperParam fits ML algorithm on provided data with hyperparameters
 % provided.
@@ -330,7 +341,7 @@ varargout = cell(1,nMetrics+2);
 end
 
 function [reshapedEdgeWeight,meanEdgeWeight,wAdjMat,scaledMeanEdgeWeight,scaledWAdjMat]...
-    = compute_meanWeights(edgeWeight,NBSPredict,nEdges)
+    = compute_meanWeights(edgeWeight,CVscore,nNodes,nEdges,edgeIdx,ifActivation,totalFold)
 % compute_meanWeights computes vector and adjacency matrix of mean edge
 % weights. It also returns scaled version of those outputs using
 % MinMaxScaler. 
@@ -340,14 +351,17 @@ reshapedEdgeWeight = reshape(ipermute(edgeWeight,[3 2 1]),nEdges,[]);
 
 % Mean edge weight.
 meanEdgeWeight = mean(reshapedEdgeWeight,2);
-wAdjMat = gen_weightedAdjMat(NBSPredict.data.nodes,...
-    NBSPredict.data.edgeIdx,meanEdgeWeight); % weighted Adj matrix.
+wAdjMat = gen_weightedAdjMat(nNodes,edgeIdx,meanEdgeWeight); % weighted Adj matrix.
 
 % Scaled mean edge weight
-scaler = MinMaxScaler;
+if ifActivation
+    scaler = MinMaxScaler([0,max(meanEdgeWeight)]);
+else
+    scaler = MinMaxScaler([0,CVscore]);
+end
 scaledMeanEdgeWeight = scaler.fit_transform(meanEdgeWeight); % Min-max scaled mean weights
-scaledWAdjMat = gen_weightedAdjMat(NBSPredict.data.nodes,...
-    NBSPredict.data.edgeIdx,scaledMeanEdgeWeight); % weighted Adj matrix.
+scaledMeanEdgeWeight = round(scaledMeanEdgeWeight,round(log10(totalFold))+1); % Tolarate minor difference. 
+scaledWAdjMat = gen_weightedAdjMat(nNodes,edgeIdx,scaledMeanEdgeWeight); % weighted Adj matrix.
 end
 
 function [fileDir] = save_NBSPredict(NBSPredict)
@@ -357,8 +371,8 @@ function [fileDir] = save_NBSPredict(NBSPredict)
 % same folder (i.e., multiple analysis in a day), the current file is named
 % with suffix.
 if NBSPredict.parameter.ifSave
-    referenceFile = 'start_NBSPredict.m';
-    saveDir = fileparts(which(referenceFile));
+    referencePath = NBSPredict.data.path;
+    saveDir = fileparts(referencePath); % parent director
     if isfield(NBSPredict.parameter,'ifTest')
         saveDir = [saveDir,filesep,'test',filesep,'Results',filesep,date,filesep];
     else

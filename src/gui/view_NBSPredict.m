@@ -67,7 +67,12 @@ if isempty(varargin)
     NBSPredict = load([path NBSPredictFile]);
     NBSPredict = NBSPredict.NBSPredict;
 else
-    NBSPredict = varargin{1};
+    if isstring(varargin{1}) || ischar(varargin{1})
+        assert(exist(varargin{1}, 'file') == 2, "The input file is not found!")
+        load(varargin{1})
+    else
+        NBSPredict = varargin{1};
+    end
 end
 handles.plotData = NBSPredict.results;
 handles.plotData.MLmodels = NBSPredict.parameter.MLmodels;
@@ -206,7 +211,7 @@ handles.cFig = 'net';
 dcm_obj = datacursormode(gcf);
 set(dcm_obj,'Enable','on','UpdateFcn',{@dataCursorUpdateFun,handles});
 [handles] = pcFontSize(handles);
-handles.cG = cG;
+setappdata(handles.uipanel1,'cG',cG);
 guidata(hObject,handles)
 
 % --- Executes on button press in brainNetPush.
@@ -293,16 +298,20 @@ function saveFigurePush_Callback(hObject, eventdata, handles)
 % hObject    handle to saveFigurePush (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-formatFiltes = {'*.pdf','PDF';'*.fig','Matlab Figure';'*.jpeg','JPEG 24-bit';...
-    '*.png','PNG 24-bit';'*.tiff','TIFF 24-bit';'*.tiff','TIFF 24-bit UNCOMPRESSED';...
-    '*.eps','EPS Level 3 color';'*.svg','SVG'};
+formatFiltes = {'*.pdf','PDF';'*.fig','Matlab Figure';...
+    '*.jpeg','JPEG 24-bit';'*.jpeg','JPEG 24-bit 1000 dpi';...
+    '*.png','PNG 24-bit';'*.tiff','TIFF 24-bit';};
 [figFileName, figFilePath, filterIdx] = uiputfile(formatFiltes);
 
 if ~(figFilePath==0)
     fullFileName = [figFilePath,figFileName];
     saveFigH = figure('Visible','off','PaperUnits','centimeters','Units','centimeters');
     copyobj(handles.figureAxes,saveFigH);
-    pos=get(saveFigH,'Position');
+    pos = get(saveFigH,'Position');
+    
+    % Remove metric
+    figChildren = arrayfun(@(x) class(x),saveFigH.Children,'UniformOutput',false);
+    delete(saveFigH.Children(ismember(figChildren,'matlab.graphics.axis.Axes')).Title);
     
     % Configs for other figures.
     set(saveFigH,'PaperSize', [pos(3)*.75 pos(4)],...
@@ -319,16 +328,16 @@ if ~(figFilePath==0)
         set(saveFigH,'Visible','on');
         saveas(saveFigH,fullFileName,'fig');
     else
-        if filterIdx == 6
-            fileFormat = 'tiffn';
-        elseif filterIdx == 7
-            fileFormat = 'epsc';
-        else
-            fileFormat = formatFiltes{filterIdx,1};
-            fileFormat = fileFormat(3:end);
+        dpi = '-r300';
+        if filterIdx == 1
+            dpi = '-r2000';
+        elseif filterIdx == 4
+            dpi = '-r1000';
         end
+        fileFormat = formatFiltes{filterIdx,1};
+        fileFormat = fileFormat(3:end);
         fileFormat = ['-d',fileFormat];
-        print(saveFigH,fullFileName,fileFormat,'-r0');
+        print(saveFigH,fullFileName,fileFormat,dpi);
     end
     close(saveFigH)
     clear saveFigH
@@ -476,17 +485,18 @@ switch handles.cFig
             edgeWeight = graphHandle.UserData.cWeight;
             adjDataCursorTxt = {['Weight: ',num2str(edgeWeight)]};
         else
-            cG = handles.cG;
+            cG = getappdata(handles.uipanel1,'cG');
             cLabel = graphHandle.UserData.Label;
             intLabel = str2double(cLabel);
-            if ~isempty(intLabel)
-                [~,nodeIdx] = ismember(cLabel,cG.Label);
-            else
+            if ~isnan(intLabel)
+                cLabel = handles.plotData.brainRegions.labels{intLabel};
                 nodeIdx = intLabel;
+            else
+                [~,nodeIdx] = ismember(cLabel,handles.plotData.brainRegions.labels);
             end
+              
             cDegree = cG.Degree(nodeIdx);
-            nodeName = cG.Label(nodeIdx);
-            adjDataCursorTxt = {['Region: ',nodeName{:}],...
+            adjDataCursorTxt = {['Region: ',cLabel],...
                 ['Nodal degree: ',num2str(cDegree)]};
         end
 end
@@ -560,7 +570,7 @@ if ispc || isunix
 end
 
 function [meanCVscore] = evalSubnet(handles)
-% TODO: Implement better way to evaluate the suprathreshold subnetwork. 
+% TODO: Implement better way to evaluate the suprathreshold subnetwork.
 % Evaluates prediction performance of identified subnetwork.
 % Set parameters.
 kFold = 10;
@@ -576,7 +586,7 @@ y = handles.plotData.y(:,2);
 data.X = X;
 data.y = y;
 if ~isempty(handles.plotData.confounds)
-    data.confounds = handles.plotData.confounds; 
+    data.confounds = handles.plotData.confounds;
 end
 
 for i = 1: repCV

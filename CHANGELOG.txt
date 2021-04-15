@@ -1,3 +1,13 @@
+## [v1.0.0-beta1] - 13.04.2021
+- NBS-Predict is now in v1.0.0-beta1.
+- Add user MANUAL and data analysis tutorial. 
+- Fix history.mat file issue. 
+- Add option to set a specific random seed. 
+- Fix several minor issues in the GUI. 
+- Add functions for alternative algorithms (elastic net, lasso, p-value thresholding, top 5% and connectome-based predictive modeling (Shen et al., 2017)).
+- Add simulation function to evaluate the performance of NBS-Predict and alternative algorithms on simulated network data. 
+- Add plot functions to plot simulation results.
+
 ## [v1.0.0-alpha3] - 06.09.2020
 - NBS-Predict is now in v1.0.0-alpha3.
 - Fix several bugs in the GUI.

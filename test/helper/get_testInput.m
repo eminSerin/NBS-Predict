@@ -9,60 +9,61 @@ function [testInputs] = get_testInput(varargin)
 %   searchInputs = Structure including all inputs required for searching
 %       algorithm. 
 %
-% Emin Serin - 24.04.2020
+% Emin Serin - 08.01.2020
 %
 % See also, test_NBSPredict, sim_testNBSPredict, sim_testNBSPredictABIDE
 %
 %% Input parser.
 % Default parameters for NBSPredict.
 defaultVals.kFold = 10; defaultVals.ifParallel = 0;
-defaultVals.selMethod = 'randomSearch'; defaultVals.pVal = 0.01; 
-defaultVals.maxPercent = 10; defaultVals.repCViter = 10; 
+defaultVals.selMethod = 'gridSearch'; defaultVals.pVal = 0.01; 
+defaultVals.repCViter = 10; defaultVals.algorithm = 'NBSPredict';
 defaultVals.verbose = 1; defaultVals.ifHyperOpt = 0; 
-defaultVals.hyperOptSteps = 5; defaultVals.T = 5;
-defaultVals.alpha = 0.95; defaultVals.nIter = 20;
-defaultVals.nRound = 3; defaultVals.nDiv = 20;
+defaultVals.hyperOptSteps = 5; defaultVals.nIter = 10;
 defaultVals.ifModelOpt = 0; defaultVals.ifSave = 0;
-defaultVals.ABIDE = 0; defaultVals.ifRegression = 0;
-defaultVals.randomState = 'shuffle'; defaultVals.simPreAllocate = 0; 
-selMethodOptions = {'divSelect','divSelectWide','randomSearch',...
-    'simulatedAnnealing'};
+defaultVals.ifRegression = 0; defaultVals.bayesAcqFunc = 'expected-improvement';
+defaultVals.randomState = 42; defaultVals.simPreAllocate = 0; 
+selMethodOptions = {'gridSearch','randomSearch','bayesOpt'};
+bayesAcqFuncOptions = {'lower-confidence-bound','probability-of-improvement',...
+    'expected-improvement'};
+algorithmOptions = {'NBSPredict','CPM','ElasticNet','Lasso','pVal','Top5'};
+
 
 % Default parameters for synthetic data generation. 
 defaultVals.nNodes = 100; defaultVals.nEdges= 50; 
-defaultVals.network = 'scalefree'; defaultVals.n = 50;
+defaultVals.network = 'scalefree'; defaultVals.formNetwork = 1;
 defaultVals.m = 10; defaultVals.m0 = 21;
-defaultVals.k = 50; defaultVals.beta = .05;
+defaultVals.k = 49; defaultVals.beta = .05;
 networkOptions = {'scalefree','smallworld','random'};
 
 % Validation
 validationSelMethod = @(x) any(validatestring(x,selMethodOptions));
 validationNumeric = @(x) isnumeric(x);
 validationNetwork = @(x) any(validatestring(x,networkOptions));
+validationBayes = @(x) any(validatestring(x,bayesAcqFuncOptions));
+validationAlgorithm = @(x) any(validatestring(x,algorithmOptions));
+
+p = inputParser();
+p.KeepUnmatched = true;
+p.PartialMatching = 0; % deactivate partial matching.
 
 % Add NBSPredict parameters. 
-p = inputParser();
-p.PartialMatching = 0; % deactivate partial matching.
+addParameter(p,'algorithm',defaultVals.algorithm,validationAlgorithm);
 addParameter(p,'kFold',defaultVals.kFold,validationNumeric);
 addParameter(p,'ifParallel',defaultVals.ifParallel,validationNumeric);
 addParameter(p,'metric',[]);
 addParameter(p,'MLmodels',[]);
 addParameter(p,'selMethod',defaultVals.selMethod,validationSelMethod);
+addParameter(p,'acquisitionFun',defaultVals.bayesAcqFunc,validationBayes);
 addParameter(p,'pVal',defaultVals.pVal,validationNumeric);
 addParameter(p,'bestParamMethod',[]);
-addParameter(p,'maxPercent',defaultVals.maxPercent,validationNumeric);
 addParameter(p,'repCViter',defaultVals.repCViter,validationNumeric);
 addParameter(p,'verbose',defaultVals.verbose,validationNumeric);
 addParameter(p,'ifHyperOpt',defaultVals.ifHyperOpt,validationNumeric);
 addParameter(p,'hyperOptSteps',defaultVals.hyperOptSteps,validationNumeric);
-addParameter(p,'T',defaultVals.T,validationNumeric);
 addParameter(p,'nIter',defaultVals.nIter,validationNumeric);
-addParameter(p,'alpha',defaultVals.alpha,validationNumeric);
-addParameter(p,'nRound',defaultVals.nRound,validationNumeric);
-addParameter(p,'nDiv',defaultVals.nDiv,validationNumeric);
 addParameter(p,'ifModelOpt',defaultVals.ifModelOpt,validationNumeric);
 addParameter(p,'ifSave',defaultVals.ifSave,validationNumeric);
-addParameter(p,'ABIDE',defaultVals.ABIDE,validationNumeric);
 addParameter(p,'simPreAllocate',defaultVals.simPreAllocate,validationNumeric);
 
 % Add Synthetic data generation parameters. 
@@ -74,7 +75,8 @@ addParameter(p,'m0',defaultVals.m0,validationNumeric);
 addParameter(p,'k',defaultVals.k,validationNumeric);
 addParameter(p,'beta',defaultVals.beta,validationNumeric);
 addParameter(p,'nEdges',defaultVals.nEdges,validationNumeric);
-addParameter(p,'n',defaultVals.n,validationNumeric);
+addParameter(p,'formNetwork',defaultVals.formNetwork);
+addParameter(p,'n',[],validationNumeric);
 addParameter(p,'noise',[]);
 addParameter(p,'ifRegression',defaultVals.ifRegression,validationNumeric);
 addParameter(p,'randomState',defaultVals.randomState);
@@ -83,18 +85,25 @@ addParameter(p,'randomState',defaultVals.randomState);
 parse(p,varargin{:});
 
 if p.Results.ifRegression
-    defaultParameters.noise = 0.0;
+    if isempty(p.Results.n)
+        defaultParameters.n = 125;
+    end
+    defaultParameters.noise = 0.1;
     defaultParameters.MLmodels = 'LinReg';
     defaultParameters.metric = 'correlation';
-    defaultParameters.bestParamMethod = 'max';
+    defaultParameters.bestParamMethod = 'best';
     defaultParameters.cnr = [];
 else
+   if isempty(p.Results.n)
+        defaultParameters.n = 50;
+    end
     defaultParameters.cnr = 0.5;
     defaultParameters.MLmodels = 'LogReg';
     defaultParameters.metric = 'accuracy';
-    defaultParameters.bestParamMethod = 'max';
+    defaultParameters.bestParamMethod = 'best';
     defaultParameters.noise = [];
 end
+
 
 % Merge input and default parameters.
 paramNames = fieldnames(p.Results);
@@ -105,6 +114,17 @@ for i = 1 : numel(paramNames)
         testInputs.(param) = defaultParameters.(param);
     end
 end
+
+% Algorithm handle.
+switch p.Results.algorithm
+    case 'CPM'
+        func = 'test_CPM';
+    case 'NBSPredict'
+        func = 'run_NBSPredict';
+    otherwise
+        func = sprintf('run_NBSPredict_%s',p.Results.algorithm);
+end
+testInputs.algorithmHandle = @(NBSPredict) feval(func,NBSPredict);
 
 
 end

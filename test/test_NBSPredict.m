@@ -4,17 +4,36 @@ function [NBSPredict] = test_NBSPredict(varargin)
 % NBSPredict using them. If no parameters are provided, it will run
 % NBSPredict with default parameters. 
 % 
-%   Arguements: 
+%   Arguments: 
 %       repCViter = Number of nested-CV repetition (default = 10). 
 %       kFold = Number of CV folds (default = 10).
 %       ifParallel = Performs repeated nested CV parallel 
 %           (1 or 0, default = 0). 
-%       metrics = Performance metrics (accuracy,f1,auc,precision,
-%           matthews_cc,cohens_kappa, default = auc).
+%       metrics = Performance metrics (please see compute_ModelMetrics for
+%           performance metrics 
+%           default = 'accuracy' (classification), 'correlation' (regression).
 %       ifModelOpt = If performs model optimization
 %           (i.e., runs repeated nested CV with different estimators,
 %           default = 1).
-%       MLmodels = Estimator (svmC or decisionTreeC, default = svmC).
+%       MLmodels = Estimators: 
+%           For Classification (default = LogReg):
+%               svmC = Support Vector Machine Classifier
+%               decisionTreeC = Decision Tree Classifier
+%               LogReg = Logistic Regression
+%               lda = Linear Discriminant Analysis
+%           For Regression (default = LinReg):
+%               svmR = Support Vector Machine Regressor
+%               decisionTreeR = Decision Tree Regressor
+%               LinReg = Linear Regression
+%       algorithm = Algorithms used to simulate (default = NBSPredict):
+%           NBSPredict = NBS-Predict. 
+%           CPM = Connectome-based predictive modeling (Shen et al., 2017)
+%           ElasticNet = Elastic Net.
+%           Lasso = Lasso.
+%           pVal = Selects suprathreshold features below a given p-value
+%               threshold.
+%           Top5 = Selects top 5% of features based on their test
+%               statistics.
 %       bestParamMethod = Method to choose best parameter during feature
 %           selection (best,median default = best).
 %       pVal = p-value used for pre-filtering (default = 0.05).
@@ -23,41 +42,43 @@ function [NBSPredict] = test_NBSPredict(varargin)
 %       ifHyperOpt = Whether perform hyperparameter optimization (default = 1). 
 %       hyperOptSteps = Steps from low to high limit of hyperparameter
 %           space (e.g., paramGrid.C = logspace(-3,2,hyperOptSteps) default = 5).
-%       selMethod = Feature selection method used in the inner fold.
+%       selMethod = Selection method for hyperparameter optimization (default = gridSearch).
 %           Different algorithms have different parameters: 
-%               divSelect, divSelectWide: 
-%                   nDiv = Number of division (i.e, in how many pieces
-%                       algorithm divides the parameter space, default = 20). 
-%                   nRound = Selection rounds (default = 3). 
-%               randomSearch: 
-%                   nIter = Number of iteration (also in simulatedAnnealing,
-%                       default = 60).
-%               simulatedAnnealing: 
-%                   T = Initial temperature (default = 5).
-%                   alpha = Boltzmann constant (default = 0.95).
+%               randomSearch = Random Search Algorithm: 
+%                   nIter = Number of iteration (default = 10).
+%                bayesOpt = Bayesian Optimization:
+%                   nIter = Number of iteration (default = 10).
+%                   acquisitionFun = Acquisition function name (default: expected-improvement):
+%                       probability-of-improvement
+%                       expected-improvement
+%                       lower-confidence-bound
+%               gridSearch = Grid Search Algorithm. 
 %       ifSave = If saves NBSPredict structure with results after nalysis 
 %           done (default = false).
-%   
-%   The following parameters are specific to the synthetic data generation.
+%  
+%   The following arguements are specific to the synthetic data generation:
 %       ifRegression = Generates data for regression problems (default = 0).
 %       noise = Noise in target data. Only available in regression problems.
-%           (default = 0.0)
+%           (default = 0.1)
 %       nNodes = Number of nodes in synthetic network (default = 100).
+%       nEdges = Number of edges with ground truth or contarst of interest (default = 50).
+%       formNetwork = Whether the edges with ground truth form network
+%           (default = True).
 %       cnr = Contrast-to-noise ratio. Only available in classification 
 %           problems (default = 0.50).
 %       nn = The number of control-contrast network couples generated.
-%           (default = 25, i.e. sample size of 50 observations). 
-%       network = Type of network (default = 'smallworld')
-%           Scale-free network:
+%           (default = 50, i.e. sample size of 100 observations). 
+%       network = Type of network (default = 'scalefree')
+%           scalefree = Scale-free network:
 %               m: Number of edges through which a new node connects to
-%                  existing nodes (default = 2).
-%               m0: Initial number of nodes in the network. (default = 40)
-%           Small-world network:
-%               k: k-nearest neightbors each node is connected (default = 10). 
+%                  existing nodes (default = 10).
+%               m0: Initial number of nodes in the network. (default = 21)
+%            smallworld = Small-world network:
+%               k: k-nearest neightbors each node is connected (default = 49). 
 %               beta: rewiring probability. (default = .05)
-%           Random network. 
+%            random = Random network. 
 %       randomState = Controls the randomness. Pass an integer value for
-%           reproducible results (default = 'shuffle').  
+%           reproducible results or 'shuffle' to randomize (default = 42).  
 %       
 %   Output:
 %       NBSPredict: NBSPredict structure with results. 
@@ -66,12 +87,14 @@ function [NBSPredict] = test_NBSPredict(varargin)
 %       test_NBSPredict();
 %       test_NBSPredict('kFold',5,'ifParallel',1,'model','svmC','network','scalefree');
 %   
-%   Last edited by Emin Serin, 24.04.2020.
+%   Last edited by Emin Serin, 08.04.2021.
 %   
-% See also, run_NBSPredict, gen_synthData, get_NBSPredictInput, get_searchInputs
+% See also, run_NBSPredict, gen_synthData, get_NBSPredictInput, compute_modelMetrics
 
 %% Organize user inputs.
 [testInputs] = get_testInput(varargin{:});
+NBSPredict.parameter.repCVIter = testInputs.repCViter;
+NBSPredict.parameter.randomState = testInputs.randomState;
 NBSPredict.parameter.kFold = testInputs.kFold;
 NBSPredict.parameter.ifParallel = testInputs.ifParallel; 
 NBSPredict.parameter.metric = testInputs.metric;
@@ -81,7 +104,7 @@ NBSPredict.parameter.verbose = testInputs.verbose;
 NBSPredict.parameter.ifModelOpt = testInputs.ifModelOpt;
 NBSPredict.parameter.ifHyperOpt = testInputs.ifHyperOpt;
 NBSPredict.parameter.ifSave = testInputs.ifSave;
-NBSPredict.parameter.ifTest = 1; % This is a tag for testing. DO NOT CHANGE!
+NBSPredict.parameter.ifTest = 1; % This is the tag for testing. DO NOT CHANGE!
 
 if testInputs.ifRegression
     NBSPredict.parameter.test = 'f-test';
@@ -104,6 +127,8 @@ switch NBSPredict.parameter.selMethod
 end
 
 netParameters = {'nEdges',testInputs.nEdges,'n',testInputs.n,...
+    'randomState',testInputs.randomState,...
+    'formNetwork',testInputs.formNetwork,...
     'randomState',testInputs.randomState};
 
 if testInputs.ifRegression
@@ -114,26 +139,20 @@ else
         'ifRegression',0};
 end
 
-if ~testInputs.ABIDE
-    netParameters = {netParameters{:},'nNodes',testInputs.nNodes};
-    switch testInputs.network
-        case 'smallworld'
-            netParameters = {netParameters{:},'k',testInputs.k,...
-                'beta',testInputs.betam,'network','smallworld'};
-        case 'scalefree'
-            netParameters = {netParameters{:},'m',testInputs.m,...
-                'm0',testInputs.m0,'network','scalefree'};
-    end
+netParameters = {netParameters{:},'nNodes',testInputs.nNodes};
+switch testInputs.network
+    case 'smallworld'
+        netParameters = {netParameters{:},'k',testInputs.k,...
+            'beta',testInputs.beta,'network','smallworld'};
+    case 'scalefree'
+        netParameters = {netParameters{:},'m',testInputs.m,...
+            'm0',testInputs.m0,'network','scalefree'};
 end
 
 %% Run analysis. 
 
 % Generate data.
-if testInputs.ABIDE
-    NBSPredict.data = gen_synthDataABIDE(netParameters{:});
-else
-    NBSPredict.data = gen_synthData(netParameters{:});
-end
+NBSPredict.data = gen_synthData(netParameters{:});
 [NBSPredict.data.X,NBSPredict.data.nodes,...
     NBSPredict.data.edgeIdx] = shrinkMat(NBSPredict.data.subData);
 
@@ -151,7 +170,10 @@ NBSPredict.data.contrastedEdges = contrastedEdges;
 
 % Run 
 if ~ testInputs.simPreAllocate
-    NBSPredict = run_NBSPredict(NBSPredict);
+    if testInputs.verbose
+        fprintf('Algorithm: %s',testInputs.algorithm);
+    end
+    NBSPredict = testInputs.algorithmHandle(NBSPredict);
 end
 
 end

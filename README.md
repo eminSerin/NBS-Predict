@@ -1,8 +1,8 @@
 # NBS-Predict
-NBS-Predict is a prediction-based extension of the Network-based Statistic (Zalesky et. al., 2010). NBS-Predict aims to close the gap between group-level analysis and subject-specific prediction based on individually important network variations by combining machine learning models and graph theoretical networks in a cross-validation structure.
+NBS-Predict is a prediction-based extension of the Network-based Statistic (Zalesky et. al., 2010). NBS-Predict aims to provide a fast way to identify neuroimaging-based biomarkers with high generalizability by combining machine learning with graph theory in a cross-validation structure.
 
 ## Overview
-NBS-Predict performs in a repeated cross-validation structure where suprathreshold edge selection and model evaluation is conducted and, if desired, hyperparameter optimization is performed in the inner loop. 
+NBS-Predict operates in a cross-validation structure (nested if hyperparameter optimization is desired). The general algorithm consists of model evaluation, feature selection like suprathreshold edge selection, hyperparameter optimization (optionally), and machine learning algorithm optimization (optionally).  
 
 ## Prerequisites
 
@@ -22,7 +22,7 @@ Parallel Computing Toolbox (optional)
 git clone --recursive git@github.com:eminSerin/NBS-Predict.git
 ```
 
-2. Run Matlab and navigate NBS-Predict directory using either commad window or current folder section. Then, type this command to add NBS-Predict to your Matlab path. 
+2. Run MATLAB and navigate the NBS-Predict's directory using either the command window or the Current Folder window. Then, type this command to add NBS-Predict to your MATLAB path. 
 
 ```
 addpath(genpath(pwd));
@@ -36,26 +36,29 @@ start_NBSPredict();
 ```
 2. A graphical user interface of NBS-Predict will automatically appear on the screen.
 
-<img src="images/tutorial/NBSPredict_1.png" width="720px"/> 
+<img src="docs/images/NBSPredict_1.png" width="720px"/> 
 
-3. Select a directory including correlation matrices. Then, select brain regions and design matrix files and set a contrast matrix for the general linear model performed during feature selection in the inner loop. Optionally, you may define advanced parameters such as number of CV folds, number of nested-CV repetitions, performance metrics, feature selection algorithms and their specific parameters. Once you finish selecting data and optional parameters, hit the RUN button to start analysis. NBS-Predict will last from minutes to hours depending on computer, sample size and brain parcellation atlas used for a project. 
+3. Select the directory that contains subjects' connectivity matrices. Then, select brain parcellation and design matrix files. Specify a contrast vector for the statistical model used selecting suprathreshold edges across folds. Optionally, you may define advanced parameters such as number of CV folds, number of CV repetitions, performance metrics. Once you finish selecting data and optional parameters, hit the RUN button to start the analysis. NBS-Predict will last from minutes to hours depending on the computer, sample size, and brain parcellation atlas used. 
 
-<img src="images/tutorial/NBSPredict_2.png" width="720px"/> 
+<img src="docs/images/NBSPredict_2.png" width="720px"/> 
 
-4. Once NBS-Predict finishes analysis, a graphical user interface to display results will automatically appear on the screen.
-Here, you see figures for weighted adjacency matrix, weighted subnetwork, weight distribution and visualization of weighted subnetwork on a 3D brain model. Weights represent the frequency of edges being found in a winner graph component across surrogate models. You may set a weight threshold to see a subnetwork consisting edges whose weight is greater than the threshold. In this way, you can get an idea of which connections between brain regions (i.e., edges) may have contrast of a interest. Also, by clicking the "Save Figure" button, you can save figures in several formats. 
+4. Following the analysis, the NBS-Predict Results Viewer window will automatically appear on the screen. Here, you view display weighted adjacency matrix, weighted network on a circular graph, weighted network on a 3D brain surface (BrainNet Viewer, Xia et al., 2013), and confusion matrix. Weights represent the presence of edges in the selected connected component across outer folds and their prediction performances. That allows us to evaluate the contribution of each edge to the overall model straightforwardly. You can further set a weight threshold to visualize a subnetwork comprising the most relevant edges. Also, by clicking the "Save Figure" button, you can save figures in several formats. 
 
-<img src="images/tutorial/NBSPredict_3.png" width="720px"/> 
+<img src="docs/images/NBSPredict_3.png" width="720px"/> 
 
-See the [MANUAL.pdf](MANUAL.pdf) file for detailed user guide. 
+See the [MANUAL.pdf](docs/MANUAL.pdf) file for the detailed user guide. 
+
+Additionally, see the [Tutorial_HCP.pdf](docs/Tutorial_HCP.pdf) file for example use of NBS-Predict. 
 
 ## Test
 
-You may test the prediction performance of NBS-Predict on several synthetic network (small-world, scale-free or random) data by typing this command. 
+You may test the prediction performance of NBS-Predict on several synthetic networks (small-world, scale-free or random) data by typing this command. 
 
 ```
 test_NBSPredict(parameters);
 ```
+
+The parameters are extensively documented in the test_NBSPredict.m function
 
 ## Versioning
 
@@ -81,9 +84,8 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 
 References for the functions or toolboxes used in NBS-Predict toolbox: 
 
-1. Chang, C. C., & Lin, C. J. (2011). LIBSVM: A library for support vector machines. ACM transactions on intelligent systems and technology (TIST), 2(3), 27.
+1. Paul Kassebaum (2020). circularGraph (https://github.com/paul-kassebaum-mathworks/circularGraph), GitHub. Retrieved September 6, 2020.
 2. Roland Pfister (2019). dlmcell (https://www.mathworks.com/matlabcentral/fileexchange/25387-dlmcell), MATLAB Central File Exchange. Retrieved September 3, 2019.
-3. Paul Kassebaum (2020). circularGraph (https://github.com/paul-kassebaum-mathworks/circularGraph), GitHub. Retrieved September 6, 2020.
-4. Xia, M., Wang, J., & He, Y. (2013). BrainNet Viewer: a network visualization tool for human brain connectomics. PloS one, 8(7), e68910.
-5. Zalesky, A., Fornito, A., & Bullmore, E. T. (2010). Network-based statistic: identifying differences in brain networks. Neuroimage, 53(4), 1197-1207.
+3. Xia, M., Wang, J., & He, Y. (2013). BrainNet Viewer: a network visualization tool for human brain connectomics. PloS one, 8(7), e68910.
+4. Zalesky, A., Fornito, A., & Bullmore, E. T. (2010). Network-based statistic: identifying differences in brain networks. Neuroimage, 53(4), 1197-1207.
 
