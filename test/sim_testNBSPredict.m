@@ -111,11 +111,6 @@ algorithm = p.Results.algorithm;
 saveX = p.Results.saveX;
 formNetwork = p.Results.formNetwork;
 
-% Generate random seeds. 
-rng(p.Results.randSeed);
-randSeeds = randi(1000000,simIter,1);
-simResults.info.randSeeds = randSeeds;
-
 % Check if parallel pool exists
 if license('test','Distrib_Computing_Toolbox')
     delete(gcp('nocreate'));
@@ -130,6 +125,11 @@ else
 end
 forIter = round(simIter/nCores);
 simIter = nCores*forIter;
+
+% Generate random seeds. 
+rng(p.Results.randSeed);
+randSeeds = randi(1000000,simIter,1);
+simResults.info.randSeeds = randSeeds;
 
 % Turn-off verbose.
 varargin = [varargin,{'verbose',0}];
