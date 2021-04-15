@@ -52,13 +52,23 @@ Additionally, see the [Tutorial_HCP.pdf](docs/Tutorial_HCP.pdf) file for example
 
 ## Test
 
-You may test the prediction performance of NBS-Predict on several synthetic networks (small-world, scale-free or random) data by typing this command. 
+You may test the performance of NBS-Predict in predicting target variable or identifying edges with ground truth on several synthetic networks (small-world, scale-free or random) data by typing this command: 
 
 ```
 test_NBSPredict(parameters);
 ```
 
-The parameters are extensively documented in the test_NBSPredict.m function
+The parameters are extensively documented in the test_NBSPredict.m function.
+
+You may also use the simulation function that automatically runs the test function n times and using various parameters. To do that, type this command: 
+
+```
+sim_testNBSPredict(parameters);
+```
+
+The parameters are extensively documented in the sim_testNBSPredict.m function. 
+
+Also, see the [Tutorial_Simulation.pdf](docs/Tutorial_Simulation.pdf) document for an example use of the simulation function.
 
 ## Versioning
 
@@ -84,8 +94,10 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 
 References for the functions or toolboxes used in NBS-Predict toolbox: 
 
-1. Paul Kassebaum (2020). circularGraph (https://github.com/paul-kassebaum-mathworks/circularGraph), GitHub. Retrieved September 6, 2020.
-2. Roland Pfister (2019). dlmcell (https://www.mathworks.com/matlabcentral/fileexchange/25387-dlmcell), MATLAB Central File Exchange. Retrieved September 3, 2019.
-3. Xia, M., Wang, J., & He, Y. (2013). BrainNet Viewer: a network visualization tool for human brain connectomics. PloS one, 8(7), e68910.
-4. Zalesky, A., Fornito, A., & Bullmore, E. T. (2010). Network-based statistic: identifying differences in brain networks. Neuroimage, 53(4), 1197-1207.
+1. Glmnet for Matlab (2013) Qian, J., Hastie, T., Friedman, J., Tibshirani, R. and Simon, N. http://www.stanford.edu/~hastie/glmnet_matlab/
+2. Morel, (2018). Gramm: grammar of graphics plotting in Matlab. Journal of Open Source Software, 3(23), 568, https://doi.org/10.21105/joss.00568
+3. Paul Kassebaum (2020). circularGraph (https://github.com/paul-kassebaum-mathworks/circularGraph), GitHub. Retrieved September 6, 2020.
+4. Roland Pfister (2019). dlmcell (https://www.mathworks.com/matlabcentral/fileexchange/25387-dlmcell), MATLAB Central File Exchange. Retrieved September 3, 2019.
+5. Xia, M., Wang, J., & He, Y. (2013). BrainNet Viewer: a network visualization tool for human brain connectomics. PloS one, 8(7), e68910.
+6. Zalesky, A., Fornito, A., & Bullmore, E. T. (2010). Network-based statistic: identifying differences in brain networks. Neuroimage, 53(4), 1197-1207.
 
