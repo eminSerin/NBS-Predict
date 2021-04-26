@@ -1,4 +1,9 @@
 # NBS-Predict
+
+<p align="center">
+  <img src="docs/images/NBS-Predict_logo.png" width="240px"/> 
+</p>
+
 NBS-Predict is a prediction-based extension of the Network-based Statistic (Zalesky et. al., 2010). NBS-Predict aims to provide a fast way to identify neuroimaging-based biomarkers with high generalizability by combining machine learning with graph theory in a cross-validation structure.
 
 ## Overview
