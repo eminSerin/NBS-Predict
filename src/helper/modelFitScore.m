@@ -33,7 +33,7 @@ if isempty(trainTestData.X_train)
     for i = 1:nMetrics
         varargout{i} = nan;
     end
-    varargout{i+1} = {single(trainTestData.y_test),nan(numel(trainTestData.y_test),1)};
+    varargout{i+1} = {trainTestData.y_test,nan(numel(trainTestData.y_test),1)};
     varargout{i+2} = nan; 
 else
     clf = Mdl.fit(trainTestData.X_train,trainTestData.y_train); % fit
@@ -42,7 +42,7 @@ else
         varargout{i} = Mdl.score(trainTestData.y_test,...
             y_pred,metrics{i}); % score
     end
-    varargout{i+1} = {single(trainTestData.y_test),single(y_pred)}; % y_true & y_pred
+    varargout{i+1} = {trainTestData.y_test,y_pred}; % y_true & y_pred
     varargout{i+2} = clf; % estimator.
 end
 end
