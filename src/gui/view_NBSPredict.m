@@ -92,7 +92,11 @@ else
 end
 handles.cModel = cModel;
 y = NBSPredict.data.y;
-ifClass = numel(unique(y(:,2))) < length(y(:,2))/2;
+
+% class if there are more than 10 unique values in y.
+% ifClass = numel(unique(y(:,2))) < length(y(:,2))/2; 
+ifClass = numel(unique(y(:,2))) < 10; 
+
 handles.ifClass = ifClass;
 metric = NBSPredict.parameter.metric;
 handles.plotData.metric = metric;
