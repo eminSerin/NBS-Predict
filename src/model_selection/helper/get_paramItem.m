@@ -3,7 +3,7 @@ function [params] = get_paramItem(paramGrid,ind)
 % get_paramItem get the parameter(or combination of parameters) that is
 % in ind'th in the parameter grid.
 %
-% Arguements: 
+% Arguments: 
 %   paramGrid = Parameter grid structure in which each properties are
 %       possible parameters.
 %   ind = The parameter index 
@@ -21,7 +21,7 @@ function [params] = get_paramItem(paramGrid,ind)
 % Emin Serin - 12.08.2019
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Remove empty fields.
+%% Remove empty fields.
 ifEmpty = structfun(@isempty,paramGrid);
 if any(ifEmpty)
     paramGrid = rm_emptyField(paramGrid);

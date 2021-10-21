@@ -3,7 +3,7 @@ function [Mdl] = run_decisionTreeR(params)
 % run_decisionTreeR returns Mdl structure including function handles of fit,
 % predict and score functions for decision tree regression. 
 %
-% Optional arguement: 
+% Arguments: 
 %   params: Structure including following hyperparameters:
 %       MinLeafSize: MinLeafSize parameter. 
 % 

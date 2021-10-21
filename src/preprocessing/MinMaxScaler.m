@@ -1,7 +1,25 @@
 classdef MinMaxScaler < baseScaler
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % MinMaxScaler transforms features by scaling each feature to a range
     % between 0 and 1. 
-    
+    %   
+    % Parameters:
+    %   data: Data to be scaled.
+    %   featureRange: Range into which features will be scaled. 
+    %   
+    % Attributes:
+    %   maxAbs: Absolute maximum value.
+    %
+    % Example: 
+    %   scaler = MinMaxScaler();
+    %   scaler.fit(data);
+    %   transformedData = scaler.transform(data);
+    %
+    % Reference: 
+    %   https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.MinMaxScaler.html
+    %
+    % Emin Serin
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     methods
         function obj = MinMaxScaler(featureRange)
             % featureRange: List of desired range of transformed data. 

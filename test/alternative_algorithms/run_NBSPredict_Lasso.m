@@ -1,4 +1,5 @@
 function [NBSPredict] = run_NBSPredict_Lasso(NBSPredict)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % run_NBSPredict_Lasso runs L1 regularized regression to perform
 % prediction using connectome data and evaluate the contribution of the
 % relevant edges to the overal performance of the model. The algorithm is
@@ -29,7 +30,7 @@ function [NBSPredict] = run_NBSPredict_Lasso(NBSPredict)
 % Last edited by Emin Serin, 08.04.2021.
 %
 % See also: test_NBSPredict, sim_testNBSPredict, run_LassoC, run_LassoR
-%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
 NBSPredict = get_NBSPredictInput(NBSPredict);
 totalRepCViter = NBSPredict.parameter.repCViter;
@@ -47,7 +48,7 @@ featSelParams = {'kFold',NBSPredict.parameter.kFold,'nIter',nIter,...
     NBSPredict.parameter.metric};
 NBSPredict.featSelHandle =...
     @(objFun,data,paramGrid) randomSearch(objFun,data,paramGrid,featSelParams{:});
-NBSPredict.parameter.ifClass = numel(unique(NBSPredict.data.y(:,2))) < 10;
+NBSPredict.parameter.ifClass = check_classification(NBSPredict.data.y);
 
 if NBSPredict.parameter.ifClass
     NBSPredict.parameter.MLmodels = {'LassoC'};

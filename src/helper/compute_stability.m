@@ -1,7 +1,9 @@
 function [stability] = compute_stability(featureSet)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % compute_stability computes stability from given matrix of feature sets
 % using Pearson Correlation Coefficient. 
-% Input: 
+%
+% Arguments: 
 %   featureSet: NxM matrix of feature sets, given each row is a distinct
 %       features set derived from feature selection algorithm and.
 %       Feature sets must have the same length. They can be weighted or
@@ -20,7 +22,7 @@ function [stability] = compute_stability(featureSet)
 %   https://github.com/nogueirs/ECML2016
 % 
 % Emin Serin - 17.06.2020
-%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
 nSets=size(featureSet,1);
 stability=0;

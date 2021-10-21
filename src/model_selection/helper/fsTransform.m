@@ -2,7 +2,7 @@ function [X_transformed,transformMask] = fsTransform(data,NBSPredict,bestParam)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % fsTransform transforms given data according to best parameter provided.
 %
-% Arguements:
+% Arguments:
 %   data = Data structure were current features and labels are stored.
 %   NBSPredict = NBSPredict structure where data and parameters stored.
 %   bestParam = Best parameter.
@@ -14,6 +14,7 @@ function [X_transformed,transformMask] = fsTransform(data,NBSPredict,bestParam)
 % Emin Serin - 02.08.2019
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
 % Check if enough input is provided.
 assert(nargin == 3, 'Please provide data and NBSPredict structures as well as the best parameter');
 

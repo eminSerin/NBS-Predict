@@ -3,7 +3,7 @@ function [Mdl] = run_LassoC(params)
 % run_LassoC returns Mdl structure including function handles of
 % builtin fit, predict and score functions for Lasso classification.
 %
-% Optional arguement: 
+% Arguments: 
 %   params: Structure including following hyperparameters:
 %   lambda: Lambda parameter. 
 % 

@@ -1,4 +1,5 @@
 function [CPM_results] = test_CPM(NBSPredict)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % test_CPM gets structure from the test function originally written for
 % NBSPredict and convert to a structure that can be used by CPM. This
 % structure is then used by CPM and the outcome structure derived from CPM
@@ -17,7 +18,7 @@ function [CPM_results] = test_CPM(NBSPredict)
 % Last Edited by Emin Serin - 08.04.2021.
 %
 % See also: test_NBSPredict, sim_testNBSPredict
-% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
 data.X = NBSPredict.data.X;
 data.y = NBSPredict.data.y(:,2);

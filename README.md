@@ -33,6 +33,13 @@ git clone --recursive git@github.com:eminSerin/NBS-Predict.git
 addpath(genpath(pwd));
 ```
 
+## Sample Data
+
+You can download sample data using the following link: [NITRC](https://www.nitrc.org/docman/view.php/1517/179438/).
+This dataset comprises synthetic network data simulating regression and classification problems. 
+Since the sample data is synthetic, please keep in mind that, results obtained following the analysis of this data do not imply any significant information. 
+This sample dataset should only be used to check whether the toolbox works properly and to serve as an example input structure so that you can organize your input data accordingly.
+
 ## Example
 
 1. Type this command to start NBS-Predict
@@ -90,6 +97,12 @@ NBS-Predict was designed by Emin Serin, Andrew Zalesky, Johann D. Kruschwitz and
 ## Contributing
 
 You may contribute in this project in many ways such as bringing new features to NBS-Predict, improving documentantation or reporting bugs. See the [CONTRIBUTING.md](CONTRIBUTING.md) file for details
+
+## Citation
+
+If you use the toolbox, please cite the following paper: 
+
+Serin, E., Zalesky, A., Matory, A., Walter, H., & Kruschwitz, J. D. (2021). NBS-Predict: A Prediction-based Extension of the Network-based Statistic. NeuroImage, 118625.
 
 ## License
 

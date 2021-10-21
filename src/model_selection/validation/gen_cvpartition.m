@@ -1,18 +1,21 @@
 function [idx] = gen_cvpartition(y,varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%   gen_cvpartition generates k-fold cross-validation random or sequential
-%       partition for data of specified size. It returns a structure which
-%       consists of test and train indices for each iteration.
-%   Input:
-%       y: labels.
-%       kFold: number of cv folds (default: 10).
-%       ifRand: if randomized (default: 1)
-%   Output:
-%       idx = Structure of test and train indices.
+% gen_cvpartition generates k-fold cross-validation random or sequential
+%     partition for data of specified size. It returns a structure which
+%     consists of test and train indices for each iteration.
 %
-%   Emin Serin - Berlin School of Mind and Brain, HU Berlin
+% Arguments:
+%     y: labels.
+%     kFold: number of cv folds (default: 10).
+%     ifRand: if randomized (default: 1)
+%
+% Output:
+%     idx = Structure of test and train indices.
+%
+% Emin Serin - Berlin School of Mind and Brain, HU Berlin
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
 % Length of y vector.
 leny = length(y);
 

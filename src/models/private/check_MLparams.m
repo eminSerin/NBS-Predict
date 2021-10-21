@@ -1,24 +1,25 @@
 function [readyParams] = check_MLparams(params,defaultParams)
-%   check_MLparams checks parameters provided and returns default parameter
-%   for an ML algorithm using a structure including default parameters. It
-%   also throws warning messages if a user provide parameter structure to
-%   ML function, but an appropriate parameter is not found in that
-%   parameter structure. 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% check_MLparams checks parameters provided and returns default parameter
+% for an ML algorithm using a structure including default parameters. It
+% also throws warning messages if a user provide parameter structure to
+% ML function, but an appropriate parameter is not found in that
+% parameter structure. 
 %
-%   Arguement: 
-%       params = Structure including user defined parameters. 
-%       defaultParams = Structure including default parameters required for
-%           an ML algorithm. 
+% Arguement: 
+%     params = Structure including user defined parameters. 
+%     defaultParams = Structure including default parameters required for
+%         an ML algorithm. 
 %
-%   Output: 
-%       readyParams = Structure including parameters which are ready to be
-%           used by an ML algorithm.
+% Output: 
+%     readyParams = Structure including parameters which are ready to be
+%         used by an ML algorithm.
 %
-%   Example:
-%       [readyParams] = check_MLparams(params,defaultParams);
+% Example:
+%     [readyParams] = check_MLparams(params,defaultParams);
 %
-%   Emin Serin - 15.08.2019
-
+% Emin Serin - 15.08.2019
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 
 if ~(nargin==2)
     % Throw error if enough parameters are provided.

@@ -3,7 +3,7 @@ function [Mdl] = run_lda(params)
 % run_lda returns Mdl structure including function handles of fit,
 % predict and score functions for linear discriminant analysis. 
 %
-% Optional arguement:
+% Arguments:
 %   params: Structure including following hyperparameters:
 %       delta: Delta parameter (default = 0). 
 %       gamma: Gamma parameter (default = 1).

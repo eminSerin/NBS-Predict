@@ -1,58 +1,59 @@
 function [varargout] = gen_synthData(varargin)
-%   gen_synthData generates synthetic network data and embed contrast of
-%   interest in a given number of edges. Using this function scale-free,
-%   small-world and random networks can be generated. It returns a
-%   structure including network matrices, design matrix and list of indices
-%   of contrasted edges. 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% gen_synthData generates synthetic network data and embed contrast of
+% interest in a given number of edges. Using this function scale-free,
+% small-world and random networks can be generated. It returns a
+% structure including network matrices, design matrix and list of indices
+% of contrasted edges. 
 %
-%   Arguments: 
-%       nNodes: Number of nodes in the network. (default = 100)
-%       nEdges: Number of edges with ground truth. (default = 10)
-%       formNetwork: Whether the edges with ground truth form network
-%           (default = True).
-%       cnr: Contrast-to-noise ratio. (default = 0.5)
-%       n: The number of control-contrast network couples generated.
-%           (default = 25, i.e. sample size of 50 observations).
-%       ifRegression: Generates data for regression problem. (default = 0)
-%       noise: Noise level in the target variable. Only available in 
-%           regression problems (default = 0.0). 
-%       ifSave: Whether save the data to .mat file or not 
-%           (default = 0).
-%       network: Type of network (default = 'scalefree')
-%           Scale-free network:
-%               m: Number of edges through which a new node connects to
-%                  existing nodes (default = 2).
-%               m0: Initial number of nodes in the network. (default = 5)
-%           Small-world network:
-%               k: k-nearest neightbors each node is connected (default = 2). 
-%               beta: rewiring probability. (default = .05)
-%           Random network. 
-%       randomState: Controls the randomness. Pass an integer value for
-%           reproducible results or 'shuffle' to randomize (default = 42).  
+% Arguments: 
+%     nNodes: Number of nodes in the network. (default = 100)
+%     nEdges: Number of edges with ground truth. (default = 10)
+%     formNetwork: Whether the edges with ground truth form network
+%         (default = True).
+%     cnr: Contrast-to-noise ratio. (default = 0.5)
+%     n: The number of control-contrast network couples generated.
+%         (default = 25, i.e. sample size of 50 observations).
+%     ifRegression: Generates data for regression problem. (default = 0)
+%     noise: Noise level in the target variable. Only available in 
+%         regression problems (default = 0.0). 
+%     ifSave: Whether save the data to .mat file or not 
+%         (default = 0).
+%     network: Type of network (default = 'scalefree')
+%         Scale-free network:
+%             m: Number of edges through which a new node connects to
+%                existing nodes (default = 2).
+%             m0: Initial number of nodes in the network. (default = 5)
+%         Small-world network:
+%             k: k-nearest neightbors each node is connected (default = 2). 
+%             beta: rewiring probability. (default = .05)
+%         Random network. 
+%     randomState: Controls the randomness. Pass an integer value for
+%         reproducible results or 'shuffle' to randomize (default = 42).  
 %       
-%   Output:
-%       synthData: A data structure which includes control and contrast
-%           data, design matrix and indices of contrast links
+% Output:
+%     synthData: A data structure which includes control and contrast
+%         data, design matrix and indices of contrast links
 %
-%   Example: 
-%       [data] = gen_synthData();
-%       [data] = gen_synthData('network','smallworld');
-%       [data] = gen_synthData('network','smallworld',...
-%           'nNodes',500);
+% Example: 
+%     [data] = gen_synthData();
+%     [data] = gen_synthData('network','smallworld');
+%     [data] = gen_synthData('network','smallworld',...
+%         'nNodes',500);
 %   
-%   References:
-%       Barabsi,A.-L. and Albert,R. (1999) Emergence of Scaling in Random
-%           Networks. Science, 286, 509-512.
-%       Watts, D. J., & Strogatz, S. H. (1998). Collective dynamics of
-%           'Small-World' networks. Nature, 393(6684), 440.
-%       Zalesky, A., Fornito, A., & Bullmore, E. T. (2010). Network-based
-%           statistic: identifying differences in brain networks.
-%           Neuroimage, 53(4), 1197-1207.
+% References:
+%     Barabsi,A.-L. and Albert,R. (1999) Emergence of Scaling in Random
+%         Networks. Science, 286, 509-512.
+%     Watts, D. J., & Strogatz, S. H. (1998). Collective dynamics of
+%         'Small-World' networks. Nature, 393(6684), 440.
+%     Zalesky, A., Fornito, A., & Bullmore, E. T. (2010). Network-based
+%         statistic: identifying differences in brain networks.
+%         Neuroimage, 53(4), 1197-1207.
 %
-%   Last edited by Emin Serin, 09.04.2021
+% Last edited by Emin Serin, 09.04.2021
 %
-%   See also: test_NBSPredict, gen_BAnet, gen_SWnet, search_BF
-
+% See also: test_NBSPredict, gen_BAnet, gen_SWnet, search_BF
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Set default parameters and parse input
 
 % Default parameters.

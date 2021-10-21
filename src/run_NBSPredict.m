@@ -1,4 +1,5 @@
 function [NBSPredict] = run_NBSPredict(NBSPredict)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % run_NBSPredict is the main function which consists combines machine
 % learning with graph theoretical concept of connected components.
 % Specifically, it selects features(i.e. edges) using graph-based feature
@@ -23,9 +24,8 @@ function [NBSPredict] = run_NBSPredict(NBSPredict)
 %
 % Last edited by Emin Serin, 08.04.2021.
 %
-%
 % See also: start_NBSPredictGUI, get_NBSPredictInput
-%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
 NBSPredict = get_NBSPredictInput(NBSPredict);
 totalRepCViter = NBSPredict.parameter.repCViter;
@@ -182,10 +182,15 @@ end
 NBSPredict.info.endDate = date;
 timeElapsed = toc(startTime); % in minutes;
 NBSPredict.info.timeElapsed = timeElapsed;
+
 if NBSPredict.parameter.verbose
     fprintf('Total time elapsed (in minutes): %.2f\n',timeElapsed/60);
 end
+
 if fileDir
+    if NBSPredict.parameter.verbose
+       fprintf('\nResults are being saved...\n') 
+    end
     save(fileDir,'NBSPredict');
 end
 
@@ -255,6 +260,10 @@ modelEvaluateFun = @(data) modelEvaluate(data,NBSPredict);
         weightScore = modelEvalResults.score;
         if NBSPredict.parameter.ifLinear
             modelEvalResults.activationPattern = double(selectedEdges);
+            if ~isobject(estimator)
+               error(['No trained estimator found! ',...
+                   'Please read the warning messages.']); 
+            end
             modelEvalResults.activationPattern(extIdx) =...
                 abs(transform_toActivationPattern(data.X_train,estimator.Beta));
         end
@@ -324,6 +333,11 @@ function [extIdx] = run_graphPval(data,NBSPredict)
 cEdgesIdx = find(pVal < NBSPredict.parameter.pVal);
 [extIdx] = extractComponentIdx(NBSPredict.data.nodes,...
     NBSPredict.data.edgeIdx,cEdgesIdx);
+if isempty(cEdgesIdx)
+   warning(['No features survived the feature selection! ',...
+       'The data might not contain enough effect or you should ',...
+       'use more liberal p-value thresholds!'])
+end
 end
 
 %% Helper functions
@@ -371,7 +385,7 @@ function [fileDir] = save_NBSPredict(NBSPredict)
 % same folder (i.e., multiple analysis in a day), the current file is named
 % with suffix.
 if NBSPredict.parameter.ifSave
-    referencePath = NBSPredict.data.path;
+    referencePath = NBSPredict.data.corrPath;
     saveDir = fileparts(referencePath); % parent director
     if isfield(NBSPredict.parameter,'ifTest')
         saveDir = [saveDir,filesep,'test',filesep,'Results',filesep,date,filesep];

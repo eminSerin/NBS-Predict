@@ -4,7 +4,7 @@ function [Mdl] = run_svmC(params)
 % builtin fit, predict and score functions for support vector
 % classification.
 %
-% Optional arguement: 
+% Arguments: 
 %   params: Structure including following hyperparameters:
 %   lambda: Lambda parameter. 
 % 

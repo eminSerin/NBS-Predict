@@ -1,24 +1,25 @@
 function [varargout] = run_nbsPredictGlm(X,y,contrast,test)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%   run_nbsPredictGlm performs a simple version of GLM used in NBS toolbox.
-%   (Zalesky et.al., 2010)
-%   Input:
-%       X: design matrix (independent variables).
-%       y: data (dependent variables.)
-%       contrast: contrast values.
-%       test: 't-test' or 'f-test'
-%   Output:
-%       stats = test statistics. 
-%       p = p-values. 
-%       betas = Coeffiecients. 
+% run_nbsPredictGlm performs a simple version of GLM used in NBS toolbox.
+% (Zalesky et.al., 2010)
 %
-%   Example:
-%       stats = run_nbsPredictGlm(X,y,contrast,test)
-%       [stats, p] = run_nbsPredictGlm(X,y,contrast,test)
+% Arguments:
+%     X: design matrix (independent variables).
+%     y: data (dependent variables.)
+%     contrast: contrast values.
+%     test: 't-test' or 'f-test'
+% Output:
+%     stats = test statistics. 
+%     p = p-values. 
+%     betas = Coeffiecients. 
 %
-%   TODO: Implement better nuisance control method!.
+% Example:
+%     stats = run_nbsPredictGlm(X,y,contrast,test)
+%     [stats, p] = run_nbsPredictGlm(X,y,contrast,test)
 %
-%   Last edited by Emin Serin, 03.06.2020
+% TODO: Implement better nuisance control method!.
+%
+% Last edited by Emin Serin, 03.06.2020
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

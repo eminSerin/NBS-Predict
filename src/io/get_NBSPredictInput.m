@@ -1,11 +1,12 @@
 function [mainNBSPredict] = get_NBSPredictInput(NBSPredict)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % get_NBSPredictInput checks NBSPredict structure provided and set default
 % parameters if no provided. It also loads correlation matrices using
 % a directory containing correlation matrices provided in NBSPredict
 % structure. It returns structure containing all data and parameters
 % required for NBS-Predict to run.
 %
-% Input:
+% Arguments:
 %   NBSPredict = A structure containing parameters and directory including
 %       correlation matrices. It automatically created by NBS-Predict GUI,
 %       however, it could also be created by user manually (for command
@@ -15,11 +16,11 @@ function [mainNBSPredict] = get_NBSPredictInput(NBSPredict)
 %   mainNBSPredict = NBSPredict structure including all data and parameters
 %       required for the toolbox.
 %
-% Example usage:
+% Example:
 %   [NBSPredict] = get_NBSPredictInput(NBSPredict);
 %
 % Emin Serin - 05.07.2020
-%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Set default parameters
 default.parameter.kFold = 10;
@@ -74,9 +75,7 @@ if ~isfield(NBSPredict.parameter,'ifModelOpt')
     NBSPredict.parameter.ifModelOpt = 1;
 end
 ifModelOpt = NBSPredict.parameter.ifModelOpt;
-nClasses = numel(unique(NBSPredict.data.y(:,2)));
-% ifClassif = nClasses < length(NBSPredict.data.y(:,2))/2;
-ifClassif = nClasses < 10;
+[ifClassif, nClasses] = check_classification(NBSPredict.data.y);
 if ifClassif
     % Set default models.
     if ifModelOpt
@@ -124,10 +123,25 @@ end
 %% Load data if has not been loaded.
 if ~isfield(default.data,'X')
     % Check important data are provided.
-    assert(isfield(default.data,'path'),'A directory containing correlation matrices is not defined!');
-    assert(isfield(default.data,'brainRegions'),'Brain regions are not provided!');
-    [default.data.X,default.data.nodes,default.data.edgeIdx] = load_corrMatFiles(default.data.path);
+    if ~isfield(default.data,'corrPath')
+       error('A directory containing correlation matrices is not defined!');
+    else
+        [default.data.X,default.data.nodes,default.data.edgeIdx] = load_corrMatFiles(default.data.corrPath);
+    end
+    if ~isfield(default.data,'brainRegionsPath')
+       error('Brain regions are not provided!')
+    else
+        try
+            brainRegions = loadData(default.data.brainRegionsPath);
+            brainRegions.Properties.VariableNames = {'X','Y','Z','labels'};
+            default.data.brainRegions = brainRegions;
+        catch 
+            error(['Brain regions cannot be loaded. ',...
+                'Please check the sample data for the example input structure!']);
+        end
+    end
 end
+
 % Check important data are provided.
 assert(isfield(default.data,'y'),'Design matrix is not provided!');
 assert(isfield(default.parameter,'contrast'),'Contrast vector is not provided!');

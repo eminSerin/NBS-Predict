@@ -1,8 +1,9 @@
-function [bestParam,bestParamScore,bestParamIdx] = bayesOpt(objFun,data,paramGrid,varargin)
+function [bestParam,bestParamScore,bestParamIdx] = bayesOpt(objFun,...
+    data,paramGrid,varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % bayesOpt performs bayesian optimization over parameters provided.
 %
-% Arguements:
+% Arguments:
 %   objFun = Objective function (e.g., estimator).
 %   data = Data structure including X and y matrices. 
 %   paramGrid = Parameter grid.

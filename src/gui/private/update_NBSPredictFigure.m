@@ -1,8 +1,11 @@
 function varargout = update_NBSPredictFigure(weightAdj,labels,wThresh)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % update_NBSPredictFigure returns thresholded adjacency matrix, graph of
 % the biggest subgraph, applying weight threshold provided. It also provides
 % labes for nodes found in network after thresholding as well as threshold
-% mask. Arguements:
+% mask. 
+%
+% Arguments:
 %   weightAdj   = Weighted adjacency matrix where edges are weighted. 
 %   labels      = Cell array of labels for nodes. 
 %   wTresh      = Threshold value.
@@ -22,7 +25,7 @@ function varargout = update_NBSPredictFigure(weightAdj,labels,wThresh)
 % Last modified by Emin Serin, 02.09.2019.
 %
 % See also: view_NBSPredict
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Update network with regards to chosen weight threshold. 
 twAdj = weightAdj >= wThresh; % apply threshold to weighted matrix. 
 twAdj = twAdj .* weightAdj;

@@ -54,7 +54,7 @@ function run_NBSPredictGUI_OpeningFcn(hObject, eventdata, handles, varargin)
 % Choose default command line output for run_NBSPredictGUI
 handles.output = hObject;
 handles.NBSPredict.parameter.ifView = 1; % run NBS_Predict_view after analysis. 
-handles.verNBSPredict = '1.0.0-beta1';
+handles.verNBSPredict = '1.0.0-beta2';
 handles.NBSPredict.info.version = handles.verNBSPredict;
 handles = loadHistory(handles);
 % Update handles structure
@@ -330,8 +330,7 @@ if exist(fileName, 'file') == 2
         y = loadData(fileName);
         handles.NBSPredict.data.y = y;
     end
-    %     ifClass = numel(unique(y(:,2))) < length(y(:,2))/2;
-    ifClass = numel(unique(handles.NBSPredict.data.y(:,2))) < 10;
+    ifClass = check_classification(handles.NBSPredict.data.y);
     if ifClass
         mlOptions = {'Auto (optimize models)','Decision Tree Classification',...
             'SVM Classification','Logistic Regression','Linear Discriminant Analysis'};
@@ -386,14 +385,13 @@ function corrMatEdit_Callback(hObject, eventdata, handles)
 %        str2double(get(hObject,'String')) returns contents of corrMatEdit as a double
 path = get(hObject,'String');
 if exist(path, 'dir') == 7
-    handles.NBSPredict.data.path = path;
+    handles.NBSPredict.data.corrPath = path;
     handles.guiHistory.UI.String.corrMatEdit = path;
     set(handles.corrMatPush,'ForegroundColor',[0,0.7,0]);
     guidata(hObject,handles)
 else
     set(handles.designMatPush,'ForegroundColor','red');
 end
-
 
 % --- Executes during object creation, after setting all properties.
 function corrMatEdit_CreateFcn(hObject, eventdata, handles)
@@ -426,9 +424,7 @@ function brainRegionsEdit_Callback(hObject, eventdata, handles)
 %        str2double(get(hObject,'String')) returns contents of brainRegionsEdit as a double
 fileName = get(hObject,'String');
 if exist(fileName, 'file') == 2
-    brainRegions = loadData(fileName);
-    brainRegions.Properties.VariableNames = {'X','Y','Z','labels'};
-    handles.NBSPredict.data.brainRegions = brainRegions;
+    handles.NBSPredict.data.brainRegionsPath = fileName;
     handles.guiHistory.UI.String.brainRegionsEdit = fileName;
     set(handles.brainRegionsPush,'ForegroundColor',[0,0.7,0]);
     guidata(hObject,handles)

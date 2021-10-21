@@ -93,10 +93,7 @@ end
 handles.cModel = cModel;
 y = NBSPredict.data.y;
 
-% class if there are more than 10 unique values in y.
-% ifClass = numel(unique(y(:,2))) < length(y(:,2))/2; 
-ifClass = numel(unique(y(:,2))) < 10; 
-
+ifClass = check_classification(y);
 handles.ifClass = ifClass;
 metric = NBSPredict.parameter.metric;
 handles.plotData.metric = metric;
@@ -180,6 +177,8 @@ function adjacencyPush_Callback(hObject, eventdata, handles)
 % hObject    handle to adjacencyPush (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+wBar = waitbar(0, 'Opening...');
+set(0, 'CurrentFigure', handles.viewNBSPredictFig);
 handles.labelButton.Visible = 'off';
 handles.cFig = 'adj';
 imagesc(handles.figureAxes,handles.plotResults.adj);
@@ -190,15 +189,20 @@ set(gca,'XTick',[],'YTick',[]);
 title(handles.figureTitle,'Interpreter','none');
 % set(gca, 'FontSize',10,'FontName','default');
 dcm_obj = datacursormode(gcf);
-set(dcm_obj,'Enable','on','UpdateFcn',{@dataCursorUpdateFun,handles});
+set(dcm_obj,'Enable','on','UpdateFcn',{@dataCursorUpdateFun,handles},...
+    'Interpreter','none');
 [handles] = pcFontSize(handles);
 guidata(hObject,handles)
+waitbar(1, wBar, 'Done!');
+close(wBar);
 
 % --- Executes on button press in networkPush.
 function networkPush_Callback(hObject, eventdata, handles)
 % hObject    handle to networkPush (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+wBar = waitbar(0, 'Opening...');
+set(0, 'CurrentFigure', handles.viewNBSPredictFig);
 handles.labelButton.Visible = 'on';
 cla reset;
 set(gca,'DefaultTextInterpreter','none');
@@ -213,10 +217,13 @@ else
 end
 handles.cFig = 'net';
 dcm_obj = datacursormode(gcf);
-set(dcm_obj,'Enable','on','UpdateFcn',{@dataCursorUpdateFun,handles});
+set(dcm_obj,'Enable','on','UpdateFcn',{@dataCursorUpdateFun,handles},...
+    'Interpreter','none');
 [handles] = pcFontSize(handles);
 setappdata(handles.uipanel1,'cG',cG);
 guidata(hObject,handles)
+waitbar(1, wBar, 'Done!');
+close(wBar);
 
 % --- Executes on button press in brainNetPush.
 function brainNetPush_Callback(hObject, eventdata, handles)
@@ -240,6 +247,7 @@ handles.brainNetFig = BrainNet_MapCfg('BrainMesh_ICBM152_smoothed.nv',...
     [tmpDir,'tmp.node'],[tmpDir,'tmp.edge'],'brainNetViewerConfig.mat');
 [handles] = pcFontSize(handles);
 guidata(hObject,handles)
+
 
 % --- Executes on button press in confMatPush.
 function confMatPush_Callback(hObject, eventdata, handles)
@@ -308,6 +316,8 @@ formatFiltes = {'*.pdf','PDF';'*.fig','Matlab Figure';...
 [figFileName, figFilePath, filterIdx] = uiputfile(formatFiltes);
 
 if ~(figFilePath==0)
+    wBar = waitbar(0, 'Figure is being saved...');
+    set(0, 'CurrentFigure', handles.viewNBSPredictFig);
     fullFileName = [figFilePath,figFileName];
     saveFigH = figure('Visible','off','PaperUnits','centimeters','Units','centimeters');
     copyobj(handles.figureAxes,saveFigH);
@@ -345,6 +355,9 @@ if ~(figFilePath==0)
     end
     close(saveFigH)
     clear saveFigH
+    waitbar(1, wBar, 'Done!');
+    pause(0.5);
+    close(wBar);
 end
 
 
@@ -487,7 +500,8 @@ switch handles.cFig
         graphHandle = get(event_obj,'Target');
         if isfield(graphHandle.UserData,'cWeight')
             edgeWeight = graphHandle.UserData.cWeight;
-            adjDataCursorTxt = {['Weight: ',num2str(edgeWeight)]};
+%             adjDataCursorTxt = {['Weight: ',num2str(edgeWeight)]};
+            adjDataCursorTxt = {sprintf('Weight: %.3f', edgeWeight)};
         else
             cG = getappdata(handles.uipanel1,'cG');
             cLabel = graphHandle.UserData.Label;
@@ -577,6 +591,7 @@ function [meanCVscore] = evalSubnet(handles)
 % TODO: Implement better way to evaluate the suprathreshold subnetwork.
 % Evaluates prediction performance of identified subnetwork.
 % Set parameters.
+wBar = waitbar(0, 'Processing...');
 kFold = 10;
 repCV = 10; % Run CV n times.
 
@@ -594,6 +609,7 @@ if ~isempty(handles.plotData.confounds)
 end
 
 for i = 1: repCV
+    waitbar(i/repCV, wBar);
     subnetEvalFun = @(data) subnetEvaluate(data,handles);
     CVscores(i,:) = crossValidation(subnetEvalFun,data,'kfold',kFold); % Run handler in CV.
 end
@@ -606,6 +622,9 @@ upperCI = meanCVscore + confScore;
 lowerCI = meanCVscore - confScore;
 strCVscore = sprintf('Score : %.3f\n[%.3f, %.3f]',meanCVscore,lowerCI,upperCI);
 set(handles.subNetEvalText,'String',strCVscore);
+waitbar(1, wBar, 'Done!');
+pause(0.5);
+close(wBar);
 
 
 function score = subnetEvaluate(data,handles)
@@ -621,5 +640,5 @@ function viewNBSPredictFig_DeleteFcn(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 goodbyeMsg = ['\nThank you for using NBS-Predict!\n',...
-    'Please contact to eminserinn@gmail.com for any questions, suggestions or bug reports.\n'];
+    'Please contact to emin.serin@charite.de for any questions, suggestions or bug reports.\n'];
 fprintf(goodbyeMsg);

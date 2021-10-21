@@ -1,7 +1,22 @@
 function data = preprocess_data(data,scalingMethod)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % preprocess_data performs preprocessing on data provided.
 % Preprocessing consists of rescaling and, if provided, removing
 % confounds from data.
+%
+% Arguments:
+%   data: Structure comprising test and train X and y data. 
+%   scalingMethod: Scaling method (default: None)
+%
+% Output: 
+%   data: Processed data. 
+%
+% Example:
+%   data = preprocess_data(data,'MinMaxScaler');
+%
+% Emin Serin
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
 % Preprocess data
 if ~isempty(scalingMethod)
     % Rescale data.

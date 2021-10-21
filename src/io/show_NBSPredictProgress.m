@@ -1,7 +1,9 @@
 function [] = show_NBSPredictProgress(NBSPredict,iter,scores)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % show_NBSPredictProgress prints progress of NBS-Predict algorithm on
 % MATLAB console.
-% Input: 
+%
+% Arguments: 
 %   NBSPredict: NBSPredict structure in which parameters found. 
 %   iter = The current iteration number.
 %       0   = It returns header. 
@@ -9,6 +11,8 @@ function [] = show_NBSPredictProgress(NBSPredict,iter,scores)
 %       -1  = It returns footer.     
 %   scores: A score value (for parallel loop) or score matrix 
 %       (for sequantial loop). 
+%
+% Output:
 %
 % Example: 
 %   totalRepCViter = 10;
@@ -19,7 +23,7 @@ function [] = show_NBSPredictProgress(NBSPredict,iter,scores)
 %   end
 %
 % Last edited by Emin Serin, 05.09.2019
-%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%
 verbose = NBSPredict.parameter.verbose;

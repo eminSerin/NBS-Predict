@@ -1,9 +1,10 @@
 function [plotData] = prep_plotData(varargin)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % prep_plotData prepares data for simulation plots. Data can be used by
 % gen_SimFigures function to plot results. The files generated using this
 % function can be used by prep_plotData function.
 %   
-% Input:
+% Arguments:
 %   Simulation results derived using sim_testNBSPredict function
 %       (e.g. simRes_CPM_Reg_09-Apr-2021.mat).
 %   metrics = Cell array including performance metrics
@@ -26,7 +27,7 @@ function [plotData] = prep_plotData(varargin)
 % Created by Emin Serin, 11.04.2021
 %
 % See also: sim_testNBSPredict, plot_plotData, compute_modelMetrics
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Parameters
 % Default parameters
 defaultVals.ifSave = 10; defaultVals.wtSteps = 100;

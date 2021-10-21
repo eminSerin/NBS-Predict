@@ -5,7 +5,7 @@ function [edgeMat,nodes,edgeIdx] = load_corrMatFiles(corrMatDir)
 % features. Correlation matrices can be .txt or .mat. However, all
 % correlation matrices must be same format!
 %
-% Input:
+% Arguments:
 %   corrMatDir: Directory where correlation matrices locate. Make sure that
 %   all correlation matrices in the directory given!
 %
@@ -33,13 +33,19 @@ nFiles = length(dataFiles);
 % Preallocate 
 cData = loadData(dataFiles(1).name,filePath);
 data = zeros([size(cData),nFiles],'single');
-for i = 1:nFiles
-    cData = loadData(dataFiles(i).name,filePath);
-    data(:,:,i) = cData;
+try
+    for i = 1:nFiles
+        cData = loadData(dataFiles(i).name,filePath);
+        data(:,:,i) = cData;
+    end
+catch
+    error(['Error in loading correlation matrices.\n',...
+        'There is something wrong with %s.\n',...
+        'Please check the sample dataset for example data structure!'],...
+        [filePath,filesep,dataFiles(i).name]);
 end
 
 % Shrinks data into edge matrix.
 [edgeMat,nodes,edgeIdx] = shrinkMat(data);
-
 end
 

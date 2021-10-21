@@ -1,7 +1,10 @@
 classdef (Hidden = true) baseScaler < handle
-    %UNTITLED Summary of this class goes here
-    %   Detailed explanation goes here
-    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % baseScaler is a base classs for scalers.
+    %
+    % Emin Serin
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%
     properties
         fitParams
     end
@@ -15,7 +18,7 @@ classdef (Hidden = true) baseScaler < handle
         function transformedData = fit_transform(obj,data)
             fit(obj,data);
             transformedData = transform(obj,data);
-        end 
+        end
     end
 end
 

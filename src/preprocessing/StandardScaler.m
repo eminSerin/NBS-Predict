@@ -1,7 +1,25 @@
 classdef StandardScaler < baseScaler
-    %STANDARDSCALER Summary of this class goes here
-    %   Detailed explanation goes here
-    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % StandardScaler standardizes features by removing the mean and scaling
+    %   to variance of 1 (i.e., z-transformation).
+    %   
+    % Parameters:
+    %   data: Input data to be scaled.
+    %
+    % Attributes:
+    %   means: Mean.
+    %   std: Standard deviation.
+    %
+    % Example: 
+    %   scaler = StandardScaler();
+    %   scaler.fit(data);
+    %   transformedData = scaler.transform(data);
+    %
+    % Reference: 
+    %   https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html
+    %
+    % Emin Serin
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     methods
         function obj = fit(obj,data)
             %METHOD1 Summary of this method goes here

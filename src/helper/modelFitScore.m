@@ -3,7 +3,7 @@ function [varargout] = modelFitScore(Mdl,trainTestData,metrics)
 % modelFitScore fits model on train data, test model performance on test
 % data and return its performance score.
 %
-% Arguements: 
+% Arguments: 
 %   Mdl = Structure of model where function handlers of fit, prediction and
 %       score locate. 
 %   trainTestData = Structure in which test and train features and labels
@@ -30,6 +30,9 @@ nMetrics = numel(metrics);
 varargout = cell(1,nMetrics+2);
 
 if isempty(trainTestData.X_train)
+    warning(['No features found to fed into the estimator! ',...
+        'Thus, estimator and performance scores will be set to NaN.'])
+    % set to nan if no feature survived feature selection.
     for i = 1:nMetrics
         varargout{i} = nan;
     end

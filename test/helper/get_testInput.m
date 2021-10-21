@@ -1,8 +1,9 @@
 function [testInputs] = get_testInput(varargin)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % get_testInput validates and returns inputs required for a test functions.
 % It also returns default inputs if no input are provided. 
 %   
-% Arguements: 
+% Arguments: 
 %   Check test_NBSPredict and sim_testNBSPredict functions for arguements. 
 %
 % Output:
@@ -12,7 +13,7 @@ function [testInputs] = get_testInput(varargin)
 % Emin Serin - 08.01.2020
 %
 % See also, test_NBSPredict, sim_testNBSPredict, sim_testNBSPredictABIDE
-%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Input parser.
 % Default parameters for NBSPredict.
 defaultVals.kFold = 10; defaultVals.ifParallel = 0;
