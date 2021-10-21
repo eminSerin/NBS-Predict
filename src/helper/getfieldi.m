@@ -1,19 +1,20 @@
 function value = getfieldi(S,fieldName)
-%   getfieldi is a case-insensitive version of MATLAB's getfield function.
-%   It returns value from field from a structure.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% getfieldi is a case-insensitive version of MATLAB's getfield function.
+% It returns value from field from a structure.
 %
-%   Arguement:
-%       S = Structure from which value of field are requested.
-%       fieldName = Name of field from which value is needed.
+% Arguments:
+%     S = Structure from which value of field are requested.
+%     fieldName = Name of field from which value is needed.
 %
-%   Output:
-%       value = Value from given field.
+% Output:
+%     value = Value from given field.
 %
-%   Example:
+% Example:
 %        value = getfieldi(S,fieldName);
 %
-%   Emin Serin - 15.08.2019
-%
+% Emin Serin - 15.08.2019
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%
 assert(nargin==2,'Not enough inputs! Please check help section!')

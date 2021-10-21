@@ -1,14 +1,17 @@
 function [shapeGrid,nComb] = get_paramGridShapeComb(paramGrid)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % get_paramGridShapeComb returns shape of parameter grid and total number
 % of parameter combinations. 
-% Input
+%
+% Arguments
 %   paramGrid = Structure including parameters.
+%
 % Output
 %   shapeGrid = Shape of parameter grid. 
 %   nComb = Total number of parameter combinations. 
 % 
 % Emin Serin - 19.08.2019
-%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Total number of parameters.
 assert(isstruct(paramGrid),['Parameter grid is not a structure!',...
     'Parameter grid must be structure in which each fields are distinct array of candidate parameters']);

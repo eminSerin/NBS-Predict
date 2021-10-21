@@ -3,7 +3,7 @@ function [Mdl] = run_decisionTreeC(params)
 % run_decisionTreeC returns Mdl structure including function handles of fit,
 % predict and score functions for decision tree classification. 
 %
-% Optional arguement: 
+% Arguments: 
 %   params: Structure including following hyperparameters:
 %       MinLeafSize: MinLeafSize parameter. 
 % 

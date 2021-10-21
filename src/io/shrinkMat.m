@@ -3,7 +3,7 @@ function [edgeMat,nodes,edgeIdx] = shrinkMat(data)
 % shrinkMat extracts values of each edge in a correlation matrix and store
 % in a array.
 %
-% Arguements:
+% Arguments:
 %   data = Data matrix where correlation matrix from each participant
 %   stored in. (nodes x nodes x subject)
 %
@@ -15,7 +15,8 @@ function [edgeMat,nodes,edgeIdx] = shrinkMat(data)
 %
 % Emin Serin - 29.07.2019
 %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
 % Check data size. 
 dataShape = size(data); 
 dataDim = length(dataShape);

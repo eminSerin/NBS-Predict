@@ -1,3 +1,13 @@
+## [v1.0.0-beta2]
+- NBS-Predict is not in v1.0.0-beta2.
+- Reorganize and clarify function comments.
+- Add link for the sample data.
+- Update user MANUAL. 
+- Add wait/progress bar to the NBS-Predict visualization window.
+- Minor change in identifying whether the given data is classification or regression. Target with more than 3 unique values are considered as regression problems.
+- Add warnings and error messages in case no features survived the feature selection.
+- Refactor a few GUI functions.
+
 ## [v1.0.0-beta1] - 13.04.2021
 - NBS-Predict is now in v1.0.0-beta1.
 - Add user MANUAL and data analysis tutorial. 

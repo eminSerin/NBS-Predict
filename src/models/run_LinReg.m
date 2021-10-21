@@ -3,7 +3,7 @@ function [Mdl] = run_LinReg(params)
 % run_LogReg returns Mdl structure including function handles of fit,
 % predict and score functions for linear regression. 
 %
-% Optional arguement: 
+% Arguments: 
 %   params: Structure including following hyperparameters:
 %   lambda: Lambda parameter (default = 0). 
 % 

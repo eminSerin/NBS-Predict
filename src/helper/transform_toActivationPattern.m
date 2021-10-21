@@ -1,14 +1,17 @@
 function [activationPattern] = transform_toActivationPattern(X,beta)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Transform weights derived from linear models to activation patterns using
 % algorithm shown by Haufe et.al., 2014. 
 % 
-% Input: 
+% Arguments: 
 %   X:    Feature matrix (sample x features) 
 %   beta: Coefficients derived from linear models (e.g., Linear Regression,
 %       Logistic Regression, Lienar SVM)
+%
 % Output: 
 %   activationPattern: Activation pattern. 
-% Usage: 
+%
+% Example: 
 %   activationPattern = transform_toActivationPattern(X,beta)
 %
 % Reference: 
@@ -18,7 +21,8 @@ function [activationPattern] = transform_toActivationPattern(X,beta)
 %   96-110.
 %
 % Emin Serin - 21.06.2020
-%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
 nFeatures = size(X,2);
 covMat = cov(X*beta);
 normCovMat = (beta/covMat)./(nFeatures-1); % Normalized Covariance Matrix. 

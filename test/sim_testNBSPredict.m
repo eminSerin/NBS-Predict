@@ -1,11 +1,12 @@
 function [simResults] = sim_testNBSPredict(varargin)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % sim_testNBSPredict performs simulation using simulated network data. 
 % It is used to test prediction performance of the NBS-Predict and
 % alternative algorithms (elastic net, lasso, p-value thresholding, top 5%,
 % and connectome based predictive modeling (Shen et al., 2017)) on the  
 % the simulated network data (small world, scale free or random). 
 %
-% Input:
+% Arguments:
 %   simIter = Total number of iteration (default = 1000). Please set a
 %       number that is multiplier of nCores to make sure that the desired 
 %       number of cores will be utilized in all iterations. Total number of
@@ -75,7 +76,7 @@ function [simResults] = sim_testNBSPredict(varargin)
 %
 % See also: test_NBSPredict, get_NBSPredictInput
 %
-%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
 % Default Input
 defaultVals.simIter = 1000; defaultVals.nCores = 1;

@@ -1,4 +1,5 @@
-function [bestParam,bestParamScore,bestParamIdx] = randomSearch(objFun,data,paramGrid,varargin)
+function [bestParam,bestParamScore,bestParamIdx] = randomSearch(objFun,...
+    data,paramGrid,varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % randomSearch performs pure random search over parameters provided.
 % Each parameter or combination of parameters are selected from a uniform
@@ -8,7 +9,7 @@ function [bestParam,bestParamScore,bestParamIdx] = randomSearch(objFun,data,para
 % results. It is parameterized by number of iteration parameter, which is
 % maximum number of iteration that random search performs.
 %
-% Arguements:
+% Arguments:
 %   objFun = Objective function (e.g., estimator).
 %   data = Data structure including X and y matrices. 
 %   paramGrid = Parameter grid.

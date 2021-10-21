@@ -6,10 +6,10 @@ function [extIdx] = extractComponentIdx(lenNodes,edgeIdx,cEdgesIdx)
 % edges (i.e., features) using breadth-first search algorithm, and biggest
 % component is selected. Finally, indices of edges found in the biggest
 % component are returned as a output. Such process is used to make sure
-% features are connected each other (please see discussion in Serin &
-% Kruschwitz, n.d.).
+% features are connected each other (please see discussion in Serin et al.,
+% 2021)
 %
-% Arguements: 
+% Arguments: 
 %   lenNodes  = Number of nodes in provided adjacency matrices.
 %   edgeIdx   = Indices of edges in provided adjacency matrices.     
 %   cEdgesIdx = Indices of features selected. 
@@ -19,6 +19,8 @@ function [extIdx] = extractComponentIdx(lenNodes,edgeIdx,cEdgesIdx)
 %
 % Reference:
 %   https://en.wikipedia.org/wiki/Breadth-first_search
+%   Serin, Emin, et al. "NBS-Predict: A Prediction-based Extension of 
+%       the Network-based Statistic." NeuroImage (2021): 118625.
 %
 % Emin Serin - 02.08.2019
 %

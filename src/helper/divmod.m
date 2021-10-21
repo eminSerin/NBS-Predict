@@ -1,7 +1,8 @@
 function [q,r] = divmod(x,y)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % divmod divides X and Y and return the quotient and the remainder.
 %
-% Arguement:
+% Arguments:
 %   x = Numerator
 %   y = Denominator
 %
@@ -10,7 +11,7 @@ function [q,r] = divmod(x,y)
 %   r = remainder
 %
 % Emin Serin - 14.08.2019
-%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Input check. 
 assert(nargin == 2, 'Please enter numerator and denominator!, Check help section!');
 %% Find quotient and remainder.

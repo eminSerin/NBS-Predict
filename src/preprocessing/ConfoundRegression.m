@@ -1,4 +1,5 @@
 classdef ConfoundRegression < baseScaler
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % ConfoundRegression removes variance explained by the confounds from
     % given data. Simply, a linear regression method is fitted on the each
     % feature in a given data using confounds are predictors. Then, it
@@ -23,7 +24,8 @@ classdef ConfoundRegression < baseScaler
     %   184, 741-760.
     %
     % Implemented on 31 January 2020 by Emin Serin.
-    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%
     properties (Access = private)
        nzMask 
     end

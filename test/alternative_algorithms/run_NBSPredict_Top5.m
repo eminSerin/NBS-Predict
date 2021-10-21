@@ -1,4 +1,5 @@
 function [NBSPredict] = run_NBSPredict_Top5(NBSPredict)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % run_NBSPredict_Top5 runs Top 5% feature selection algorithm to perform
 % prediction using connectome data and evaluate the contribution of the
 % relevant edges to the overal performance of the model. The algorithm is
@@ -18,7 +19,7 @@ function [NBSPredict] = run_NBSPredict_Top5(NBSPredict)
 % Last edited by Emin Serin, 08.04.2021.
 %
 % See also: test_NBSPredict, sim_testNBSPredict
-%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
 NBSPredict = get_NBSPredictInput(NBSPredict);
 totalRepCViter = NBSPredict.parameter.repCViter;

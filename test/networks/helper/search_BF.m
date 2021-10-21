@@ -1,26 +1,27 @@
 function [path,prev] = search_BF(g,startNode,maxIter)
-%   SEARCH_BF finds connected components utilising the Breadth-First search
-%   algorithm.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SEARCH_BF finds connected components utilising the Breadth-First search
+% algorithm.
 %
-%   Required inputs: 
-%       g: Graph or adjacency matrix. 
-%       startNode: Index of node with which the BFS starts. (default = 1)
-%       maxIter: Maximum size of components. (default = size of network)
+% Arguments: 
+%     g: Graph or adjacency matrix. 
+%     startNode: Index of node with which the BFS starts. (default = 1)
+%     maxIter: Maximum size of components. (default = size of network)
 %
-%   Output:
-%       path: Path visited by the search. 
-%       prev: Previous node of each node in a searching path.   
+% Output:
+%     path: Path visited by the search. 
+%     prev: Previous node of each node in a searching path.   
 %
-%   Example usage: 
-%       [path,prev] = search_BF(g);
-%       [path,prev] = search_BF(g,5);
-%       [path,prev] = search_BF(g,5,30);
+% Example: 
+%     [path,prev] = search_BF(g);
+%     [path,prev] = search_BF(g,5);
+%     [path,prev] = search_BF(g,5,30);
 %   
-%   For more information on Breadth-first search, please read:
-%       https://en.wikipedia.org/wiki/Breadth-first_search
+% For more information on Breadth-first search, please read:
+%     https://en.wikipedia.org/wiki/Breadth-first_search
 %
-%   Emin Serin - Berlin School of Mind and Brain
-
+% Emin Serin - Berlin School of Mind and Brain
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Inputs
 if nargin < 1 help search_BF; end % Return help. 
 if strcmpi(class(g),'graph') g = adjacency(g); end % Convert into adjacency matrix if graph. 

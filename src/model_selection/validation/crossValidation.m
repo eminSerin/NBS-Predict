@@ -3,7 +3,7 @@ function [CVresults] = crossValidation(fun,data,varargin)
 % crossValidation performs k-fold or leave-one-out cross validation on data
 % provided to compute performance of given model.  
 %
-% Arguements:
+% Arguments:
 %   fun = Objective function (e.g., estimator).
 %   data = Data structure were current features and labels are stored.
 %   kFold = Number of CV folds. 

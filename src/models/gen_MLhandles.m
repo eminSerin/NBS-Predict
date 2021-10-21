@@ -4,7 +4,7 @@ function [MLhandle] = gen_MLhandles(modelName)
 % model. Once you generate function handle, you can initiate machine
 % learning model with parameters you define.
 %
-% Arguements:
+% Arguments:
 %   modelName: name of the given model.
 %       Classification:
 %           'svmC':             Support Vector Machine Classification
@@ -20,15 +20,15 @@ function [MLhandle] = gen_MLhandles(modelName)
 %           'ElasticNetR':      Elastic Net Regression
 %           'LassoR':           Lasso Regression
 %
-%   Output:
-%       MLhandles = Function handle to initiate fit, predict and score
-%       methods of selected machine learning model.
+% Output:
+%     MLhandles = Function handle to initiate fit, predict and score
+%     methods of selected machine learning model.
 %
-%   Usage:
-%       MLhandle = gen_MLhandles('svmC');
+% Usage:
+%     MLhandle = gen_MLhandles('svmC');
 %
-%   This function requires at oldest MATLAB R2016b and Statistics and
-%   Machine Learning toolbox to run fully functional.
+% This function requires at oldest MATLAB R2016b and Statistics and
+% Machine Learning toolbox to run fully functional.
 %
 % Emin Serin - 10.08.2019
 %

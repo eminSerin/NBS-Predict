@@ -1,8 +1,9 @@
 function [varargout] = compute_modelMetrics(y_true,y_pred,metrics)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % compute_modelMetrics evaulates classification or prediction performance
 % of the model given and returns a performance score.
 %
-% Arguements:
+% Arguments:
 %   y_true = True labels.
 %   y_pred = Predicted labels.
 %   metrics = Performance metrics:
@@ -34,7 +35,7 @@ function [varargout] = compute_modelMetrics(y_true,y_pred,metrics)
 %       TN = True negative.
 %       FN = False negative.
 %
-% Usage:
+% Example:
 %   score = compute_modelMetrics(y_true,y_pred,metrics);
 %   score = compute_modelMetrics(y_true,y_pred,'mse');
 %   [score,TP,FP,TN,FN] = compute_modelMetrics(y_true,y_pred,'auc');
@@ -42,8 +43,8 @@ function [varargout] = compute_modelMetrics(y_true,y_pred,metrics)
 % Emin Serin, 2018. Berlin School of Mind and Brain
 %
 % Last edited by Emin Serin, 03.07.2020.
-%
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
 % Make sure that vectors are at least single for compatibility.
 y_true = single(y_true);
 y_pred = single(y_pred);

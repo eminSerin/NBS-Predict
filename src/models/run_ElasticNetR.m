@@ -3,7 +3,7 @@ function [Mdl] = run_ElasticNetR(params)
 % run_ElasticNetR returns Mdl structure including function handles of fit,
 % predict and score functions for Elastic Net regression. 
 %
-% Optional arguement: 
+% Arguments: 
 %   params: Structure including following hyperparameters:
 %   lambda: Intensity of penalty terms (default = 0.1). 
 %   alpha:  Mixing parameter; 0 (L2) <= alpha <= 1(L1) (default = 0.5).

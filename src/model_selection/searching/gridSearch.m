@@ -1,8 +1,10 @@
-function [bestParam,bestParamScore,bestParamIdx] = gridSearch(objFun,data,paramGrid,varargin)
+function [bestParam,bestParamScore,bestParamIdx] = gridSearch(objFun,data,...
+    paramGrid,varargin)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % gridSearch performs grid search over hyperparameter space provided and
 % returns best hyperparameter combination.
 %   
-% Arguements
+% Arguments
 %   objFun = Objective function (e.g., estimator).
 %   data = Data structure including X and y matrices. 
 %   paramGrid = Parameter grid.
@@ -17,7 +19,7 @@ function [bestParam,bestParamScore,bestParamIdx] = gridSearch(objFun,data,paramG
 %   bestParamScore = Score of best hyperparameters choosen. 
 %
 % Emin Serin - 05.07.2020
-%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Input
 % validate parameters and return default parameters if no provided. 
 searchInputs = get_searchInputs('gridSearch',varargin{:}); 

@@ -5,7 +5,7 @@ function [edgeMat,nodes,edgeIdx] = load_corrMatFiles(corrMatDir)
 % features. Correlation matrices can be .txt or .mat. However, all
 % correlation matrices must be same format!
 %
-% Input:
+% Arguments:
 %   corrMatDir: Directory where correlation matrices locate. Make sure that
 %   all correlation matrices in the directory given!
 %

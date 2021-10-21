@@ -1,28 +1,29 @@
 function [g] = gen_BAnet(n,m0,m)
-%   GEN_BANET scale-free network based on Barabasi-Albert model.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% GEN_BANET scale-free network based on Barabasi-Albert model.
 %   
-%   Required inputs: 
-%       n: Number of nodes in the network (default = 100). 
-%       m0: Initial number of nodes in the network. (default = 5)
-%       m: Number of edges through which a new node connects to existing nodes.
-%           (default = 2)
+% Arguments: 
+%     n: Number of nodes in the network (default = 100). 
+%     m0: Initial number of nodes in the network. (default = 5)
+%     m: Number of edges through which a new node connects to existing nodes.
+%         (default = 2)
 %
-%   Output:
-%       g: The adjacency matrix constructed. 
+% Output:
+%     g: The adjacency matrix constructed. 
 %
-%   Example usage: 
-%       g = gen_SFnet();
-%       g = gen_SFnet(1000);
-%       g = gen_SFnet(500,5);
-%       g = gen_SFnet(250,5,3);
+% Example: 
+%     g = gen_SFnet();
+%     g = gen_SFnet(1000);
+%     g = gen_SFnet(500,5);
+%     g = gen_SFnet(250,5,3);
 %   
-%   For more information on Barabasi - Albert model, please read:
-%       Barabsi,A.-L. and Albert,R. (1999) Emergence of Scaling in Random
-%           Networks. Science, 286, 509-512.
+% For more information on Barabasi - Albert model, please read:
+%     Barabsi,A.-L. and Albert,R. (1999) Emergence of Scaling in Random
+%         Networks. Science, 286, 509-512.
 %
-%   Emin Serin - Berlin School of Mind and Brain
+% Emin Serin - Berlin School of Mind and Brain
 %
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Inputs
 if nargin < 3 m = 2; end % Default m value.
 if nargin < 2 m0 = 5; end % Default m0 value. 

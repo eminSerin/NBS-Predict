@@ -3,7 +3,7 @@ function [Mdl] = run_svmR(params)
 % run_svmR returns Mdl structure including function handles of fit,
 % predict and score functions for support vector regression. 
 %
-% Optional arguement: 
+% Arguments: 
 %   params: Structure including following hyperparameters:
 %   epsilon: Epsilon parameter (default = 0.1). 
 % 

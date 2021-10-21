@@ -1,39 +1,40 @@
 function [CPM] = run_CPM(data,varargin)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % run_CPM performs Connectom-based Predictive Modeling (CPM).
 % Connectome-based predictive modeling is a predictive based method to
 % analyze brain connectivity. 
 % 
-%   Arguements: 
-%       data = A structure containing matrix for predictor and target
-%           variables. Confound variables are added into correlation 
-%           analysis (i.e., partial correlation) if provided.
-%       thresh = p-value threshold to select features (default = 0.01). 
-%       kFold = Number of CV folds (default = 10).
-%       repCVIter = Number of CV repetition (default = 1).
-%       ifParallel = Performs repeated nested CV parallel
-%           (1 or 0, default = 0). 
-%       metric = Performance metrics (correlation, mse; default = correlation).
-%       learner = Estimator (LinReg,svmR or decisionTreeR, default = LinReg).
-%       verbose = Whether or not give messages (default = 1);
-%       randomState = Controls the randomness. Pass an integer value for
-%           reproducible results or 'shuffle' to randomize (default = 42).  
+% Arguments: 
+%     data = A structure containing matrix for predictor and target
+%         variables. Confound variables are added into correlation 
+%         analysis (i.e., partial correlation) if provided.
+%     thresh = p-value threshold to select features (default = 0.01). 
+%     kFold = Number of CV folds (default = 10).
+%     repCVIter = Number of CV repetition (default = 1).
+%     ifParallel = Performs repeated nested CV parallel
+%         (1 or 0, default = 0). 
+%     metric = Performance metrics (correlation, mse; default = correlation).
+%     learner = Estimator (LinReg,svmR or decisionTreeR, default = LinReg).
+%     verbose = Whether or not give messages (default = 1);
+%     randomState = Controls the randomness. Pass an integer value for
+%         reproducible results or 'shuffle' to randomize (default = 42).  
 %   
-%   Output:
-%       CPM: An outcome structure containing data, parameter and results.
+% Output:
+%     CPM: An outcome structure containing data, parameter and results.
 %   
-%   Example: 
-%       run_CPM(data);
-%       run_CPM(data,'thresh',0.05,'kFold',5,'ifParallel',1,'learner','svmR');
+% Example: 
+%     run_CPM(data);
+%     run_CPM(data,'thresh',0.05,'kFold',5,'ifParallel',1,'learner','svmR');
 %
-%   Reference:
-%       Shen, X., Finn, E. S., Scheinost, D., Rosenberg, M. D., Chun, M.
-%       M., Papademetris, X., & Constable, R. T. (2017). Using
-%       connectome-based predictive modeling to predict individual behavior
-%       from brain connectivity. nature protocols, 12(3), 506.
+% Reference:
+%     Shen, X., Finn, E. S., Scheinost, D., Rosenberg, M. D., Chun, M.
+%     M., Papademetris, X., & Constable, R. T. (2017). Using
+%     connectome-based predictive modeling to predict individual behavior
+%     from brain connectivity. nature protocols, 12(3), 506.
 %   
-%   Last edited by Emin Serin, 08.04.2021.
+% Last edited by Emin Serin, 08.04.2021.
 %
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Input parser.
 % Default parameters for CPM.
 defaultVals.thresh = 0.01; defaultVals.ifParallel = 0;
