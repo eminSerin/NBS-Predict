@@ -1,5 +1,5 @@
 ## [v1.0.0-beta2]
-- NBS-Predict is not in v1.0.0-beta2.
+- NBS-Predict is now in v1.0.0-beta2.
 - Reorganize and clarify function comments.
 - Add link for the sample data.
 - Update user MANUAL. 
