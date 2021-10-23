@@ -54,9 +54,14 @@ function run_NBSPredictGUI_OpeningFcn(hObject, eventdata, handles, varargin)
 % Choose default command line output for run_NBSPredictGUI
 handles.output = hObject;
 handles.NBSPredict.parameter.ifView = 1; % run NBS_Predict_view after analysis. 
-handles.verNBSPredict = '1.0.0-beta2';
+handles.verNBSPredict = '1.0.0-beta.3';
 handles.NBSPredict.info.version = handles.verNBSPredict;
-handles = loadHistory(handles);
+
+% History function has been deactivated until the following versions!
+% handles = loadHistory(handles);
+handles.ifHistory = 0;
+
+
 % Update handles structure
 guidata(hObject, handles);
 
@@ -617,7 +622,11 @@ handles.guiHistory.parameter = handles.NBSPredict.parameter;
 referenceFile = 'start_NBSPredict.m';
 saveDir = fileparts(which(referenceFile));
 guiHistory = handles.guiHistory;
-save([saveDir,filesep,'history.mat'],'guiHistory');
+
+% History function has been deactivated until the following versions.
+% save([saveDir,filesep,'history.mat'],'guiHistory');
+
+
 set(handles.runNBSPredict,'ForegroundColor',[0,0.7,0]);
 run_NBSPredict(handles.NBSPredict);
 

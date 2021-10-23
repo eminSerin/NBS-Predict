@@ -189,8 +189,12 @@ set(gca,'XTick',[],'YTick',[]);
 title(handles.figureTitle,'Interpreter','none');
 % set(gca, 'FontSize',10,'FontName','default');
 dcm_obj = datacursormode(gcf);
-set(dcm_obj,'Enable','on','UpdateFcn',{@dataCursorUpdateFun,handles},...
-    'Interpreter','none');
+set(dcm_obj,'Enable','on','UpdateFcn',{@dataCursorUpdateFun,handles});
+if ~verLessThan('matlab', '9.5')
+    % Turn off the text interpreter if MATLAB version is or newer than
+    % R2018b.
+    set(dcm_obj, 'Interpreter','none'); 
+end
 [handles] = pcFontSize(handles);
 guidata(hObject,handles)
 waitbar(1, wBar, 'Done!');
@@ -217,8 +221,12 @@ else
 end
 handles.cFig = 'net';
 dcm_obj = datacursormode(gcf);
-set(dcm_obj,'Enable','on','UpdateFcn',{@dataCursorUpdateFun,handles},...
-    'Interpreter','none');
+set(dcm_obj,'Enable','on','UpdateFcn',{@dataCursorUpdateFun,handles});
+if ~verLessThan('matlab', '9.5')
+    % Turn off the text interpreter if MATLAB version is or newer than
+    % R2018b.
+    set(dcm_obj, 'Interpreter','none'); 
+end
 [handles] = pcFontSize(handles);
 setappdata(handles.uipanel1,'cG',cG);
 guidata(hObject,handles)
@@ -586,6 +594,7 @@ function [handles] = pcFontSize(handles)
 if ispc || isunix
     set(handles.figureAxes,'FontSize',8,'FontName','default');
 end
+
 
 function [meanCVscore] = evalSubnet(handles)
 % TODO: Implement better way to evaluate the suprathreshold subnetwork.

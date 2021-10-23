@@ -1,4 +1,11 @@
-## [v1.0.0-beta2]
+## [v1.0.0-beta.3] - 23.10.2021
+- NBS-Predict is now in v1.0.0-beta.3 
+- This version provides hotfixes for a few bugs found in v1.0.0-beta2.
+- Fix compatibility issues in the NBS-Predict visualization window. 
+- GUI history has been deactivated until the following versions due to unexpected crashes; thus, parameters entered in the setup interface will not be saved for later use!
+
+
+## [v1.0.0-beta2] - 21.10.2021
 - NBS-Predict is now in v1.0.0-beta2.
 - Reorganize and clarify function comments.
 - Add link for the sample data.

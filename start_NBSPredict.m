@@ -34,7 +34,7 @@ function [] = start_NBSPredict(varargin)
 %
 % See also: run_NBSPredictGUI, run_NBSPredict, test_NBSPredict
 
-verNBSPredict = '1.0.0-beta2';
+verNBSPredict = '1.0.0-beta.3';
 
 welcomeMsg = ['\n\n\nWelcome to NBSPredict\n',...
     'Release: <strong>%s</strong> \n',...
