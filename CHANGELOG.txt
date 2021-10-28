@@ -1,3 +1,8 @@
+## [v1.0.0-beta.3] - 28.10.2021
+- NBS-Predict is now in v1.0.0-beta.4
+- This version fixes the "check_classifiction function is not found" error.
+
+
 ## [v1.0.0-beta.3] - 23.10.2021
 - NBS-Predict is now in v1.0.0-beta.3 
 - This version provides hotfixes for a few bugs found in v1.0.0-beta2.
