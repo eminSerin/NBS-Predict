@@ -54,7 +54,7 @@ function run_NBSPredictGUI_OpeningFcn(hObject, eventdata, handles, varargin)
 % Choose default command line output for run_NBSPredictGUI
 handles.output = hObject;
 handles.NBSPredict.parameter.ifView = 1; % run NBS_Predict_view after analysis. 
-handles.verNBSPredict = '1.0.0-beta.3';
+handles.verNBSPredict = '1.0.0-beta.4';
 handles.NBSPredict.info.version = handles.verNBSPredict;
 
 % History function has been deactivated until the following versions!
