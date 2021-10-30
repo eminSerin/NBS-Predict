@@ -584,12 +584,14 @@ function aboutPush_Callback(hObject, eventdata, handles)
 % hObject    handle to aboutPush (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+[iconData, ~] = imread("NBS-Predict_logo.png");
 msg = {'NBS-Predict';['Version: ',handles.verNBSPredict];...
-    '\rmAuthor: Emin Serin';...
+    'Author: Emin Serin';...
     'Contact: emin.serin@charite.de'};
-CreateStruct.Interpreter = 'tex';
-CreateStruct.WindowStyle = 'modal';
-mb = msgbox(msg,'About','Value',CreateStruct);
+% CreateStruct.Interpreter = 'tex';
+% CreateStruct.WindowStyle = 'modal';
+mb = msgbox(msg, 'About','custom',iconData);
+% mb = msgbox(msg,'About','Value',CreateStruct);
 msgboxhanles = findall(mb, 'Type', 'Text'); 
 set(msgboxhanles, 'FontSize', 10);
 

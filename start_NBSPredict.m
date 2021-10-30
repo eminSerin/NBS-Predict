@@ -57,7 +57,7 @@ if ~isempty(varargin)
     run_NBSPredict(varargin{:});
 else
     fprintf('\nNBS-Predict GUI is starting...\n\n')
-    run_NBSPredictGUI();
+    run_NBSPredictWorkspace();
 end
 
 end

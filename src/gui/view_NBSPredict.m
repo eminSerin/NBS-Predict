@@ -438,7 +438,11 @@ tmpIdx = get(hObject,'Value');
 metricName = tmp{tmpIdx};
 metric = lower(metricName);
 handles.plotResults.metric = metric;
+wBar = waitbar(0, 'Computing...');
+set(0, 'CurrentFigure', handles.viewNBSPredictFig);
 handles = updateTitle(handles);
+waitbar(1, wBar, 'Done!');
+close(wBar);
 guidata(hObject,handles);
 
 
