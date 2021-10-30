@@ -569,7 +569,7 @@ function [handles] =  updateConfMat(handles)
 truePredLabels = handles.plotData.(handles.cModel).truePredLabels;
 CM = compute_modelMetrics(truePredLabels(:,1),...
     truePredLabels(:,2),'confusionMatrix');
-confMat = [CM.TP,CM.FN;CM.FP,CM.TN];
+confMat = [CM.TN,CM.FN;CM.FP,CM.TP];
 handles.plotResults.truePredLabels = truePredLabels;
 handles.plotResults.confMat = confMat;
 
