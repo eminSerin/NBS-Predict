@@ -46,17 +46,23 @@ This sample dataset should only be used to check whether the toolbox works prope
 ```
 start_NBSPredict();
 ```
-2. A graphical user interface of NBS-Predict will automatically appear on the screen.
+2. The welcome window of NBS-Predict will automaticall appear on the screen. 
 
 <img src="docs/images/NBSPredict_1.png" width="720px"/> 
 
-3. Select the directory that contains subjects' connectivity matrices. Then, select brain parcellation and design matrix files. Specify a contrast vector for the statistical model used selecting suprathreshold edges across folds. Optionally, you may define advanced parameters such as number of CV folds, number of CV repetitions, performance metrics. Once you finish selecting data and optional parameters, hit the RUN button to start the analysis. NBS-Predict will last from minutes to hours depending on the computer, sample size, and brain parcellation atlas used. 
+3. Using this window, create a new workspace. To do this, write a name for the workspace and press the return key. A pop-up window asking the directory for the workspace will appear. After selecting the directory, hit the "Create" button to create the workspace. The created workspace will appear on the list box below. Then, hit the "Start" button to run the workspace. 
+
+4. The analysis setup window of NBS-Predict will automatically appear on the screen.
 
 <img src="docs/images/NBSPredict_2.png" width="720px"/> 
 
-4. Following the analysis, the NBS-Predict Results Viewer window will automatically appear on the screen. Here, you view display weighted adjacency matrix, weighted network on a circular graph, weighted network on a 3D brain surface (BrainNet Viewer, Xia et al., 2013), and confusion matrix. Weights represent the presence of edges in the selected connected component across outer folds and their prediction performances. That allows us to evaluate the contribution of each edge to the overall model straightforwardly. You can further set a weight threshold to visualize a subnetwork comprising the most relevant edges. Also, by clicking the "Save Figure" button, you can save figures in several formats. 
+5. Select the directory that contains subjects' connectivity matrices. Then, select brain parcellation and design matrix files. Specify a contrast vector for the statistical model used selecting suprathreshold edges across folds. Optionally, you may define advanced parameters such as number of CV folds, number of CV repetitions, performance metrics. Once you finish selecting data and optional parameters, hit the RUN button to start the analysis. NBS-Predict will last from minutes to hours depending on the computer, sample size, and brain parcellation atlas used. 
 
 <img src="docs/images/NBSPredict_3.png" width="720px"/> 
+
+6. Following the analysis, the NBS-Predict Results Viewer window will automatically appear on the screen. Here, you view display weighted adjacency matrix, weighted network on a circular graph, weighted network on a 3D brain surface (BrainNet Viewer, Xia et al., 2013), and confusion matrix. Weights represent the presence of edges in the selected connected component across outer folds and their prediction performances. That allows us to evaluate the contribution of each edge to the overall model straightforwardly. You can further set a weight threshold to visualize a subnetwork comprising the most relevant edges. Also, by clicking the "Save Figure" button, you can save figures in several formats. 
+
+<img src="docs/images/NBSPredict_4.png" width="720px"/> 
 
 See the [MANUAL.pdf](docs/MANUAL.pdf) file for the detailed user guide. 
 
