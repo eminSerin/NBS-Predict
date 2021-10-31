@@ -46,7 +46,7 @@ This sample dataset should only be used to check whether the toolbox works prope
 ```
 start_NBSPredict();
 ```
-2. The welcome window of NBS-Predict will automaticall appear on the screen. 
+2. The welcome window of NBS-Predict will automatically appear on the screen. 
 
 <img src="docs/images/NBSPredict_1.png" width="720px"/> 
 
