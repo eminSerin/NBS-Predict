@@ -91,6 +91,7 @@ guidata(hObject, handles);
 % UIWAIT makes run_NBSPredictWorkspace wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
+
 % --- Outputs from this function are returned to the command line.
 function varargout = run_NBSPredictWorkspace_OutputFcn(hObject, eventdata, handles) 
 % varargout  cell array for returning output args (see VARARGOUT);
@@ -100,6 +101,7 @@ function varargout = run_NBSPredictWorkspace_OutputFcn(hObject, eventdata, handl
 
 % Get default command line output from handles structure
 varargout{1} = handles.output;
+
 
 % --- Executes during object creation, after setting all properties.
 function workspaceList_CreateFcn(hObject, eventdata, handles)
@@ -132,6 +134,7 @@ else
     set(hObject, 'String', '');
 end
 guidata(hObject, handles);
+
 
 % --- Executes during object creation, after setting all properties.
 function workspaceNameEdit_CreateFcn(hObject, eventdata, handles)

@@ -43,6 +43,7 @@ else
 end
 % End initialization code - DO NOT EDIT
 
+
 % --- Executes just before run_NBSPredictGUI is made visible.
 function run_NBSPredictGUI_OpeningFcn(hObject, eventdata, handles, varargin)
 % This function has no output args, see OutputFcn.
@@ -56,14 +57,16 @@ handles.output = hObject;
 handles.NBSPredict.parameter.ifView = 1; % run NBS_Predict_view after analysis. 
 handles.verNBSPredict = '1.0.0-beta.4';
 handles.NBSPredict.info.version = handles.verNBSPredict;
+handles.NBSPredict.info.workingDir = pwd;
 
 % History function has been deactivated until the following versions!
-% handles = loadHistory(handles);
-handles.ifHistory = 0;
+handles = loadHistory(handles);
+% handles.ifHistory = 0;
 
 
 % Update handles structure
 guidata(hObject, handles);
+
 
 % UIWAIT makes run_NBSPredictGUI wait for user response (see UIRESUME)
 % uiwait(handles.startNBSPredictFig);
@@ -77,6 +80,7 @@ function varargout = run_NBSPredictGUI_OutputFcn(hObject, eventdata, handles)
 % Get default command line output from handles structure
 varargout{1} = handles.output;
 
+
 % --- Executes on button press in HyperOptCheck.
 function HyperOptCheck_Callback(hObject, eventdata, handles)
 % hObject    handle to HyperOptCheck (see GCBO)
@@ -88,6 +92,7 @@ ifHyperOpt = get(hObject,'Value');
 handles.NBSPredict.parameter.ifHyperOpt = ifHyperOpt;
 handles.guiHistory.UI.Value.HyperOptCheck = ifHyperOpt;
 guidata(hObject,handles)
+
 
 function hyperOptStepsEdit_Callback(hObject, eventdata, handles)
 % hObject    handle to hyperOptStepsEdit (see GCBO)
@@ -101,6 +106,7 @@ handles.NBSPredict.parameter.hyperOptSteps = str2double(hyperOptSteps);
 handles.guiHistory.UI.String.hyperOptStepsEdit = hyperOptSteps;
 guidata(hObject,handles)
 
+
 % --- Executes during object creation, after setting all properties.
 function hyperOptStepsEdit_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to hyperOptStepsEdit (see GCBO)
@@ -112,6 +118,7 @@ function hyperOptStepsEdit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
 
 function kFoldEdit_Callback(hObject, eventdata, handles)
 % hObject    handle to kFoldEdit (see GCBO)
@@ -125,6 +132,7 @@ handles.NBSPredict.parameter.kFold = str2double(kFold);
 handles.guiHistory.UI.String.kFoldEdit = kFold;
 guidata(hObject,handles)
 
+
 % --- Executes during object creation, after setting all properties.
 function kFoldEdit_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to kFoldEdit (see GCBO)
@@ -136,6 +144,7 @@ function kFoldEdit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
 
 % --- Executes on selection change in metricpop.
 function metricpop_Callback(hObject, eventdata, handles)
@@ -177,6 +186,7 @@ metricOpt = {'Accuracy','Sensitivity','Specificity','Precision',...
     'Explained_Variance'};
 set(hObject,'String',metricOpt);
 
+
 % --- Executes on selection change in scalingPopMenu.
 function scalingPopMenu_Callback(hObject, eventdata, handles)
 % hObject    handle to scalingPopMenu (see GCBO)
@@ -195,6 +205,7 @@ handles.NBSPredict.parameter.scalingMethod = scalingMethod;
 handles.guiHistory.UI.Value.scalingPopMenu = tmpIdx;
 guidata(hObject,handles);
 
+
 % --- Executes during object creation, after setting all properties.
 function scalingPopMenu_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to scalingPopMenu (see GCBO)
@@ -209,6 +220,7 @@ end
 scalingOpt = {'No Scaling','MinMaxScaler','MaxAbsScaler','StandardScaler'};
 set(hObject,'String',scalingOpt);
 
+
 function repCViterEdit_Callback(hObject, eventdata, handles)
 % hObject    handle to repCViterEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -221,6 +233,7 @@ handles.NBSPredict.parameter.repCViter = str2double(repCViter);
 handles.guiHistory.UI.String.repCViterEdit = repCViter;
 guidata(hObject,handles)
 
+
 % --- Executes during object creation, after setting all properties.
 function repCViterEdit_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to repCViterEdit (see GCBO)
@@ -232,6 +245,7 @@ function repCViterEdit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
 
 % --- Executes on button press in ifParallelCheck.
 function ifParallelCheck_Callback(hObject, eventdata, handles)
@@ -260,6 +274,7 @@ tmp = cellfun(@(x) str2double(x),tmp);
 handles.NBSPredict.parameter.contrast = tmp;
 guidata(hObject,handles)
 
+
 % --- Executes during object creation, after setting all properties.
 function contrastEdit_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to contrastEdit (see GCBO)
@@ -276,6 +291,7 @@ tmp = strsplit(tmp(2:end-1),',');
 tmp = cellfun(@(x) str2double(x),tmp);
 handles.NBSPredict.parameter.contrast = tmp;
 guidata(hObject,handles)
+
 
 % --- Executes on selection change in mlModelpop.
 function mlModelpop_Callback(hObject, eventdata, handles)
@@ -299,6 +315,7 @@ else
 end
 handles.guiHistory.UI.Value.mlModelpop = MLidx;
 guidata(hObject,handles)
+
 
 % --- Executes during object creation, after setting all properties.
 function mlModelpop_CreateFcn(hObject, eventdata, handles)
@@ -357,7 +374,8 @@ if exist(fileName, 'file') == 2
 else
     set(handles.designMatPush,'ForegroundColor','red');
 end
-    
+
+
 % --- Executes during object creation, after setting all properties.
 function designMatEdit_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to designMatEdit (see GCBO)
@@ -370,6 +388,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
+
 % --- Executes on button press in designMatPush.
 function designMatPush_Callback(hObject, eventdata, handles)
 % hObject    handle to designMatPush (see GCBO)
@@ -381,6 +400,7 @@ if path ~= 0
     set(handles.designMatEdit,'String',[path,file]);
     designMatEdit_Callback(handles.designMatEdit,[],handles);
 end
+
 
 function corrMatEdit_Callback(hObject, eventdata, handles)
 % hObject    handle to corrMatEdit (see GCBO)
@@ -398,6 +418,7 @@ else
     set(handles.designMatPush,'ForegroundColor','red');
 end
 
+
 % --- Executes during object creation, after setting all properties.
 function corrMatEdit_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to corrMatEdit (see GCBO)
@@ -410,6 +431,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
+
 % --- Executes on button press in corrMatPush.
 function corrMatPush_Callback(hObject, eventdata, handles)
 % hObject    handle to corrMatPush (see GCBO)
@@ -420,6 +442,7 @@ if path ~= 0
     set(handles.corrMatEdit,'String',path);
     corrMatEdit_Callback(handles.corrMatEdit,[],handles);
 end
+
 
 function brainRegionsEdit_Callback(hObject, eventdata, handles)
 % hObject    handle to brainRegionsEdit (see GCBO)
@@ -437,6 +460,7 @@ else
     set(handles.brainRegionsPush,'ForegroundColor','red');
 end
 
+
 % --- Executes during object creation, after setting all properties.
 function brainRegionsEdit_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to brainRegionsEdit (see GCBO)
@@ -449,6 +473,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
+
 % --- Executes on button press in brainRegionsPush.
 function brainRegionsPush_Callback(hObject, eventdata, handles)
 % hObject    handle to brainRegionsPush (see GCBO)
@@ -459,6 +484,7 @@ if path ~= 0
     set(handles.brainRegionsEdit,'String',[path,file]);
     brainRegionsEdit_Callback(handles.brainRegionsEdit,[],handles);
 end
+
 
 function pValEdit_Callback(hObject, eventdata, handles)
 % hObject    handle to pValEdit (see GCBO)
@@ -472,6 +498,7 @@ handles.NBSPredict.parameter.pVal = str2double(pVal);
 handles.guiHistory.UI.String.pValEdit = pVal;
 guidata(hObject,handles)
 
+
 % --- Executes during object creation, after setting all properties.
 function pValEdit_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to pValEdit (see GCBO)
@@ -483,6 +510,7 @@ function pValEdit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
 
 % --- Executes on selection change in featureSelPopUp.
 function featureSelPopUp_Callback(hObject, eventdata, handles)
@@ -509,6 +537,7 @@ end
 handles.guiHistory.UI.Value.featureSelPopUp = featMetIdx;
 guidata(hObject,handles)
 
+
 % --- Executes during object creation, after setting all properties.
 function featureSelPopUp_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to featureSelPopUp (see GCBO)
@@ -525,6 +554,7 @@ set(hObject,'String',featureSelOptions);
 handles.NBSPredict.parameter.selMethod = 'gridSearch';
 guidata(hObject,handles)
 
+
 function nIterEdit_Callback(hObject, eventdata, handles)
 % hObject    handle to nIterEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -537,6 +567,7 @@ handles.NBSPredict.parameter.nIter = str2double(nIter);
 handles.guiHistory.UI.String.nIterEdit = nIter;
 guidata(hObject,handles);
 
+
 % --- Executes during object creation, after setting all properties.
 function nIterEdit_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to nIterEdit (see GCBO)
@@ -548,6 +579,7 @@ function nIterEdit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
 
 function seedEdit_Callback(hObject, eventdata, handles)
 % hObject    handle to seedEdit (see GCBO)
@@ -565,6 +597,7 @@ else
     handles.NBSPredict.parameter.randSeed = randSeed;
     guidata(hObject,handles);
 end
+
 
 % --- Executes during object creation, after setting all properties.
 function seedEdit_CreateFcn(hObject, eventdata, handles)
@@ -621,24 +654,24 @@ handles.guiHistory.parameter = handles.NBSPredict.parameter;
 % if isfield(handles.guiHistory.parameter,'metric')
 %     handles.guiHistory.parameter = rmfield(handles.guiHistory.parameter,'metric');
 % end
-referenceFile = 'start_NBSPredict.m';
-saveDir = fileparts(which(referenceFile));
 guiHistory = handles.guiHistory;
 
 % History function has been deactivated until the following versions.
-% save([saveDir,filesep,'history.mat'],'guiHistory');
-
+save(handles.historyDir,'guiHistory');
 
 set(handles.runNBSPredict,'ForegroundColor',[0,0.7,0]);
 run_NBSPredict(handles.NBSPredict);
 
+
 %% Helper
 function [handles] = loadHistory(handles)
-ifHistory = exist('history.mat', 'file') == 2;
+historyDir = [handles.NBSPredict.info.workingDir, filesep, 'history.mat'];
+handles.historyDir = historyDir;
+ifHistory = exist(historyDir, 'file') == 2;
 if ifHistory
     handles.ifHistory = 1;
     try
-        load('history')
+        load(historyDir)
         UI = guiHistory.UI;
         UIproperty = fieldnames(UI);
         handles.MLfunNames = guiHistory.MLfunNames;
