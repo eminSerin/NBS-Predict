@@ -34,7 +34,7 @@ function [] = start_NBSPredict(varargin)
 %
 % See also: run_NBSPredictGUI, run_NBSPredict, test_NBSPredict
 
-verNBSPredict = '1.0.0-beta.4';
+verNBSPredict = '1.0.0-beta.5';
 
 welcomeMsg = ['\n\n\nWelcome to NBSPredict\n',...
     'Release: <strong>%s</strong> \n',...
@@ -57,7 +57,7 @@ if ~isempty(varargin)
     run_NBSPredict(varargin{:});
 else
     fprintf('\nNBS-Predict GUI is starting...\n\n')
-    run_NBSPredictGUI();
+    run_NBSPredictWorkspace();
 end
 
 end

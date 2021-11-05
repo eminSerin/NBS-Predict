@@ -68,7 +68,7 @@ if isempty(varargin)
     NBSPredict = NBSPredict.NBSPredict;
 else
     if isstring(varargin{1}) || ischar(varargin{1})
-        assert(exist(varargin{1}, 'file') == 2, "The input file is not found!")
+        assert(exist(varargin{1}, 'file') == 2, 'The input file is not found!')
         load(varargin{1})
     else
         NBSPredict = varargin{1};
@@ -438,7 +438,11 @@ tmpIdx = get(hObject,'Value');
 metricName = tmp{tmpIdx};
 metric = lower(metricName);
 handles.plotResults.metric = metric;
+wBar = waitbar(0, 'Computing...');
+set(0, 'CurrentFigure', handles.viewNBSPredictFig);
 handles = updateTitle(handles);
+waitbar(1, wBar, 'Done!');
+close(wBar);
 guidata(hObject,handles);
 
 
@@ -569,7 +573,7 @@ function [handles] =  updateConfMat(handles)
 truePredLabels = handles.plotData.(handles.cModel).truePredLabels;
 CM = compute_modelMetrics(truePredLabels(:,1),...
     truePredLabels(:,2),'confusionMatrix');
-confMat = [CM.TP,CM.FN;CM.FP,CM.TN];
+confMat = [CM.TN,CM.FN;CM.FP,CM.TP];
 handles.plotResults.truePredLabels = truePredLabels;
 handles.plotResults.confMat = confMat;
 

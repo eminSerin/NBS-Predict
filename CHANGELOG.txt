@@ -1,14 +1,24 @@
-## [v1.0.0-beta.3] - 28.10.2021
+## [v1.0.0-beta.5] - 
+- NBS-Predict is now in v1.0.0-beta.5
+- NBS-Predict has now Workspace!
+- GUI history has been reactivated!
+- Fix bug in confusion matrix visualization.
+- Fix minor bugs in GUI.
+- Update user MANUAL.
+<<<<<<< HEAD
+- Fix compatibility issues.
+=======
+>>>>>>> ce19f22f1732abf221a1da21e8922c4ddf176162
+
+## [v1.0.0-beta.4] - 28.10.2021
 - NBS-Predict is now in v1.0.0-beta.4
 - This version fixes the "check_classifiction function is not found" error.
-
 
 ## [v1.0.0-beta.3] - 23.10.2021
 - NBS-Predict is now in v1.0.0-beta.3 
 - This version provides hotfixes for a few bugs found in v1.0.0-beta2.
 - Fix compatibility issues in the NBS-Predict visualization window. 
 - GUI history has been deactivated until the following versions due to unexpected crashes; thus, parameters entered in the setup interface will not be saved for later use!
-
 
 ## [v1.0.0-beta2] - 21.10.2021
 - NBS-Predict is now in v1.0.0-beta2.
