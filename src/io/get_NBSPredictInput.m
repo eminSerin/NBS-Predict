@@ -35,7 +35,7 @@ default.parameter.scalingMethod = [];
 default.parameter.randSeed = 42; 
 
 if isstring(NBSPredict) || ischar(NBSPredict)
-    assert(exist(NBSPredict, 'file') == 2, "The input file is not found!") 
+    assert(exist(NBSPredict, 'file') == 2, 'The input file is not found!') 
     load(NBSPredict)
 end
 

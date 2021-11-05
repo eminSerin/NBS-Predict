@@ -55,7 +55,7 @@ function run_NBSPredictGUI_OpeningFcn(hObject, eventdata, handles, varargin)
 % Choose default command line output for run_NBSPredictGUI
 handles.output = hObject;
 handles.NBSPredict.parameter.ifView = 1; % run NBS_Predict_view after analysis. 
-handles.verNBSPredict = '1.0.0-beta.4';
+handles.verNBSPredict = '1.0.0-beta.5';
 handles.NBSPredict.info.version = handles.verNBSPredict;
 handles.NBSPredict.info.workingDir = pwd;
 
@@ -617,7 +617,7 @@ function aboutPush_Callback(hObject, eventdata, handles)
 % hObject    handle to aboutPush (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-[iconData, ~] = imread("NBS-Predict_logo.png");
+[iconData, ~] = imread('NBS-Predict_logo.png');
 msg = {'NBS-Predict';['Version: ',handles.verNBSPredict];...
     'Author: Emin Serin';...
     'Contact: emin.serin@charite.de'};

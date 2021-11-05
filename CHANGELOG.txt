@@ -5,6 +5,10 @@
 - Fix bug in confusion matrix visualization.
 - Fix minor bugs in GUI.
 - Update user MANUAL.
+<<<<<<< HEAD
+- Fix compatibility issues.
+=======
+>>>>>>> ce19f22f1732abf221a1da21e8922c4ddf176162
 
 ## [v1.0.0-beta.4] - 28.10.2021
 - NBS-Predict is now in v1.0.0-beta.4

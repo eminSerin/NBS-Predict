@@ -68,7 +68,7 @@ if isempty(varargin)
     NBSPredict = NBSPredict.NBSPredict;
 else
     if isstring(varargin{1}) || ischar(varargin{1})
-        assert(exist(varargin{1}, 'file') == 2, "The input file is not found!")
+        assert(exist(varargin{1}, 'file') == 2, 'The input file is not found!')
         load(varargin{1})
     else
         NBSPredict = varargin{1};

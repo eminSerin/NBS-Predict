@@ -393,12 +393,12 @@ if NBSPredict.parameter.ifSave
         saveDir = [saveDir,filesep,'Results',filesep,date,filesep];
     end
     fileDir = [saveDir, 'NBSPredict.mat'];
-    if ~isfolder(saveDir)
+    if ~exist(saveDir, 'dir')
         mkdirStatus = mkdir(saveDir);
         assert(mkdirStatus,'Folder could not be created! Please check folder permissions!');
     else
         fileNum = 1;
-        while isfile(fileDir)
+        while exist(fileDir, 'file') == 2
             fileDir = [saveDir,['NBSPredict',num2str(fileNum),'.mat']];
             fileNum = fileNum + 1;
         end
