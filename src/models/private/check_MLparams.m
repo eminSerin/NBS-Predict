@@ -6,7 +6,7 @@ function [readyParams] = check_MLparams(params,defaultParams)
 % ML function, but an appropriate parameter is not found in that
 % parameter structure. 
 %
-% Arguement: 
+% Arguments: 
 %     params = Structure including user defined parameters. 
 %     defaultParams = Structure including default parameters required for
 %         an ML algorithm. 
@@ -19,8 +19,8 @@ function [readyParams] = check_MLparams(params,defaultParams)
 %     [readyParams] = check_MLparams(params,defaultParams);
 %
 % Emin Serin - 15.08.2019
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% 
 if ~(nargin==2)
     % Throw error if enough parameters are provided.
     help check_MLparams

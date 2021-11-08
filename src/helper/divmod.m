@@ -11,6 +11,7 @@ function [q,r] = divmod(x,y)
 %   r = remainder
 %
 % Emin Serin - 14.08.2019
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Input check. 
 assert(nargin == 2, 'Please enter numerator and denominator!, Check help section!');

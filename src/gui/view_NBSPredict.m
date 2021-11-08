@@ -653,5 +653,5 @@ function viewNBSPredictFig_DeleteFcn(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 goodbyeMsg = ['\nThank you for using NBS-Predict!\n',...
-    'Please contact to emin.serin@charite.de for any questions, suggestions or bug reports.\n'];
+    'Please contact to emin.serin@charite.de for any questions, suggestions or bug reports.\n\n'];
 fprintf(goodbyeMsg);

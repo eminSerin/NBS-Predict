@@ -8,14 +8,13 @@ function [simResults] = sim_testNBSPredict(varargin)
 %
 % Arguments:
 %   simIter = Total number of iteration (default = 1000). Please set a
-%       number that is multiplier of nCores to make sure that the desired 
+%       number that is multiplier of numCores to make sure that the desired 
 %       number of cores will be utilized in all iterations. Total number of
-%       iteration will be the multiplier of the nCores even if you set
+%       iteration will be the multiplier of the numCores even if you set
 %       another numbers. For example:
-%           if simIter = 1001; and nCores = 10;
+%           if simIter = 1001; and numCores = 10;
 %       It will run 1000 times instead of 1001. 
-%   nCores = Number of cores to be used, enter -1 to utilize all cores 
-%       (default = 1).
+%   numCores = Number of cores to be used (default = 1).
 %   conds = Structure of effect/noise conditions. The structure must be
 %       as followings: conds.(condName) = condValue. Defaults:
 %       Classification  - 0.25, 0.5, 0.75, 1.0 CNRs
@@ -79,7 +78,7 @@ function [simResults] = sim_testNBSPredict(varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
 % Default Input
-defaultVals.simIter = 1000; defaultVals.nCores = 1;
+defaultVals.simIter = 1000; defaultVals.numCores = 1;
 defaultVals.conds = []; defaultVals.ifRegression = 0; 
 defaultVals.saveX = 0; defaultVals.formNetwork = 1;
 defaultVals.randSeed = 42; defaultVals.algorithm = 'NBSPredict';
@@ -95,7 +94,7 @@ p.PartialMatching = 0; % deactivate partial matching.
 p.KeepUnmatched = true;
 addParameter(p,'algorithm',defaultVals.algorithm,validationAlgorithm);
 addParameter(p,'simIter',defaultVals.simIter,validationNumeric);
-addParameter(p,'nCores',defaultVals.nCores,validationNumeric);
+addParameter(p,'numCores',defaultVals.numCores,validationNumeric);
 addParameter(p,'conds',defaultVals.conds);
 addParameter(p,'saveX',defaultVals.saveX);
 addParameter(p,'formNetwork',defaultVals.formNetwork);
@@ -105,27 +104,18 @@ addParameter(p,'randSeed',defaultVals.randSeed);
 % Parse inputs. 
 parse(p,varargin{:});
 ifRegression = p.Results.ifRegression;
-nCores = p.Results.nCores; 
+numCores = p.Results.numCores; 
 simIter = p.Results.simIter;
 conds = p.Results.conds;
 algorithm = p.Results.algorithm;
 saveX = p.Results.saveX;
 formNetwork = p.Results.formNetwork;
 
-% Check if parallel pool exists
-if license('test','Distrib_Computing_Toolbox')
-    delete(gcp('nocreate'));
-    if (nCores > 1)
-        parpool(nCores);
-    elseif nCores == -1
-        pool = gcp();
-        nCores = pool.NumWorkers;
-    end
-else
-    parpool(1);
-end
-forIter = round(simIter/nCores);
-simIter = nCores*forIter;
+% Init parallel pool if desired.
+create_parallelPool(numCores);
+
+forIter = round(simIter/numCores);
+simIter = numCores*forIter;
 
 % Generate random seeds. 
 rng(p.Results.randSeed);
@@ -224,7 +214,7 @@ for c = 1:nConds
         parameters = {parameters{:},varargin{:}};
     end
     simResults = run_for(simResults,parameters,...
-        condNames{c},forIter,nCores,X,y,trueEdges,edgeWeight,...
+        condNames{c},forIter,numCores,X,y,trueEdges,edgeWeight,...
         sEdgeWeight,edgeIdx,predPerf,time,randSeeds,assign,saveX);
 end
 
@@ -239,14 +229,14 @@ end
 
 % Running functions.
 function [simResults] = run_for(simResults,parameters,contFieldName,...
-    forIter,nCores,X,y,trueEdges,edgeWeight,sEdgeWeight,edgeIdx,...
+    forIter,numCores,X,y,trueEdges,edgeWeight,sEdgeWeight,edgeIdx,...
     predPerf,time,randSeeds,assign,saveX)
 % Runs test function recursively and saves the results into simResults
 % struct.
 j = 1;
 reverseStr = '';
 for iter = 1:forIter
-    cIdx = j:j+nCores-1;
+    cIdx = j:j+numCores-1;
     if saveX
         X_to_parfor = X(cIdx,:,:);
     else
@@ -274,11 +264,11 @@ for iter = 1:forIter
     end
     % Show Progress
     % http://undocumentedmatlab.com/articles/command-window-text-manipulation/
-    progressMsg = sprintf('Processing: %d/%d\n',iter*nCores,...
+    progressMsg = sprintf('Processing: %d/%d\n',iter*numCores,...
         simResults.info.simIter);
     fprintf([reverseStr, progressMsg]);
     reverseStr = repmat(sprintf('\b'), 1, length(progressMsg));
-    j = j + nCores;
+    j = j + numCores;
 end
 if assign
     if saveX
@@ -301,9 +291,9 @@ function [X,y,trueEdges,edgeWeight,sEdgeWeight,edgeIdx,predPerf,time] =...
     run_testFunction(parameters,X,y,trueEdges,edgeWeight,sEdgeWeight,edgeIdx,...
     predPerf,time,randSeeds,assign,saveX,saveY)
 % Run test function n times. It runs the test function in parallel if
-% nCores set to more than 1. 
+% numCores set to more than 1. 
 nIter = size(trueEdges,1);
-parfor iter = 1: nIter
+for iter = 1: nIter
     startIter = tic;
     params = {parameters{:},'randomState',randSeeds(iter)};
     result = test_NBSPredict(params{:});

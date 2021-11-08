@@ -22,7 +22,7 @@ function [searchInputs] = get_searchInputs(searchMethod,varargin)
 % Set default inputs.
 % Default parameters.
 defaultVals.nIter = 20; defaultVals.bestParamMethod = 'best'; 
-defaultVals.kFold = 10; defaultVals.ifParallel = 0; 
+defaultVals.kFold = 10; defaultVals.numCores = 1; 
 defaultVals.acquisitionFun = 'expected-improvement';
 bestParamMethodOptions = {'best','median'}; 
 acquisitionFunOptions = {'probability-of-improvement',...
@@ -37,7 +37,7 @@ validationAcquisitionFun= @(x) any(validatestring(x,acquisitionFunOptions));
 p = inputParser(); p.PartialMatching = 0; % deactivate partial matching.
 addParameter(p,'nIter',defaultVals.nIter,validationNumeric);
 addParameter(p,'kFold',defaultVals.kFold,validationNumeric);
-addParameter(p,'ifParallel',defaultVals.ifParallel,validationNumeric);
+addParameter(p,'numCores',defaultVals.numCores,validationNumeric);
 addParameter(p,'bestParamMethod',defaultVals.bestParamMethod,validationBestParamMethod);
 addParameter(p,'acquisitionFun',defaultVals.acquisitionFun,validationAcquisitionFun);
 addParameter(p,'metric',[]);
@@ -56,7 +56,7 @@ assert(any(strcmpi(searchMethod,availSearchMethods)),['Incorrect searching metho
 %% Return required inputs for a given searching algorithm.
 
 % Base parameters which found in all searching algorithms.
-searchInputs.ifParallel = p.Results.ifParallel;
+searchInputs.numCores = p.Results.numCores;
 searchInputs.kFold = p.Results.kFold;
 bestParamMethod = p.Results.bestParamMethod;
 

@@ -33,7 +33,7 @@ totalRepCViter = NBSPredict.parameter.repCViter;
 % Random Seed
 randSeed = NBSPredict.parameter.randSeed;
 if randSeed ~= -1 % -1 refers to random shuffle.
-    if NBSPredict.parameter.ifParallel
+    if NBSPredict.parameter.numCores > 1
         rndSeeds = linspace(randSeed,randSeed+totalRepCViter-1,totalRepCViter);
     else
         rng(randSeed);
@@ -43,9 +43,7 @@ else
 end
 
 % Init parallel pool if desired.
-if NBSPredict.parameter.ifParallel && isempty(gcp('nocreate'))
-    parpool('local');
-end
+create_parallelPool(NBSPredict.parameter.numCores);
 
 % Write an start tag.
 NBSPredict.info.startDate = date;
@@ -80,7 +78,7 @@ for cModelIdx = 1: nModels
     MLhandle = gen_MLhandles(cNBSPredict.parameter.model);
     cNBSPredict.MLhandle = MLhandle;
     show_NBSPredictProgress(cNBSPredict,0);
-    if cNBSPredict.parameter.ifParallel
+    if cNBSPredict.parameter.numCores > 1
         % Run parallelly.
         parfor repCViter = 1: totalRepCViter
             rng(rndSeeds(repCViter));

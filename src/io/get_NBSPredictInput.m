@@ -26,7 +26,7 @@ function [mainNBSPredict] = get_NBSPredictInput(NBSPredict)
 default.parameter.kFold = 10;
 default.parameter.repCViter = 10;
 default.parameter.pVal = 0.01;
-default.parameter.ifParallel = 0;
+default.parameter.numCores = 1;
 default.parameter.ifHyperOpt = 0;
 default.parameter.verbose = 1;
 default.parameter.ifSave = 1;
@@ -113,11 +113,11 @@ for mainFielditer = 1: numel(enteredFieldNames)
     end
 end
 
-if default.parameter.ifParallel && ~ license('test','distrib_computing_toolbox')
-    % Set ifParallel to 0 again, if no Parallel Computing Toolbox found on
-    % local computer.
+if default.parameter.numCores > 1 && ~ license('test','distrib_computing_toolbox')
+    % Set number of cores to 1 again, if no Parallel Computing Toolbox 
+    % found on local computer.
     warning('No Parallel Computing Toolbox found! NBS-Predict will run sequantially.');
-    default.parameter.ifParallel = 0;
+    default.parameter.numCores = 1;
 end
 
 %% Load data if has not been loaded.

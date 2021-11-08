@@ -16,7 +16,7 @@ function [testInputs] = get_testInput(varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Input parser.
 % Default parameters for NBSPredict.
-defaultVals.kFold = 10; defaultVals.ifParallel = 0;
+defaultVals.kFold = 10; defaultVals.numCores = 1;
 defaultVals.selMethod = 'gridSearch'; defaultVals.pVal = 0.01; 
 defaultVals.repCViter = 10; defaultVals.algorithm = 'NBSPredict';
 defaultVals.verbose = 1; defaultVals.ifHyperOpt = 0; 
@@ -51,7 +51,7 @@ p.PartialMatching = 0; % deactivate partial matching.
 % Add NBSPredict parameters. 
 addParameter(p,'algorithm',defaultVals.algorithm,validationAlgorithm);
 addParameter(p,'kFold',defaultVals.kFold,validationNumeric);
-addParameter(p,'ifParallel',defaultVals.ifParallel,validationNumeric);
+addParameter(p,'numCores',defaultVals.numCores,validationNumeric);
 addParameter(p,'metric',[]);
 addParameter(p,'MLmodels',[]);
 addParameter(p,'selMethod',defaultVals.selMethod,validationSelMethod);

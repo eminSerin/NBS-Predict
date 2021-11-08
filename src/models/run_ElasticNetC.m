@@ -44,5 +44,5 @@ end
 function [y_pred] = predict(clf,newX)
 % Predict binomial target.
 y_pred = glmnetPredict(clf,newX,clf.lambda,'response');
-y_pred = y_pred > 0.5;
+y_pred = double(y_pred > 0.5);
 end
