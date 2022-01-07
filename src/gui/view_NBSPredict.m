@@ -102,7 +102,7 @@ handles.plotResults.truePredLabels = handles.plotData.(cModel).truePredLabels;
 if ifClass
     handles.confMatPush.Visible = 'on';
     handles =  updateConfMat(handles);
-    metrics = {'Accuracy','Sensitivity','Specificity',...
+    metrics = {'Accuracy','Balanced_Accuracy','Sensitivity','Specificity',...
         'Precision','Recall','F1','Matthews_CC','Cohens_Kappa','AUC'};
     set(handles.metricPopUp,'String',metrics);
 else

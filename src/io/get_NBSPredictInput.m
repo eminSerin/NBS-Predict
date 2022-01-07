@@ -126,7 +126,8 @@ if ~isfield(default.data,'X')
     if ~isfield(default.data,'corrPath')
        error('A directory containing correlation matrices is not defined!');
     else
-        [default.data.X,default.data.nodes,default.data.edgeIdx] = load_corrMatFiles(default.data.corrPath);
+        [default.data.X,default.data.nodes,default.data.edgeIdx] = load_corrMatFiles(default.data.corrPath,...
+            default.parameter.verbose);
     end
     if ~isfield(default.data,'brainRegionsPath')
        error('Brain regions are not provided!')

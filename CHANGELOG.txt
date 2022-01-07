@@ -1,14 +1,19 @@
-## [v1.0.0-beta.5] - 
+## [v1.0.0-beta.6] - 
+- NBS-Predict is now in v1.0.0-beta.6
+- User can specify number of CPU cores to use. 
+- Fix minor bug in Elastic Net function.
+- Add progress bar for loading connectivity matrices on the command window.
+- Minor change in loadData function to fasten .csv loading.
+- 
+
+## [v1.0.0-beta.5] - 05.11.2021 
 - NBS-Predict is now in v1.0.0-beta.5
 - NBS-Predict has now Workspace!
 - GUI history has been reactivated!
 - Fix bug in confusion matrix visualization.
 - Fix minor bugs in GUI.
 - Update user MANUAL.
-<<<<<<< HEAD
 - Fix compatibility issues.
-=======
->>>>>>> ce19f22f1732abf221a1da21e8922c4ddf176162
 
 ## [v1.0.0-beta.4] - 28.10.2021
 - NBS-Predict is now in v1.0.0-beta.4
