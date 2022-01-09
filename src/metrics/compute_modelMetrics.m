@@ -42,7 +42,7 @@ function [varargout] = compute_modelMetrics(y_true,y_pred,metrics)
 %
 % Emin Serin, 2018. Berlin School of Mind and Brain
 %
-% Last edited by Emin Serin, 03.07.2020.
+% Last edited by Emin Serin, 09.01.2022.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
 % Make sure that vectors are at least single for compatibility.
@@ -50,19 +50,22 @@ y_true = single(y_true);
 y_pred = single(y_pred);
 
 uniqueClasses = unique([y_true,y_pred]); % Find unique classes.
+
 nClass = numel(uniqueClasses); % Number of unique classes.
 
-% Compute
 if nClass == 1
-    if strcmpi(metrics,'accuracy')
-        score = accuracy(y_true,y_pred);
+    if ismember(metrics,{'accuracy', 'balanced_accuracy'}) 
+        score =  feval(metrics,y_true,y_pred);
     else
+        warningMsg = ['Only one class present! ',...
+            '%s does support one-class classification, and being set to NaN ',...
+            'Please use Accuracy instead!'];
+        warning(warningMsg, metrics);
         score = nan; 
     end 
 else
     score =  feval(metrics,y_true,y_pred);
 end
-
 varargout = {score};
 end
 
@@ -136,10 +139,22 @@ score = nnz(y_true==y_pred)/numel(y_true); % Accuracy
 end
 
 function [score] = balanced_accuracy(y_true,y_pred)
-% Balanced Accuracy
-sensitivityScore = sensitivity(y_true,y_pred);
-specificityScore = specificity(y_true,y_pred);
-score = (sensitivityScore+specificityScore)/2;
+% Compute the balanced accuracy.
+% Matlab implementation of balanced_accuracy_score in sklearn.
+% Defined as the average of recall obtaned on each each class
+
+% sensitivityScore = sensitivity(y_true,y_pred);
+% specificityScore = specificity(y_true,y_pred);
+% score = (sensitivityScore+specificityScore)/2;
+CM = confusionMatrix(y_true, y_pred);
+perClass = diag(CM.confMat) ./ sum(CM.confMat, 2);
+if any(isnan(perClass))
+    warning('y_pred contains classes not in y_true.')
+    score = nanmean(perClass);
+else
+    score = mean(perClass);
+end
+
 end
 
 function [score] = matthews_cc(y_true,y_pred)
@@ -147,7 +162,13 @@ function [score] = matthews_cc(y_true,y_pred)
 CM = confusionMatrix(y_true,y_pred);
 TP = CM.TP; FP = CM.FP; TN = CM.TN; FN = CM.FN;
 checkMultiClass(TP); % Check if no multilabel class provided.
-score = ((TP*TN)-(FP*FN))/sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN)); % Matthew's Correlation Coefficient
+denominator = sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN));
+if denominator == 0
+    zeroDivisionWarning('Matthews CC')
+    score = 0;
+else
+    score = ((TP*TN)-(FP*FN))/denominator; % Matthew's Correlation Coefficient
+end
 end
 
 function [score] = cohens_kappa(y_true,y_pred)
@@ -157,7 +178,12 @@ TP = CM.TP; FP = CM.FP; TN = CM.TN; FN = CM.FN;
 checkMultiClass(TP); % Check if no multilabel class provided.
 po = (TP + TN) / (TP + TN + FP + FN);
 pe = ((TP+FN)*(TP+FP) + (FP + TN)*(FN+TN))/(TP+FN+FP+TN)^2;
-score = (po-pe)/(1-pe);
+if (1-pe) == 0
+    zeroDivisionWarning('Cohens Kappa')
+    score = 0;
+else
+    score = (po-pe)/(1-pe);
+end
 end
 
 function [score] = auc(y_true,y_pred)
@@ -166,45 +192,75 @@ CM = confusionMatrix(y_true,y_pred);
 TP = CM.TP; FP = CM.FP; TN = CM.TN; FN = CM.FN;
 checkMultiClass(TP); % Check if no multilabel class provided.
 TPR = TP / (TP + FN); % true positive rate
-FPR = FP / (FP+TN); % false positive rate
-X = [0;TPR;1]; % coordinates of TPR.
-Y = [0;FPR;1]; % coordinates of FPR.
-score = trapz(Y,X); % apply trapezoid rule to find AUC.
+FPR = FP / (FP + TN); % false positive rate
+if (TP + FN) == 0 || (FP + TN) == 0
+    zeroDivisionWarning('AUC')
+    score = 0;
+else
+   X = [0;TPR;1]; % coordinates of TPR.
+   Y = [0;FPR;1]; % coordinates of FPR.
+   score = trapz(Y,X); % apply trapezoid rule to find AUC. 
+end
 end
 
 function [score] = sensitivity(y_true,y_pred)
 % Sensitivity
 CM = confusionMatrix(y_true,y_pred);
 TP = CM.TP; FN = CM.FN;
-score = mean(TP ./ (TP + FN)); % Sensitivity
+if (TP + FN) == 0
+    zeroDivisionWarning('Sensitivity')
+    score = 0;
+else
+    score = mean(TP ./ (TP + FN)); % Sensitivity
+end
 end
 
 function [score] = specificity(y_true,y_pred)
 % Specificity
 CM = confusionMatrix(y_true,y_pred);
 FP = CM.FP; TN = CM.TN;
-score = mean(TN ./ (TN+FP)); % Specificity
+if (TN + FP) == 0
+   zeroDivisionWarning('Specificity')
+   score = 0;
+else 
+    score = mean(TN ./ (TN + FP)); % Specificity
+end
 end
 
 function [score] = precision(y_true,y_pred)
 % Precision
 CM = confusionMatrix(y_true,y_pred);
 FP = CM.FP; TP = CM.TP;
-score = mean(TP ./ (TP+FP)); % Specificity
+if (TP + FP) == 0
+   zeroDivisionWarning('Precision')
+   score = 0;
+else 
+    score = mean(TP ./ (TP + FP)); % Precision
+end
 end
 
 function [score] = recall(y_true,y_pred)
 % Recall
 CM = confusionMatrix(y_true,y_pred);
 TP = CM.TP; FN = CM.FN;
-score =  mean(TP./(TP+FN)); % Recall
+if (TP + FN) == 0
+   zeroDivisionWarning('Recall')
+   score = 0;
+else
+    score =  mean(TP./(TP + FN)); % Recall
+end
 end
 
 function [score] = f1(y_true,y_pred)
 % F1 Score
 precisionScore = precision(y_true,y_pred);
 recallScore = recall(y_true,y_pred);
-score = 2*((precisionScore()*recallScore())/(precisionScore()+recallScore())); % F1 Score
+if (precisionScore + recallScore) == 0
+   zeroDivisionWarning('F1')
+   score = 0;
+else
+    score = 2*((precisionScore*recallScore)/(precisionScore+recallScore)); % F1 Score
+end
 end
 
 %% REGRESSION
@@ -228,7 +284,7 @@ function [score] = explained_variance(y_true,y_pred)
 score = 1 - var(y_true-y_pred)/var(y_true);
 end
 
-function [score,bestScore] = mad(y_true,y_pred)
+function [score] = mad(y_true,y_pred)
 % Median Absolute Difference
 score = median(abs(y_true-y_pred));
 end
@@ -237,10 +293,16 @@ function [score] = r_squared(y_true,y_pred)
 % R Square
 numerator = sum((y_true - y_pred).^2);
 denominator = sum((y_true - mean(y_true)).^2);
-score = nanmean(1 - (numerator/denominator));
+score = mean(1 - (numerator/denominator));
 end
 
 %% Helper Function
 function [] = checkMultiClass(x)
 assert(numel(x) >= 1,'Multi-class data provided! You can only use binary labels.');
+end
+
+function [] = zeroDivisionWarning(metricName)
+    warningMsg = ['ZeroDivisionWarning: %s is ill-defined and being set ',...
+        'to 0.'];
+    warning(warningMsg, metricName);
 end

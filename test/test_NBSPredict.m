@@ -42,6 +42,8 @@ function [NBSPredict] = test_NBSPredict(varargin)
 %     ifHyperOpt = Whether perform hyperparameter optimization (default = 1). 
 %     hyperOptSteps = Steps from low to high limit of hyperparameter
 %         space (e.g., paramGrid.C = logspace(-3,2,hyperOptSteps) default = 5).
+%     ifPerm = Whether perform permutation testing (default = 0). 
+%     permIter = Number of permutations (default = 100).
 %     selMethod = Selection method for hyperparameter optimization (default = gridSearch).
 %         Different algorithms have different parameters: 
 %             randomSearch = Random Search Algorithm: 
@@ -87,7 +89,7 @@ function [NBSPredict] = test_NBSPredict(varargin)
 %     test_NBSPredict();
 %     test_NBSPredict('kFold',5,'numCores',4,'model','svmC','network','scalefree');
 % 
-% Last edited by Emin Serin, 08.04.2021.
+% Last edited by Emin Serin, 07.01.2022.
 %   
 % See also, run_NBSPredict, gen_synthData, get_NBSPredictInput, compute_modelMetrics
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -104,6 +106,8 @@ NBSPredict.parameter.verbose = testInputs.verbose;
 NBSPredict.parameter.ifModelOpt = testInputs.ifModelOpt;
 NBSPredict.parameter.ifHyperOpt = testInputs.ifHyperOpt;
 NBSPredict.parameter.ifSave = testInputs.ifSave;
+NBSPredict.parameter.ifPerm = testInputs.ifPerm;
+NBSPredict.parameter.permIter = testInputs.permIter;
 NBSPredict.parameter.ifTest = 1; % This is the tag for testing. DO NOT CHANGE!
 
 if testInputs.ifRegression

@@ -10,7 +10,7 @@ function [testInputs] = get_testInput(varargin)
 %   searchInputs = Structure including all inputs required for searching
 %       algorithm. 
 %
-% Emin Serin - 08.01.2020
+% Emin Serin - 07.01.2022
 %
 % See also, test_NBSPredict, sim_testNBSPredict, sim_testNBSPredictABIDE
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -24,6 +24,7 @@ defaultVals.hyperOptSteps = 5; defaultVals.nIter = 10;
 defaultVals.ifModelOpt = 0; defaultVals.ifSave = 0;
 defaultVals.ifRegression = 0; defaultVals.bayesAcqFunc = 'expected-improvement';
 defaultVals.randomState = 42; defaultVals.simPreAllocate = 0; 
+defaultVals.ifPerm = 0; defaultVals.permIter = 100;
 selMethodOptions = {'gridSearch','randomSearch','bayesOpt'};
 bayesAcqFuncOptions = {'lower-confidence-bound','probability-of-improvement',...
     'expected-improvement'};
@@ -66,6 +67,8 @@ addParameter(p,'nIter',defaultVals.nIter,validationNumeric);
 addParameter(p,'ifModelOpt',defaultVals.ifModelOpt,validationNumeric);
 addParameter(p,'ifSave',defaultVals.ifSave,validationNumeric);
 addParameter(p,'simPreAllocate',defaultVals.simPreAllocate,validationNumeric);
+addParameter(p,'ifPerm',defaultVals.ifPerm,validationNumeric);
+addParameter(p,'permIter',defaultVals.permIter,validationNumeric);
 
 % Add Synthetic data generation parameters. 
 addParameter(p,'network',defaultVals.network,validationNetwork);

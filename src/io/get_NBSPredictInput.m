@@ -32,7 +32,9 @@ default.parameter.verbose = 1;
 default.parameter.ifSave = 1;
 default.parameter.ifView = 0; 
 default.parameter.scalingMethod = [];
-default.parameter.randSeed = 42; 
+default.parameter.randSeed = 42;
+default.parameter.ifPerm = 0;
+default.parameter.permIter = 500;
 
 if isstring(NBSPredict) || ischar(NBSPredict)
     assert(exist(NBSPredict, 'file') == 2, 'The input file is not found!') 
@@ -161,10 +163,6 @@ else
     default.data.confounds = [];
 end
 
-%% Check if Linear Model
-linearModels = {'svmC','svmR','LinReg','LogReg'};
-ifLinear = ismember(default.parameter.MLmodels,linearModels);
-default.parameter.ifLinear = ifLinear; 
 %% Hyperparameters
 % Set default hyperparameters for given model.
 for m = 1:numel(default.parameter.MLmodels)

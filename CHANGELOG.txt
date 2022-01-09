@@ -4,6 +4,8 @@
 - Fix minor bug in Elastic Net function.
 - Add progress bar for loading connectivity matrices on the command window.
 - Minor change in loadData function to fasten .csv loading.
+- Add balanced accuracy metric to measure accuracy in imbalanced datasets.
+- Add permutation testing to compare model performance against null-distribution.
 - 
 
 ## [v1.0.0-beta.5] - 05.11.2021 
