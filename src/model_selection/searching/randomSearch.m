@@ -18,7 +18,7 @@ function [bestParam,bestParamScore,bestParamIdx] = randomSearch(objFun,...
 %       Check help section of bestParamMetric for detailed information. 
 %   metric = Performance metric used to evaluate model performance. 
 %   kFold = Number of CV folds (default = 10). 
-%   ifParallel = Parallelize CV (1 or 0, default = 0).
+%   numCores = Number of CPU cores to use (default = 1).
 %   randomState: Controls the randomness. Pass an integer value for
 %       reproducible results (default = 'shuffle').  
 %
@@ -51,7 +51,7 @@ for iter = 1 : nIter
     params = get_paramItem(paramGrid,paramGridIdx);
     CVfun = @(data) objFun(data,params);
     cvResults = crossValidation(CVfun,data,...
-        'ifParallel',searchInputs.ifParallel,...
+        'numCores',searchInputs.numCores,...
         'kFold',kFold);
     % Run cv feature selection.
     CVscore(:,iter) = [cvResults.score];

@@ -14,8 +14,8 @@ NBS-Predict operates in a cross-validation structure (nested if hyperparameter o
 NBS-Predict requires the following software and toolboxes to run properly: 
 
 ```
-Matlab (2014a or newer) 
-Statistics Toolbox (before R2015a) or Statistics and Machine Learning Toolbox
+Matlab (2016b or newer) 
+Statistics and Machine Learning Toolbox
 Parallel Computing Toolbox (optional)
 ```
 

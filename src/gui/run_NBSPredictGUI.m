@@ -22,7 +22,7 @@ function varargout = run_NBSPredictGUI(varargin)
 
 % Edit the above text to modify the response to manualPush run_NBSPredictGUI
 
-% Last Modified by GUIDE v2.5 04-Feb-2021 12:59:00
+% Last Modified by GUIDE v2.5 08-Jan-2022 09:44:33
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -55,9 +55,10 @@ function run_NBSPredictGUI_OpeningFcn(hObject, eventdata, handles, varargin)
 % Choose default command line output for run_NBSPredictGUI
 handles.output = hObject;
 handles.NBSPredict.parameter.ifView = 1; % run NBS_Predict_view after analysis. 
-handles.verNBSPredict = '1.0.0-beta.5';
+handles.verNBSPredict = '1.0.0-beta.6';
 handles.NBSPredict.info.version = handles.verNBSPredict;
 handles.NBSPredict.info.workingDir = pwd;
+handles.maxCores = feature('numcores');
 
 % History function has been deactivated until the following versions!
 handles = loadHistory(handles);
@@ -172,7 +173,9 @@ function metricpop_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-metricOpt = {'Accuracy','Sensitivity','Specificity','Precision',...
+metricOpt = {'Accuracy', 'Balanced_Accuracy','Sensitivity',...
+    'Specificity',...
+    'Precision',...
     'Recall',...
     'F1',...
     'Matthews_CC',...
@@ -245,19 +248,6 @@ function repCViterEdit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
-% --- Executes on button press in ifParallelCheck.
-function ifParallelCheck_Callback(hObject, eventdata, handles)
-% hObject    handle to ifParallelCheck (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hint: get(hObject,'Value') returns toggle state of ifParallelCheck
-ifParallel = get(hObject,'Value');
-handles.NBSPredict.parameter.ifParallel = ifParallel;
-handles.guiHistory.UI.Value.ifParallelCheck = ifParallel;
-guidata(hObject,handles)
 
 
 function contrastEdit_Callback(hObject, eventdata, handles)
@@ -357,7 +347,8 @@ if exist(fileName, 'file') == 2
         mlOptions = {'Auto (optimize models)','Decision Tree Classification',...
             'SVM Classification','Logistic Regression','Linear Discriminant Analysis'};
         MLfunNames = {'','decisionTreeC','svmC','LogReg','lda'};
-        set(handles.metricpop,'String',{'Accuracy','Sensitivity','Specificity',...
+        set(handles.metricpop,'String',{'Accuracy','Balanced_Accuracy',...
+            'Sensitivity','Specificity',...
             'Precision','Recall','F1','Matthews_CC','Cohens_Kappa','AUC'})
     else
         mlOptions = {'Auto (optimize models)','SVM Regression','Decision Tree Regression','Linear Regression'};
@@ -612,6 +603,84 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
+% --- Executes on button press in permCheckBox.
+function permCheckBox_Callback(hObject, eventdata, handles)
+% hObject    handle to permCheckBox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of permCheckBox
+ifPerm = get(hObject,'Value');
+handles.NBSPredict.parameter.ifPerm = ifPerm;
+handles.guiHistory.UI.Value.permCheckBox = ifPerm;
+guidata(hObject,handles)
+
+
+function permIterEdit_Callback(hObject, eventdata, handles)
+% hObject    handle to permIterEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of permIterEdit as text
+%        str2double(get(hObject,'String')) returns contents of permIterEdit as a double
+permIter = str2double(get(hObject,'String'));
+ifStr = isnan(permIter);
+if ifStr
+    warning('Please enter a number!');
+else
+    handles.guiHistory.UI.String.permIterEdit = permIter;
+    handles.NBSPredict.parameter.permIter = permIter;
+    guidata(hObject,handles);
+end
+
+
+% --- Executes during object creation, after setting all properties.
+function permIterEdit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to permIterEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+function cpuCoreEdit_Callback(hObject, eventdata, handles)
+% hObject    handle to cpuCoreEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of cpuCoreEdit as text
+%        str2double(get(hObject,'String')) returns contents of cpuCoreEdit as a double
+nCores = str2double(get(hObject, 'String'));
+handles.NBSPredict.parameter.numCores = 1; 
+if nCores < 1
+    errordlg('Number of CPU cores cannot be lower than 1');
+elseif nCores > handles.maxCores
+    errordlg(sprintf('Number of CPU cores cannot be higher than %d physical cores',...
+        handles.maxCores));
+else
+    handles.NBSPredict.parameter.numCores = nCores; 
+    handles.guiHistory.UI.String.cpuCoreEdit = nCores;
+end
+guidata(hObject, handles);
+
+
+% --- Executes during object creation, after setting all properties.
+function cpuCoreEdit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to cpuCoreEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
 % --- Executes on button press in aboutPush.
 function aboutPush_Callback(hObject, eventdata, handles)
 % hObject    handle to aboutPush (see GCBO)
@@ -639,6 +708,7 @@ if exist('MANUAL.pdf','file')==2
 else
     msgbox('Cannot find the manual file!','Error','error');
 end
+
 
 
 % --- Executes on button press in runNBSPredict.
@@ -692,6 +762,3 @@ if ifHistory
 else
     handles.ifHistory = 0; 
 end
-
-
-

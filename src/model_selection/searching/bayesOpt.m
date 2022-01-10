@@ -10,7 +10,7 @@ function [bestParam,bestParamScore,bestParamIdx] = bayesOpt(objFun,...
 %   nIter: Number of iteration (default = 60).
 %   kFold = Number of CV folds (default = 10). 
 %   metric = Performance metric used to evaluate model performance. 
-%   ifParallel = Parallelize CV (1 or 0, default = 0). 
+%   numCores = Number of CPU cores to use (default = 1).
 %   acquisitionFun = Acquisition function name (default: expected-improvement):
 %       probability-of-improvement
 %       expected-improvement
@@ -33,7 +33,7 @@ function [bestParam,bestParamScore,bestParamIdx] = bayesOpt(objFun,...
 % validate parameters and return default parameters if no provided. 
 searchInputs = get_searchInputs('bayesOpt',varargin{:}); 
 nIter = searchInputs.nIter; kFold = searchInputs.kFold;
-ifParallel = searchInputs.ifParallel; bestParamMethod = searchInputs.bestParamMethod;
+numCores = searchInputs.numCores; bestParamMethod = searchInputs.bestParamMethod;
 %%
 % Draw an uniform random sample from parameter space without replacement.
 [~,nComb] = get_paramGridShapeComb(paramGrid);
@@ -42,19 +42,19 @@ if nIter > nComb
 end
 
 nFeatureSpace = optimizableVariable('hyperParameters',[1,nComb],'Type','integer');
-fun = @(paramIdx) cvFun(objFun,data,paramIdx,paramGrid,ifParallel,kFold,bestParamMethod);
+fun = @(paramIdx) cvFun(objFun,data,paramIdx,paramGrid,numCores,kFold,bestParamMethod);
 results = bayesopt(fun,nFeatureSpace,...
     'MaxObjectiveEvaluations',nIter,...
     'Verbose',0,'PlotFcn',[],...
     'AcquisitionFunctionName',searchInputs.acquisitionFun); 
 
-    function [CVerror] = cvFun(objFun,data,paramIdx,paramGrid,ifParallel,kFold,bestParamMethod)
+    function [CVerror] = cvFun(objFun,data,paramIdx,paramGrid,numCores,kFold,bestParamMethod)
         paramIdx = table2array(paramIdx);
         params = get_paramItem(paramGrid,paramIdx);
         CVfun = @(data) objFun(data,params);
         % Run cv feature selection.
         cvResults = crossValidation(CVfun,data,...
-            'ifParallel',ifParallel,'kFold',kFold);
+            'numCores',numCores,'kFold',kFold);
         CVerror = mean([cvResults.score]); 
         if strcmpi(bestParamMethod,'max')
             % reverse CV score as bayesian optimization minimizes.

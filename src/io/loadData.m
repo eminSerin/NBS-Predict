@@ -12,7 +12,7 @@ function [cData] = loadData(file,path)
 % Example:
 %   [cData] = loadData(file,path);
 %
-% Created by Emin Serin, 04.09.2019
+% Created by Emin Serin, 07.01.2022
 %
 % See also: load_corrMatFiles 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -32,9 +32,10 @@ switch ext
         field = fieldnames(tmp);
         cData = tmp.(field{:});
     case '.csv'
-        cData = readtable(fileName);
-        try 
-            cData = table2array(cData);
+        try
+            cData = csvread(fileName);
+        catch
+            cData = readtable(fileName);
         end
 end
 end

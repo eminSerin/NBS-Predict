@@ -8,8 +8,7 @@ function [NBSPredict] = test_NBSPredict(varargin)
 % Arguments: 
 %     repCViter = Number of nested-CV repetition (default = 10). 
 %     kFold = Number of CV folds (default = 10).
-%     ifParallel = Performs repeated nested CV parallel 
-%         (1 or 0, default = 0). 
+%     numCores = Number of CPU cores used (default = 1). 
 %     metrics = Performance metrics (please see compute_ModelMetrics for
 %         performance metrics 
 %         default = 'accuracy' (classification), 'correlation' (regression).
@@ -43,6 +42,8 @@ function [NBSPredict] = test_NBSPredict(varargin)
 %     ifHyperOpt = Whether perform hyperparameter optimization (default = 1). 
 %     hyperOptSteps = Steps from low to high limit of hyperparameter
 %         space (e.g., paramGrid.C = logspace(-3,2,hyperOptSteps) default = 5).
+%     ifPerm = Whether perform permutation testing (default = 0). 
+%     permIter = Number of permutations (default = 100).
 %     selMethod = Selection method for hyperparameter optimization (default = gridSearch).
 %         Different algorithms have different parameters: 
 %             randomSearch = Random Search Algorithm: 
@@ -86,9 +87,9 @@ function [NBSPredict] = test_NBSPredict(varargin)
 % 
 % Example: 
 %     test_NBSPredict();
-%     test_NBSPredict('kFold',5,'ifParallel',1,'model','svmC','network','scalefree');
+%     test_NBSPredict('kFold',5,'numCores',4,'model','svmC','network','scalefree');
 % 
-% Last edited by Emin Serin, 08.04.2021.
+% Last edited by Emin Serin, 07.01.2022.
 %   
 % See also, run_NBSPredict, gen_synthData, get_NBSPredictInput, compute_modelMetrics
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -97,7 +98,7 @@ function [NBSPredict] = test_NBSPredict(varargin)
 NBSPredict.parameter.repCVIter = testInputs.repCViter;
 NBSPredict.parameter.randomState = testInputs.randomState;
 NBSPredict.parameter.kFold = testInputs.kFold;
-NBSPredict.parameter.ifParallel = testInputs.ifParallel; 
+NBSPredict.parameter.numCores = testInputs.numCores; 
 NBSPredict.parameter.metric = testInputs.metric;
 NBSPredict.parameter.selMethod = testInputs.selMethod;
 NBSPredict.parameter.pVal = testInputs.pVal;
@@ -105,6 +106,8 @@ NBSPredict.parameter.verbose = testInputs.verbose;
 NBSPredict.parameter.ifModelOpt = testInputs.ifModelOpt;
 NBSPredict.parameter.ifHyperOpt = testInputs.ifHyperOpt;
 NBSPredict.parameter.ifSave = testInputs.ifSave;
+NBSPredict.parameter.ifPerm = testInputs.ifPerm;
+NBSPredict.parameter.permIter = testInputs.permIter;
 NBSPredict.parameter.ifTest = 1; % This is the tag for testing. DO NOT CHANGE!
 
 if testInputs.ifRegression
@@ -172,7 +175,7 @@ NBSPredict.data.contrastedEdges = contrastedEdges;
 % Run 
 if ~ testInputs.simPreAllocate
     if testInputs.verbose
-        fprintf('Algorithm: %s',testInputs.algorithm);
+        fprintf('Algorithm: %s\n',testInputs.algorithm);
     end
     NBSPredict = testInputs.algorithmHandle(NBSPredict);
 end

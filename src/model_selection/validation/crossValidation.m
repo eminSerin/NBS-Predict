@@ -7,7 +7,7 @@ function [CVresults] = crossValidation(fun,data,varargin)
 %   fun = Objective function (e.g., estimator).
 %   data = Data structure were current features and labels are stored.
 %   kFold = Number of CV folds. 
-%   ifParallel = Parallelize CV (1 or 0, default = 0).
+%   numCores = Number of CPU cores to use (default = 1).
 %   ifRand = if randomized (default = 1)
 %   randomState: Controls the randomness. Pass an integer value for
 %       reproducible results (default = 'shuffle').  
@@ -24,14 +24,14 @@ function [CVresults] = crossValidation(fun,data,varargin)
 %% Input
 % Set default inputs.
 % Default parameters.
-defaultVals.kFold = 10; defaultVals.ifParallel = 0; 
+defaultVals.kFold = 10; defaultVals.numCores = 1; 
 defaultVals.ifRand = 1; defaultVals.randomState = false;
 
 % Input Parser
 validationNumeric = @(x) isnumeric(x);
 p = inputParser(); p.PartialMatching = 0; % deactivate partial matching.
 addParameter(p,'kFold',defaultVals.kFold,validationNumeric);
-addParameter(p,'ifParallel',defaultVals.ifParallel,validationNumeric);
+addParameter(p,'numCores',defaultVals.numCores,validationNumeric);
 addParameter(p,'ifRand',defaultVals.ifRand,validationNumeric);
 addParameter(p,'randomState',defaultVals.randomState);
 
@@ -40,8 +40,11 @@ parse(p,varargin{:});
 
 % Input 
 kFold = p.Results.kFold;
-ifParallel = p.Results.ifParallel;
+numCores = p.Results.numCores;
 ifRand =  p.Results.ifRand;
+
+% Init parallel pool.
+create_parallelPool(numCores);
 
 % Set random state. 
 if p.Results.randomState
@@ -56,7 +59,7 @@ cvFoldIdx = gen_cvpartition(data.y,kFold,ifRand);
 trainTestData = prepare_trainTestData(data,cvFoldIdx(1));
 CVresults = fun(trainTestData);
 
-if ~ifParallel
+if ~(numCores > 1)
     for fold = 2:kFold
         trainTestData = prepare_trainTestData(data,cvFoldIdx(fold));
         CVresults(fold,1) = fun(trainTestData);

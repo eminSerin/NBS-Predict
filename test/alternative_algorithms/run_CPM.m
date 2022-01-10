@@ -11,8 +11,7 @@ function [CPM] = run_CPM(data,varargin)
 %     thresh = p-value threshold to select features (default = 0.01). 
 %     kFold = Number of CV folds (default = 10).
 %     repCVIter = Number of CV repetition (default = 1).
-%     ifParallel = Performs repeated nested CV parallel
-%         (1 or 0, default = 0). 
+%     numCores = Number of CPU cores (default = 1).
 %     metric = Performance metrics (correlation, mse; default = correlation).
 %     learner = Estimator (LinReg,svmR or decisionTreeR, default = LinReg).
 %     verbose = Whether or not give messages (default = 1);
@@ -24,7 +23,7 @@ function [CPM] = run_CPM(data,varargin)
 %   
 % Example: 
 %     run_CPM(data);
-%     run_CPM(data,'thresh',0.05,'kFold',5,'ifParallel',1,'learner','svmR');
+%     run_CPM(data,'thresh',0.05,'kFold',5,'numCores',3,'learner','svmR');
 %
 % Reference:
 %     Shen, X., Finn, E. S., Scheinost, D., Rosenberg, M. D., Chun, M.
@@ -37,7 +36,7 @@ function [CPM] = run_CPM(data,varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Input parser.
 % Default parameters for CPM.
-defaultVals.thresh = 0.01; defaultVals.ifParallel = 0;
+defaultVals.thresh = 0.01; defaultVals.numCores = 1;
 defaultVals.metric = 'correlation'; defaultVals.learner = 'LinReg';
 defaultVals.repCVIter = 1;  defaultVals.ifScale = 1; 
 defaultVals.kFold = 10; defaultVals.verbose = 1; 
@@ -53,7 +52,7 @@ p = inputParser();
 p.PartialMatching = 0; % deactivate partial matching.
 addParameter(p,'thresh',defaultVals.thresh,validationNumeric);
 addParameter(p,'kFold',defaultVals.kFold,validationNumeric);
-addParameter(p,'ifParallel',defaultVals.ifParallel,validationNumeric);
+addParameter(p,'numCores',defaultVals.numCores,validationNumeric);
 addParameter(p,'metric',defaultVals.metric);
 addParameter(p,'ifScale',defaultVals.ifScale,validationNumeric);
 addParameter(p,'repCVIter',defaultVals.repCVIter,validationNumeric);
@@ -70,7 +69,7 @@ CPM.data = data;
 CPM.parameter.thresh = p.Results.thresh;
 CPM.parameter.learner = p.Results.learner;
 CPM.parameter.kFold = p.Results.kFold;
-CPM.parameter.ifParallel = p.Results.ifParallel;
+CPM.parameter.numCores = p.Results.numCores;
 CPM.parameter.metric = p.Results.metric;
 CPM.parameter.repCVIter = p.Results.repCVIter; 
 CPM.parameter.ifScale = p.Results.ifScale;
@@ -78,6 +77,10 @@ CPM.parameter.randomState = p.Results.randomState;
 verbose = p.Results.verbose; 
 
 rng(p.Results.randomState);
+
+% Initiate parallel pool if desired.
+create_parallelPool(numCores);
+
 %% Run CPM in a k-fold CV structure. 
 if verbose
     fprintf('\nCPM is running!\n')
@@ -95,7 +98,7 @@ posStability = posMeanCVScores;
 negStability = posStability;
 
 tic;
-if p.Results.ifParallel
+if p.Results.numCores > 1
     parfor r = 1:CPM.parameter.repCVIter
         CVresults = crossValidation(objFun,data,'kfold',CPM.parameter.kFold); % Run handler in CV.
         

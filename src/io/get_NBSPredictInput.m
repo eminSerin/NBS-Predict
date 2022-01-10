@@ -26,13 +26,15 @@ function [mainNBSPredict] = get_NBSPredictInput(NBSPredict)
 default.parameter.kFold = 10;
 default.parameter.repCViter = 10;
 default.parameter.pVal = 0.01;
-default.parameter.ifParallel = 0;
+default.parameter.numCores = 1;
 default.parameter.ifHyperOpt = 0;
 default.parameter.verbose = 1;
 default.parameter.ifSave = 1;
 default.parameter.ifView = 0; 
 default.parameter.scalingMethod = [];
-default.parameter.randSeed = 42; 
+default.parameter.randSeed = 42;
+default.parameter.ifPerm = 0;
+default.parameter.permIter = 500;
 
 if isstring(NBSPredict) || ischar(NBSPredict)
     assert(exist(NBSPredict, 'file') == 2, 'The input file is not found!') 
@@ -113,11 +115,11 @@ for mainFielditer = 1: numel(enteredFieldNames)
     end
 end
 
-if default.parameter.ifParallel && ~ license('test','distrib_computing_toolbox')
-    % Set ifParallel to 0 again, if no Parallel Computing Toolbox found on
-    % local computer.
+if default.parameter.numCores > 1 && ~ license('test','distrib_computing_toolbox')
+    % Set number of cores to 1 again, if no Parallel Computing Toolbox 
+    % found on local computer.
     warning('No Parallel Computing Toolbox found! NBS-Predict will run sequantially.');
-    default.parameter.ifParallel = 0;
+    default.parameter.numCores = 1;
 end
 
 %% Load data if has not been loaded.
@@ -126,7 +128,8 @@ if ~isfield(default.data,'X')
     if ~isfield(default.data,'corrPath')
        error('A directory containing correlation matrices is not defined!');
     else
-        [default.data.X,default.data.nodes,default.data.edgeIdx] = load_corrMatFiles(default.data.corrPath);
+        [default.data.X,default.data.nodes,default.data.edgeIdx] = load_corrMatFiles(default.data.corrPath,...
+            default.parameter.verbose);
     end
     if ~isfield(default.data,'brainRegionsPath')
        error('Brain regions are not provided!')
@@ -160,10 +163,6 @@ else
     default.data.confounds = [];
 end
 
-%% Check if Linear Model
-linearModels = {'svmC','svmR','LinReg','LogReg'};
-ifLinear = ismember(default.parameter.MLmodels,linearModels);
-default.parameter.ifLinear = ifLinear; 
 %% Hyperparameters
 % Set default hyperparameters for given model.
 for m = 1:numel(default.parameter.MLmodels)

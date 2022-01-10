@@ -10,13 +10,13 @@ function [testInputs] = get_testInput(varargin)
 %   searchInputs = Structure including all inputs required for searching
 %       algorithm. 
 %
-% Emin Serin - 08.01.2020
+% Emin Serin - 07.01.2022
 %
 % See also, test_NBSPredict, sim_testNBSPredict, sim_testNBSPredictABIDE
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Input parser.
 % Default parameters for NBSPredict.
-defaultVals.kFold = 10; defaultVals.ifParallel = 0;
+defaultVals.kFold = 10; defaultVals.numCores = 1;
 defaultVals.selMethod = 'gridSearch'; defaultVals.pVal = 0.01; 
 defaultVals.repCViter = 10; defaultVals.algorithm = 'NBSPredict';
 defaultVals.verbose = 1; defaultVals.ifHyperOpt = 0; 
@@ -24,6 +24,7 @@ defaultVals.hyperOptSteps = 5; defaultVals.nIter = 10;
 defaultVals.ifModelOpt = 0; defaultVals.ifSave = 0;
 defaultVals.ifRegression = 0; defaultVals.bayesAcqFunc = 'expected-improvement';
 defaultVals.randomState = 42; defaultVals.simPreAllocate = 0; 
+defaultVals.ifPerm = 0; defaultVals.permIter = 100;
 selMethodOptions = {'gridSearch','randomSearch','bayesOpt'};
 bayesAcqFuncOptions = {'lower-confidence-bound','probability-of-improvement',...
     'expected-improvement'};
@@ -51,7 +52,7 @@ p.PartialMatching = 0; % deactivate partial matching.
 % Add NBSPredict parameters. 
 addParameter(p,'algorithm',defaultVals.algorithm,validationAlgorithm);
 addParameter(p,'kFold',defaultVals.kFold,validationNumeric);
-addParameter(p,'ifParallel',defaultVals.ifParallel,validationNumeric);
+addParameter(p,'numCores',defaultVals.numCores,validationNumeric);
 addParameter(p,'metric',[]);
 addParameter(p,'MLmodels',[]);
 addParameter(p,'selMethod',defaultVals.selMethod,validationSelMethod);
@@ -66,6 +67,8 @@ addParameter(p,'nIter',defaultVals.nIter,validationNumeric);
 addParameter(p,'ifModelOpt',defaultVals.ifModelOpt,validationNumeric);
 addParameter(p,'ifSave',defaultVals.ifSave,validationNumeric);
 addParameter(p,'simPreAllocate',defaultVals.simPreAllocate,validationNumeric);
+addParameter(p,'ifPerm',defaultVals.ifPerm,validationNumeric);
+addParameter(p,'permIter',defaultVals.permIter,validationNumeric);
 
 % Add Synthetic data generation parameters. 
 addParameter(p,'network',defaultVals.network,validationNetwork);

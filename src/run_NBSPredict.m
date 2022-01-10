@@ -22,18 +22,19 @@ function [NBSPredict] = run_NBSPredict(NBSPredict)
 %   This structure is also saved in
 %       ~/Results/date/NBSPredict.mat directory.
 %
-% Last edited by Emin Serin, 08.04.2021.
+% Last edited by Emin Serin, 07.01.2022.
 %
 % See also: start_NBSPredictGUI, get_NBSPredictInput
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
 NBSPredict = get_NBSPredictInput(NBSPredict);
 totalRepCViter = NBSPredict.parameter.repCViter;
+verbose = NBSPredict.parameter.verbose;
 
 % Random Seed
 randSeed = NBSPredict.parameter.randSeed;
 if randSeed ~= -1 % -1 refers to random shuffle.
-    if NBSPredict.parameter.ifParallel
+    if NBSPredict.parameter.numCores > 1
         rndSeeds = linspace(randSeed,randSeed+totalRepCViter-1,totalRepCViter);
     else
         rng(randSeed);
@@ -43,9 +44,7 @@ else
 end
 
 % Init parallel pool if desired.
-if NBSPredict.parameter.ifParallel && isempty(gcp('nocreate'))
-    parpool('local');
-end
+create_parallelPool(NBSPredict.parameter.numCores);
 
 % Write an start tag.
 NBSPredict.info.startDate = date;
@@ -61,9 +60,13 @@ meanRepCVscore = zeros(nModels,1);
 meanRepCVscoreCI = zeros(nModels,2);
 edgeWeight = zeros(totalRepCViter,NBSPredict.parameter.kFold,...
     nEdges,'single');
-activationPattern = edgeWeight;
 stability = zeros(totalRepCViter,1,'single');
 truePredLabels = zeros(totalRepCViter,nSub,2,'single');
+
+if NBSPredict.parameter.ifPerm
+    % If permutation testing is desired.
+   permCVscore = zeros(NBSPredict.parameter.permIter+1, 1, 'single'); 
+end
 
 fileDir = save_NBSPredict(NBSPredict);
 cNBSPredict = NBSPredict; % current NBSPredict.
@@ -71,41 +74,27 @@ for cModelIdx = 1: nModels
     modelTime = tic;
     % Run repeated nested CV using ML models provided.
     cModel = NBSPredict.parameter.MLmodels{cModelIdx};
-    ifLinear = NBSPredict.parameter.ifLinear(cModelIdx);
     if isfield(NBSPredict.parameter,'paramGrids')
         cNBSPredict.parameter.paramGrids = NBSPredict.parameter.paramGrids(cModelIdx);
     end
     cNBSPredict.parameter.model = cModel; % TODO: remove after oop progress fun.
-    cNBSPredict.parameter.ifLinear = ifLinear;
     MLhandle = gen_MLhandles(cNBSPredict.parameter.model);
     cNBSPredict.MLhandle = MLhandle;
     show_NBSPredictProgress(cNBSPredict,0);
-    if cNBSPredict.parameter.ifParallel
+    if cNBSPredict.parameter.numCores > 1
         % Run parallelly.
         parfor repCViter = 1: totalRepCViter
             rng(rndSeeds(repCViter));
-            if ifLinear
-                [outerCVscore,edgeWeight(repCViter,:,:),...
-                    truePredLabels(repCViter,:,:),stability(repCViter),...
-                    activationPattern(repCViter,:,:)] = outerFold(cNBSPredict);
-            else
-                [outerCVscore,edgeWeight(repCViter,:,:),...
-                    truePredLabels(repCViter,:,:),stability(repCViter)] = outerFold(cNBSPredict);
-            end
+            [outerCVscore,edgeWeight(repCViter,:,:),...
+                truePredLabels(repCViter,:,:),stability(repCViter)] = outerFold(cNBSPredict);
             repCVscore(repCViter) = outerCVscore;
             show_NBSPredictProgress(cNBSPredict,repCViter,outerCVscore);
         end
     else
         % Run sequentially.
         for repCViter = 1: totalRepCViter
-            if ifLinear
-                [outerCVscore,edgeWeight(repCViter,:,:),...
-                    truePredLabels(repCViter,:,:),stability(repCViter),...
-                    activationPattern(repCViter,:,:)] = outerFold(cNBSPredict);
-            else
-                [outerCVscore,edgeWeight(repCViter,:,:),...
-                    truePredLabels(repCViter,:,:),stability(repCViter)] = outerFold(cNBSPredict);
-            end
+            [outerCVscore,edgeWeight(repCViter,:,:),...
+                truePredLabels(repCViter,:,:),stability(repCViter)] = outerFold(cNBSPredict);
             repCVscore(repCViter) = outerCVscore;
             show_NBSPredictProgress(cNBSPredict,repCViter,repCVscore);
         end
@@ -133,15 +122,7 @@ for cModelIdx = 1: nModels
     [NBSPredict.results.(cModel).edgeWeight,NBSPredict.results.(cModel).meanEdgeWeight,...
         NBSPredict.results.(cModel).wAdjMat,NBSPredict.results.(cModel).scaledMeanEdgeWeight,...
         NBSPredict.results.(cModel).scaledWAdjMat] =...
-        compute_meanWeights(edgeWeight,meanRCVscore,NBSPredict.data.nodes,nEdges,NBSPredict.data.edgeIdx,0,totalFold);
-    
-    if ifLinear
-        % ActivationPatterns
-        [NBSPredict.results.(cModel).actPattern,NBSPredict.results.(cModel).mActPattern,...
-            NBSPredict.results.(cModel).actAdjMat,NBSPredict.results.(cModel).scaledMeanActPattern,...
-            NBSPredict.results.(cModel).scaledActAdjMat] =...
-            compute_meanWeights(edgeWeight,meanRCVscore,NBSPredict.data.nodes,nEdges,NBSPredict.data.edgeIdx,1,totalFold);
-    end
+        compute_meanWeights(edgeWeight,meanRCVscore,NBSPredict.data.nodes,nEdges,NBSPredict.data.edgeIdx,totalFold);
     
     % Save values to NBSPredict.
     NBSPredict.results.(cModel).repCVscore = repCVscore;
@@ -149,8 +130,53 @@ for cModelIdx = 1: nModels
     NBSPredict.results.(cModel).meanRepCVscore = meanRepCVscore(cModelIdx);
     show_NBSPredictProgress(cNBSPredict,-1,repCVscore);
     
-    if NBSPredict.parameter.verbose
+    if verbose
         toc(modelTime);
+    end
+    
+    % Run Permutation test.
+    if NBSPredict.parameter.ifPerm
+        fprintf('Permutation testing is running! Permutations: %d\n',...
+            NBSPredict.parameter.permIter);
+        if randSeed ~= -1 % -1 refers to random shuffle.
+            rng(randSeed);
+        else
+            rng('shuffle');
+        end
+        [permCVscore(1),~, ~, ~] = outerFold(cNBSPredict);
+        if cNBSPredict.parameter.numCores > 1
+            pctRunOnAll warning off % Suppress warnings.
+            if verbose
+                permMsg = 'This will take quite time. Please be patient...\n';
+                fprintf(permMsg)
+            end
+            parfor permIter = 1: NBSPredict.parameter.permIter
+                permNBSPredict = cNBSPredict;
+                permNBSPredict.data.y = permNBSPredict.data.y(randperm(nSub), :);
+                [permCVscore(permIter+1),~, ~, ~] = outerFold(permNBSPredict);
+            end
+        else
+            warning('off') % Suppress warnings.
+            if verbose
+                permMsg = 'Progress:';
+                permProg = CmdProgress(permMsg, NBSPredict.parameter.permIter);
+            end
+            for permIter = 1: NBSPredict.parameter.permIter
+                permNBSPredict = cNBSPredict;
+                permNBSPredict.data.y = permNBSPredict.data.y(randperm(nSub), :);
+                [permCVscore(permIter+1),~, ~, ~] = outerFold(permNBSPredict);
+                permProg.increment; 
+            end
+        end
+        permScore = [permCVscore(1), ...
+            (sum(permCVscore >= permCVscore(1))-1)/NBSPredict.parameter.permIter]; 
+        NBSPredict.results.(cModel).permScore = permScore;
+        if verbose
+            fprintf(['Permutation testing has finished. ',...
+                'Prediction performance: %.3f, p = %.3f\n'],...
+                permScore(1), permScore(2));
+        end
+        warning('on'); % Reactivate warnings.
     end
     
     if fileDir
@@ -166,7 +192,7 @@ end
 
 if NBSPredict.parameter.ifModelOpt
     NBSPredict.results.bestEstimator = NBSPredict.parameter.MLmodels{bestEstimatorIdx};
-    if NBSPredict.parameter.verbose
+    if verbose
         % Print summary results if more than one estimators are used.
         fprintf('\n\n\n\t\t\t<strong>OVERALL RESULTS:</strong>\n\n');
         for cModelIdx = 1:nModels
@@ -183,12 +209,12 @@ NBSPredict.info.endDate = date;
 timeElapsed = toc(startTime); % in minutes;
 NBSPredict.info.timeElapsed = timeElapsed;
 
-if NBSPredict.parameter.verbose
+if verbose
     fprintf('Total time elapsed (in minutes): %.2f\n',timeElapsed/60);
 end
 
 if fileDir
-    if NBSPredict.parameter.verbose
+    if verbose
        fprintf('\nResults are being saved...\n') 
     end
     save(fileDir,'NBSPredict');
@@ -255,33 +281,21 @@ modelEvaluateFun = @(data) modelEvaluate(data,NBSPredict);
         end
         
         [modelEvalResults.score,modelEvalResults.truePredLabels,...
-            estimator] = fit_hyperParam(data,params,NBSPredict.MLhandle,...
+            ~] = fit_hyperParam(data,params,NBSPredict.MLhandle,...
             NBSPredict.parameter.metric);
         weightScore = modelEvalResults.score;
-        if NBSPredict.parameter.ifLinear
-            modelEvalResults.activationPattern = double(selectedEdges);
-            if ~isobject(estimator)
-               error(['No trained estimator found! ',...
-                   'Please read the warning messages.']); 
-            end
-            modelEvalResults.activationPattern(extIdx) =...
-                abs(transform_toActivationPattern(data.X_train,estimator.Beta));
-        end
         
         if ismember(NBSPredict.parameter.metric,{'rmse','mad'})
             weightScore = compute_modelMetrics(modelEvalResults.truePredLabels{1},...
-                modelEvalResults.truePredLabels{1},'r_squared');
+                modelEvalResults.truePredLabels{1},...
+                'explained_variance');
         end
         % Multiply features selected with test score of model to compute
         % weight for each feature.
         modelEvalResults.outerFoldEdgeWeight = selectedEdges .* weightScore;
     end
-if NBSPredict.parameter.ifLinear
-    varargout = cell(1,5);
-    varargout{5} = [outerFoldCVresults.activationPattern]';
-else
-    varargout = cell(1,4);
-end
+
+varargout = cell(1,4);
 
 varargout{1} = mean([outerFoldCVresults.score]);
 varargout{2} = [outerFoldCVresults.outerFoldEdgeWeight]';
@@ -355,7 +369,7 @@ varargout = cell(1,nMetrics+2);
 end
 
 function [reshapedEdgeWeight,meanEdgeWeight,wAdjMat,scaledMeanEdgeWeight,scaledWAdjMat]...
-    = compute_meanWeights(edgeWeight,CVscore,nNodes,nEdges,edgeIdx,ifActivation,totalFold)
+    = compute_meanWeights(edgeWeight,CVscore,nNodes,nEdges,edgeIdx,totalFold)
 % compute_meanWeights computes vector and adjacency matrix of mean edge
 % weights. It also returns scaled version of those outputs using
 % MinMaxScaler. 
@@ -368,11 +382,7 @@ meanEdgeWeight = mean(reshapedEdgeWeight,2);
 wAdjMat = gen_weightedAdjMat(nNodes,edgeIdx,meanEdgeWeight); % weighted Adj matrix.
 
 % Scaled mean edge weight
-if ifActivation
-    scaler = MinMaxScaler([0,max(meanEdgeWeight)]);
-else
-    scaler = MinMaxScaler([0,CVscore]);
-end
+scaler = MinMaxScaler([0,CVscore]);
 scaledMeanEdgeWeight = scaler.fit_transform(meanEdgeWeight); % Min-max scaled mean weights
 scaledMeanEdgeWeight = round(scaledMeanEdgeWeight,round(log10(totalFold))+1); % Tolarate minor difference. 
 scaledWAdjMat = gen_weightedAdjMat(nNodes,edgeIdx,scaledMeanEdgeWeight); % weighted Adj matrix.

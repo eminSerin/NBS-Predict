@@ -11,7 +11,7 @@ function [plotData] = prep_plotData(varargin)
 %      (default = {'sensitivity','specificity'}). Available metrics are
 %      documented in compute_modelMetrics function.
 %   wtSteps = Weight threshold steps between 0 and 1 (default = 100).
-%   nCores  = Number of CPU cores to be used (default = 1).
+%   numCores  = Number of CPU cores to use (default = 1).
 %   ifSave  = Save processed data to generate plots (default = 1). If true
 %       it will save processed file into
 %       ~/plotData/[inputFileName]_plotData.mat
@@ -31,7 +31,7 @@ function [plotData] = prep_plotData(varargin)
 %% Parameters
 % Default parameters
 defaultVals.ifSave = 10; defaultVals.wtSteps = 100;
-defaultVals.nCores = 1; defaultVals.weightPredPerf = 0;
+defaultVals.numCores = 1; defaultVals.weightPredPerf = 0;
 defaultVals.metrics = {'sensitivity','specificity'};
 
 % Validation
@@ -43,7 +43,7 @@ p.PartialMatching = 0; % deactivate partial matching.
 addParameter(p,'ifSave',defaultVals.ifSave);
 addParameter(p,'weightPredPerf',defaultVals.weightPredPerf);
 addParameter(p,'wtSteps',defaultVals.wtSteps);
-addParameter(p,'nCores',defaultVals.nCores,validationNumeric);
+addParameter(p,'numCores',defaultVals.numCores,validationNumeric);
 addParameter(p,'metrics',defaultVals.metrics);
 
 % Parse inputs.
@@ -52,20 +52,11 @@ parse(p,varargin{:});
 ifSave = p.Results.ifSave;
 wtSteps = p.Results.wtSteps;
 metrics = p.Results.metrics;
-nCores = p.Results.nCores;
+numCores = p.Results.numCores;
 weightPredPerf = p.Results.weightPredPerf;
 
-% Check if parallel pool exists
-if license('test','Distrib_Computing_Toolbox')
-    delete(gcp('nocreate'));
-    if (nCores > 1)
-        parpool(nCores);
-    elseif nCores == -1
-        gcp();
-    end
-else
-    parpool(1);
-end
+% Init parallel pool if desired.
+create_parallelPool(numCores);
 
 % Load simulation data.
 [files, path] = uigetfile('.mat','Please load simulation results .mat file.',...

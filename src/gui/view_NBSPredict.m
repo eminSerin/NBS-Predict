@@ -102,7 +102,7 @@ handles.plotResults.truePredLabels = handles.plotData.(cModel).truePredLabels;
 if ifClass
     handles.confMatPush.Visible = 'on';
     handles =  updateConfMat(handles);
-    metrics = {'Accuracy','Sensitivity','Specificity',...
+    metrics = {'Accuracy','Balanced_Accuracy','Sensitivity','Specificity',...
         'Precision','Recall','F1','Matthews_CC','Cohens_Kappa','AUC'};
     set(handles.metricPopUp,'String',metrics);
 else
@@ -114,10 +114,19 @@ if metricLoc
     set(handles.metricPopUp,'Value',metricLoc);
 end
 
-handles.figureTitle = sprintf('%s: %.3f (%.3f, %.3f)',...
-    [upper(metric(1)),metric(2:end)],...
-    handles.plotData.(handles.cModel).meanRepCVscore,...
-    handles.plotData.(handles.cModel).meanCVscoreCI);
+handles = updateTitle(handles);
+
+% figureTitle = sprintf('%s: %.3f (%.3f, %.3f)',...
+%     [upper(metric(1)),metric(2:end)],...
+%     handles.plotData.(handles.cModel).meanRepCVscore,...
+%     handles.plotData.(handles.cModel).meanCVscoreCI);
+% 
+% if isfield(handles.plotData.(handles.cModel), 'permScore')
+%     permScore = handles.plotData.(handles.cModel).permScore;
+%     figureTitle = sprintf([figureTitle, ' Permutation: %.3f, p = %.3f'],...
+%         permScore(1), permScore(2));
+% end
+% handles.figureTitle = figureTitle;
 
 % Set MLmodelPop handle.
 set(handles.MLmodelsPop,'String',handles.plotData.MLmodels);
@@ -585,6 +594,14 @@ if strcmpi(handles.plotData.metric,metric)
     figTitle = sprintf('%s: %.3f (%.3f, %.3f)',metricName,...
         handles.plotData.(handles.cModel).meanRepCVscore,...
         handles.plotData.(handles.cModel).meanCVscoreCI);
+    
+    if isfield(handles.plotData.(handles.cModel), 'permScore')
+        % If permutation score exists.
+        permScore = handles.plotData.(handles.cModel).permScore;
+        figTitle = sprintf([figTitle, ' Permutation: %.3f, p = %.3f'],...
+            permScore(1), permScore(2));
+    end
+
 else
     truePredLabels = handles.plotResults.truePredLabels;
     score = compute_modelMetrics(truePredLabels(:,1),truePredLabels(:,2),metric);
@@ -653,5 +670,5 @@ function viewNBSPredictFig_DeleteFcn(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 goodbyeMsg = ['\nThank you for using NBS-Predict!\n',...
-    'Please contact to emin.serin@charite.de for any questions, suggestions or bug reports.\n'];
+    'Please contact to emin.serin@charite.de for any questions, suggestions or bug reports.\n\n'];
 fprintf(goodbyeMsg);

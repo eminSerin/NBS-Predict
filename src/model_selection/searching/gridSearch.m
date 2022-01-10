@@ -10,7 +10,7 @@ function [bestParam,bestParamScore,bestParamIdx] = gridSearch(objFun,data,...
 %   paramGrid = Parameter grid.
 %   kFold = Number of CV folds (default = 10). 
 %   metric = Performance metric used to evaluate model performance. 
-%   ifParallel = Parallelize CV (1 or 0, default = 0). 
+%   numCores = Number of CPU cores to use (default = 1).
 %   bestParamMethod = Method to choose best parameter ('best','median', default = "best").
 %       Check help section of bestParamMetric for detailed information.     
 %
@@ -34,7 +34,7 @@ for iter = 1:nComb
     CVfun = @(data) objFun(data,params);
     % Run cv feature selection.
     cvResults = crossValidation(CVfun,data,...
-        'ifParallel',searchInputs.ifParallel,...
+        'numCores',searchInputs.numCores,...
         'kFold',kFold);
     % Run cv feature selection.
     CVscore(:,iter) = [cvResults.score];

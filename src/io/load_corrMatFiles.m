@@ -1,4 +1,4 @@
-function [edgeMat,nodes,edgeIdx] = load_corrMatFiles(corrMatDir)
+function [edgeMat,nodes,edgeIdx] = load_corrMatFiles(corrMatDir, verbose)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % load_corrMatFiles loads correlation matrices into a data matrix and extract
 % values of edges into a single NxF matrix where N is subjects, and F is
@@ -33,10 +33,22 @@ nFiles = length(dataFiles);
 % Preallocate 
 cData = loadData(dataFiles(1).name,filePath);
 data = zeros([size(cData),nFiles],'single');
+
+if verbose
+    msg = 'Connectivity matrices are being loaded:';
+    prog = CmdProgress(msg, nFiles);
+end
+
 try
     for i = 1:nFiles
         cData = loadData(dataFiles(i).name,filePath);
+        if istable(cData)
+            cData = table2array(cData);
+        end
         data(:,:,i) = cData;
+        if verbose
+            prog.increment;
+        end
     end
 catch
     error(['Error in loading correlation matrices.\n',...
@@ -45,6 +57,9 @@ catch
         [filePath,filesep,dataFiles(i).name]);
 end
 
+if verbose
+   fprintf('Loaded matrices are shrinked into a single edge matrix...\n') 
+end
 % Shrinks data into edge matrix.
 [edgeMat,nodes,edgeIdx] = shrinkMat(data);
 end

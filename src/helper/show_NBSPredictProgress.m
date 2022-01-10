@@ -23,13 +23,9 @@ function [] = show_NBSPredictProgress(NBSPredict,iter,scores)
 %   end
 %
 % Last edited by Emin Serin, 05.09.2019
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%%
-verbose = NBSPredict.parameter.verbose;
-ifParallel = NBSPredict.parameter.ifParallel;
-
-if verbose == 1
+if NBSPredict.parameter.verbose == 1
     % Define dash.
     if iter == 0
         if NBSPredict.parameter.ifHyperOpt
@@ -50,7 +46,7 @@ if verbose == 1
     end
     
     % Prepare print function handles.
-    if ifParallel
+    if NBSPredict.parameter.numCores > 1
         dash = '-------------';
         printHeader = @() fprintf([dash,'\n','|   Score   |\n',dash,'\n']);
         printIter = @(scores) fprintf('|   %.3f   |\n',scores);

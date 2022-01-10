@@ -3,6 +3,7 @@ classdef (Hidden = true) baseScaler < handle
     % baseScaler is a base classs for scalers.
     %
     % Emin Serin
+    %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%
     properties

@@ -67,7 +67,7 @@ end
 % Random Seed
 randSeed = NBSPredict.parameter.randSeed;
 if randSeed ~= -1 % -1 refers to random shuffle.
-    if NBSPredict.parameter.ifParallel
+    if NBSPredict.parameter.numCores > 1
         rndSeeds = linspace(randSeed,randSeed+totalRepCViter-1,totalRepCViter);
     else
         rng(randSeed);
@@ -77,9 +77,7 @@ else
 end
 
 % Init parallel pool if desired.
-if NBSPredict.parameter.ifParallel && isempty(gcp('nocreate'))
-    parpool('local');
-end
+create_parallelPool(NBSPredict.parameter.numCores);
 
 % Write an start tag.
 NBSPredict.info.startDate = date;
@@ -112,7 +110,7 @@ for cModelIdx = 1: nModels
     MLhandle = gen_MLhandles(cNBSPredict.parameter.model);
     cNBSPredict.MLhandle = MLhandle;
     show_NBSPredictProgress(cNBSPredict,0);
-    if cNBSPredict.parameter.ifParallel
+    if cNBSPredict.parameter.numCores > 1
         % Run parallelly.
         parfor repCViter = 1: totalRepCViter
             rng(rndSeeds(repCViter));
@@ -258,7 +256,12 @@ modelEvaluateFun = @(data) modelEvaluate(data,NBSPredict);
         [modelEvalResults.score,modelEvalResults.truePredLabels,...
             estimator] = fit_hyperParam(data,params,NBSPredict.MLhandle,...
             NBSPredict.parameter.metric);
-                
+        
+        if isempty(estimator)
+            error(['No trained estimator found! ',...
+                'Please read the warning messages.']);
+        end
+        
         % Transform to forward model (Haufe et al., 2014)
         modelEvalResults.outerFoldEdgeWeight = ...
             abs(transform_toActivationPattern(data.X_train,estimator.beta));
@@ -340,7 +343,7 @@ function [fileDir] = save_NBSPredict(NBSPredict)
 % same folder (i.e., multiple analysis in a day), the current file is named
 % with suffix.
 if NBSPredict.parameter.ifSave
-    referencePath = NBSPredict.data.path;
+    referencePath = NBSPredict.data.corrPath;
     saveDir = fileparts(referencePath); % parent director
     if isfield(NBSPredict.parameter,'ifTest')
         saveDir = [saveDir,filesep,'test',filesep,'Results',filesep,date,filesep];
@@ -348,12 +351,12 @@ if NBSPredict.parameter.ifSave
         saveDir = [saveDir,filesep,'Results',filesep,date,filesep];
     end
     fileDir = [saveDir, 'NBSPredict_ElasticNet.mat'];
-    if ~isfolder(saveDir)
+    if ~exist(saveDir, 'dir')
         mkdirStatus = mkdir(saveDir);
         assert(mkdirStatus,'Folder could not be created! Please check folder permissions!');
     else
         fileNum = 1;
-        while isfile(fileDir)
+        while exist(fileDir, 'file') == 2
             fileDir = [saveDir,['NBSPredict',num2str(fileNum),'.mat']];
             fileNum = fileNum + 1;
         end
