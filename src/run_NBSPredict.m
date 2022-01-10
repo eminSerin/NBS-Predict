@@ -287,7 +287,8 @@ modelEvaluateFun = @(data) modelEvaluate(data,NBSPredict);
         
         if ismember(NBSPredict.parameter.metric,{'rmse','mad'})
             weightScore = compute_modelMetrics(modelEvalResults.truePredLabels{1},...
-                modelEvalResults.truePredLabels{1},'r_squared');
+                modelEvalResults.truePredLabels{1},...
+                'explained_variance');
         end
         % Multiply features selected with test score of model to compute
         % weight for each feature.

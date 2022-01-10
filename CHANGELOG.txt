@@ -1,4 +1,4 @@
-## [v1.0.0-beta.6] - 
+## [v1.0.0-beta.6] - 09.01.2022
 - NBS-Predict is now in v1.0.0-beta.6
 - User can specify number of CPU cores to use. 
 - Fix minor bug in Elastic Net function.
@@ -6,7 +6,6 @@
 - Minor change in loadData function to fasten .csv loading.
 - Add balanced accuracy metric to measure accuracy in imbalanced datasets.
 - Add permutation testing to compare model performance against null-distribution.
-- 
 
 ## [v1.0.0-beta.5] - 05.11.2021 
 - NBS-Predict is now in v1.0.0-beta.5
