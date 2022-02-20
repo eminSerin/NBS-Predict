@@ -42,12 +42,16 @@ function [varargout] = compute_modelMetrics(y_true,y_pred,metrics)
 %
 % Emin Serin, 2018. Berlin School of Mind and Brain
 %
-% Last edited by Emin Serin, 09.01.2022.
+% Last edited by Emin Serin, 20.02.2022
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
 % Make sure that vectors are at least single for compatibility.
-y_true = single(y_true);
-y_pred = single(y_pred);
+% y_true = single(y_true);
+% y_pred = single(y_pred);
+
+% Make sure that the true and predicted labels are column vectors.
+y_true = ensure_columnVector(y_true);
+y_pred = ensure_columnVector(y_pred);
 
 uniqueClasses = unique([y_true,y_pred]); % Find unique classes.
 
@@ -299,6 +303,13 @@ end
 %% Helper Function
 function [] = checkMultiClass(x)
 assert(numel(x) >= 1,'Multi-class data provided! You can only use binary labels.');
+end
+
+function labels = ensure_columnVector(labels)
+    dims = size(labels);
+    if dims(2) > dims(1)
+       labels = labels'; 
+    end
 end
 
 function [] = zeroDivisionWarning(metricName)

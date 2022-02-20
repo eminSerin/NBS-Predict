@@ -19,7 +19,7 @@ function [mainNBSPredict] = get_NBSPredictInput(NBSPredict)
 % Example:
 %   [NBSPredict] = get_NBSPredictInput(NBSPredict);
 %
-% Emin Serin - 05.07.2020
+% Last edited by Emin Serin, 20.02.2022
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Set default parameters

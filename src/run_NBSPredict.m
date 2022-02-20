@@ -22,13 +22,13 @@ function [NBSPredict] = run_NBSPredict(NBSPredict)
 %   This structure is also saved in
 %       ~/Results/date/NBSPredict.mat directory.
 %
-% Last edited by Emin Serin, 12.01.2022.
+% Last edited by Emin Serin, 18.02.2022
 %
 % See also: start_NBSPredictGUI, get_NBSPredictInput
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
 NBSPredict = get_NBSPredictInput(NBSPredict);
-totalRepCViter = NBSPredict.parameter.repCViter;
+repCViter = NBSPredict.parameter.repCViter;
 verbose = NBSPredict.parameter.verbose;
 
 % TODO: Remove after development.
@@ -38,7 +38,7 @@ NBSPredict.parameter.ifModelExtract = 1;
 randSeed = NBSPredict.parameter.randSeed;
 if randSeed ~= -1 % -1 refers to random shuffle.
     if NBSPredict.parameter.numCores > 1
-        rndSeeds = linspace(randSeed,randSeed+totalRepCViter-1,totalRepCViter);
+        rndSeeds = linspace(randSeed,randSeed+repCViter-1,repCViter);
     else
         rng(randSeed);
     end
@@ -55,16 +55,16 @@ startTime = tic;
 
 nEdges = numel(NBSPredict.data.edgeIdx);
 nModels = numel(NBSPredict.parameter.MLmodels);
-nSub = size(NBSPredict.data.y,1);
+% nSub = size(NBSPredict.data.y,1);
 
 % Preallocation
-repCVscore = zeros(totalRepCViter,1,'single');
+repCVscore = zeros(repCViter,1,'single');
 meanRepCVscore = zeros(nModels,1);
 meanRepCVscoreCI = zeros(nModels,2);
-edgeWeight = zeros(totalRepCViter,NBSPredict.parameter.kFold,...
+edgeWeight = zeros(repCViter,NBSPredict.parameter.kFold,...
     nEdges,'single');
-stability = zeros(totalRepCViter,1,'single');
-truePredLabels = zeros(totalRepCViter,nSub,2,'single');
+stability = zeros(repCViter,1,'single');
+truePredLabels = cell(repCViter, NBSPredict.parameter.kFold,2);
 
 fileDir = save_NBSPredict(NBSPredict);
 cNBSPredict = NBSPredict; % current NBSPredict.
@@ -81,20 +81,20 @@ for cModelIdx = 1: nModels
     show_NBSPredictProgress(cNBSPredict,0);
     if cNBSPredict.parameter.numCores > 1
         % Run parallelly.
-        parfor repCViter = 1: totalRepCViter
-            rng(rndSeeds(repCViter));
-            [outerCVscore,edgeWeight(repCViter,:,:),...
-                truePredLabels(repCViter,:,:),stability(repCViter)] = outerFold(cNBSPredict);
-            repCVscore(repCViter) = outerCVscore;
-            show_NBSPredictProgress(cNBSPredict,repCViter,outerCVscore);
+        parfor r = 1: repCViter
+            rng(rndSeeds(r));
+            [outerCVscore,edgeWeight(r,:,:),...
+                truePredLabels(r,:,:),stability(r)] = outerFold(cNBSPredict);
+            repCVscore(r) = outerCVscore;
+            show_NBSPredictProgress(cNBSPredict,r,outerCVscore);
         end
     else
         % Run sequentially.
-        for repCViter = 1: totalRepCViter
-            [outerCVscore,edgeWeight(repCViter,:,:),...
-                truePredLabels(repCViter,:,:),stability(repCViter)] = outerFold(cNBSPredict);
-            repCVscore(repCViter) = outerCVscore;
-            show_NBSPredictProgress(cNBSPredict,repCViter,repCVscore);
+        for r = 1: repCViter
+            [outerCVscore,edgeWeight(r,:,:),...
+                truePredLabels(r,:,:),stability(r)] = outerFold(cNBSPredict);
+            repCVscore(r) = outerCVscore;
+            show_NBSPredictProgress(cNBSPredict,r,repCVscore);
         end
     end
     
@@ -106,30 +106,29 @@ for cModelIdx = 1: nModels
     % Repeated CV scores.
     meanRCVscore =  mean(repCVscore);
     meanRepCVscore(cModelIdx) = meanRCVscore;
-    seRCVscore = std(repCVscore)/sqrt(totalRepCViter);
-    alphaSE = seRCVscore*1.96; % 95% confidence interval.
-    lowerBoundRCVscore = meanRCVscore - alphaSE; % lower CI
-    upperBoundRCVscore = meanRCVscore + alphaSE; % upper CI
-    meanRepCVscoreCI(cModelIdx,:) = [lowerBoundRCVscore,upperBoundRCVscore];
+    meanRepCVscoreCI(cModelIdx,:) = compute_CI(repCVscore);
     
     % True and predicted labels
-    truePredLabelsR = reshape(ipermute(truePredLabels,[2 1 3]),[],2);
-    NBSPredict.results.(cModel).truePredLabels = truePredLabelsR;
+    NBSPredict.results.(cModel).truePredLabels = truePredLabels;
     
     % Stability
     NBSPredict.results.(cModel).stability = stability;
     NBSPredict.results.(cModel).meanStability = mean(stability);
     
     % EdgeWeights
+    maxScore_ = meanRCVscore; % will be used while scaling edge weights. 
+    if ismember(NBSPredict.parameter.metric,{'rmse','mse','mad'})
+        maxScore_ = compute_mRCVscore(truePredLabels, 'correlation');
+    end
     totalFold = NBSPredict.parameter.repCViter*NBSPredict.parameter.kFold;
     [NBSPredict.results.(cModel).edgeWeight,NBSPredict.results.(cModel).meanEdgeWeight,...
         NBSPredict.results.(cModel).wAdjMat,NBSPredict.results.(cModel).scaledMeanEdgeWeight,...
         NBSPredict.results.(cModel).scaledWAdjMat] =...
-        compute_meanWeights(edgeWeight,meanRCVscore,NBSPredict.data.nodes,nEdges,NBSPredict.data.edgeIdx,totalFold);
+        compute_meanWeights(edgeWeight,maxScore_,NBSPredict.data.nodes,nEdges,NBSPredict.data.edgeIdx,totalFold);
     
     % Save values to NBSPredict.
     NBSPredict.results.(cModel).repCVscore = repCVscore;
-    NBSPredict.results.(cModel).meanCVscoreCI = [lowerBoundRCVscore,upperBoundRCVscore];
+    NBSPredict.results.(cModel).meanCVscoreCI = meanRepCVscoreCI(cModelIdx,:);
     NBSPredict.results.(cModel).meanRepCVscore = meanRepCVscore(cModelIdx);
     show_NBSPredictProgress(cNBSPredict,-1,repCVscore);
     
@@ -144,10 +143,10 @@ for cModelIdx = 1: nModels
         
 end
 
-if ~ismember(NBSPredict.parameter.metric,{'mad','rmse','explained_variance'})
-    [~,bestEstimatorIdx] = max(meanRepCVscore); % find max score.
-else
+if ismember(NBSPredict.parameter.metric,{'mad','rmse','mse'})
     [~,bestEstimatorIdx] = min(meanRepCVscore); % find min error.
+else
+    [~,bestEstimatorIdx] = max(meanRepCVscore); % find min error.
 end
 
 
@@ -240,10 +239,10 @@ modelEvaluateFun = @(data) modelEvaluate(data,NBSPredict);
             NBSPredict.parameter.metric);
         weightScore = modelEvalResults.score;
         
-        if ismember(NBSPredict.parameter.metric,{'rmse','mad'})
+        if ismember(NBSPredict.parameter.metric,{'rmse','mse','mad'})
             weightScore = compute_modelMetrics(modelEvalResults.truePredLabels{1},...
-                modelEvalResults.truePredLabels{1},...
-                'explained_variance');
+                modelEvalResults.truePredLabels{2},...
+                'correlation');
         end
         % Multiply features selected with test score of model to compute
         % weight for each feature.
@@ -254,7 +253,7 @@ varargout = cell(1,4);
 
 varargout{1} = mean([outerFoldCVresults.score]);
 varargout{2} = [outerFoldCVresults.outerFoldEdgeWeight]';
-varargout{3} = cell2mat(reshape([outerFoldCVresults.truePredLabels],2,[])');
+varargout{3} = reshape([outerFoldCVresults.truePredLabels],2,[])';
 varargout{4} = compute_stability(single([outerFoldCVresults.outerFoldEdgeWeight]' > 0));
 end
 
@@ -345,8 +344,6 @@ model.estimator = estimator;
 model.predictor = predictor; 
 model.preprocess = preprocess;
 
-
-
 end
 
 function permScore = run_permTesting(NBSPredict)
@@ -414,6 +411,8 @@ varargout = cell(1,nMetrics+2);
 
 [varargout{:}] = modelFitScore(Mdl,data,metrics);
 end
+
+
 
 function [reshapedEdgeWeight,meanEdgeWeight,wAdjMat,scaledMeanEdgeWeight,scaledWAdjMat]...
     = compute_meanWeights(edgeWeight,CVscore,nNodes,nEdges,edgeIdx,totalFold)
