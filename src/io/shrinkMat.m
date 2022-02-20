@@ -13,7 +13,7 @@ function [edgeMat,nodes,edgeIdx] = shrinkMat(data)
 %   nodes = Number of nodes. 
 %   edgeIdx = List of indices of edges in a correlation matrix. 
 %
-% Emin Serin - 29.07.2019
+% Emin Serin - 12.01.2022
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
@@ -37,6 +37,9 @@ if dataDim == 2
 else
     for i = 1:subjects
         cMat = data(:,:,i); % Select current matrix.
+        if ~issymmetric(cMat)
+            warning('Given matrix is not symmetric! Data index: %d', i)
+        end
         edgeMat(i,:)=cMat(edgeIdx); % extract edge values.
     end
 end

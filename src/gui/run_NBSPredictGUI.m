@@ -340,9 +340,10 @@ fileName = get(hObject,'String');
 if exist(fileName, 'file') == 2
     if ~handles.ifHistory
         y = loadData(fileName);
-        handles.NBSPredict.data.y = y;
+%         handles.NBSPredict.data.y = y;
+        handles.NBSPredict.data.designPath = fileName;
     end
-    ifClass = check_classification(handles.NBSPredict.data.y);
+    ifClass = check_classification(y);
     if ifClass
         mlOptions = {'Auto (optimize models)','Decision Tree Classification',...
             'SVM Classification','Logistic Regression','Linear Discriminant Analysis'};
@@ -353,8 +354,9 @@ if exist(fileName, 'file') == 2
     else
         mlOptions = {'Auto (optimize models)','SVM Regression','Decision Tree Regression','Linear Regression'};
         MLfunNames = {'','svmR','decisionTreeR','LinReg'};
-        set(handles.metricpop,'String',{'RMSE','MSE','MAD','Correlation','Explained_Variance','R_squared'})
+        set(handles.metricpop,'String',{'Correlation','RMSE','MSE','MAD','Explained_Variance','R_squared'})
         %         handles.NBSPredict.parameter.test = 'F-test';
+%         set(handles.contrastEdit, 'String', '[0,1]');
     end
     set(handles.mlModelpop,'String',mlOptions);
     handles.MLfunNames = MLfunNames;
@@ -759,6 +761,6 @@ if ifHistory
             end
         end
     end
-else
-    handles.ifHistory = 0; 
 end
+handles.ifHistory = 0; 
+

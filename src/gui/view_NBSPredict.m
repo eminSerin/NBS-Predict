@@ -114,7 +114,6 @@ if metricLoc
     set(handles.metricPopUp,'Value',metricLoc);
 end
 
-handles = updateTitle(handles);
 
 % figureTitle = sprintf('%s: %.3f (%.3f, %.3f)',...
 %     [upper(metric(1)),metric(2:end)],...
@@ -137,6 +136,7 @@ set(handles.MLmodelsPop,'Value',MLmodelLoc);
 handles.plotResults.wThresh = 0;
 handles.cFig = 'adj';
 set(0, 'CurrentFigure', handles.viewNBSPredictFig);
+handles = updateTitle(handles);
 handles = plotUpdatedData(handles);
 guidata(hObject, handles);
 
@@ -608,7 +608,6 @@ else
     figTitle = sprintf('%s: %.3f',metricName,score);
 end
 handles.figureTitle = figTitle;
-title(figTitle);
 
 function [handles] = pcFontSize(handles)
 % Set font and font size if pc.
