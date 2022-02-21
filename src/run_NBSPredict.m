@@ -22,7 +22,7 @@ function [NBSPredict] = run_NBSPredict(NBSPredict)
 %   This structure is also saved in
 %       ~/Results/date/NBSPredict.mat directory.
 %
-% Last edited by Emin Serin, 18.02.2022
+% Last edited by Emin Serin, 21.02.2022
 %
 % See also: start_NBSPredictGUI, get_NBSPredictInput
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -152,7 +152,7 @@ end
 
 if NBSPredict.parameter.ifModelOpt
     NBSPredict.results.bestEstimator = NBSPredict.parameter.MLmodels{bestEstimatorIdx};
-    if verbose
+    if NBSPredict.parameter.verbose
         % Print summary results if more than one estimators are used.
         fprintf('\n\n\n\t\t\t<strong>OVERALL RESULTS:</strong>\n\n');
         for cModelIdx = 1:nModels
