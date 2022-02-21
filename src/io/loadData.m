@@ -12,7 +12,7 @@ function [cData] = loadData(file,path)
 % Example:
 %   [cData] = loadData(file,path);
 %
-% Created by Emin Serin, 07.01.2022
+% Last edited by Emin Serin, 18.02.2022.
 %
 % See also: load_corrMatFiles 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -24,6 +24,8 @@ else
     fileName = [path,file]; % create full file name. 
 end
 [~,~,ext] = fileparts(fileName); % get file format. 
+
+assert(exist(fileName, 'file') == 2, 'The file does not exist!');
 
 switch ext
     case '.mat'
@@ -37,5 +39,7 @@ switch ext
         catch
             cData = readtable(fileName);
         end
+    otherwise
+        error('Unrecognized file extension! Connectome file must be .csv or .mat!');
 end
 end

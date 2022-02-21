@@ -13,7 +13,7 @@ function [edgeMat,nodes,edgeIdx] = shrinkMat(data)
 %   nodes = Number of nodes. 
 %   edgeIdx = List of indices of edges in a correlation matrix. 
 %
-% Emin Serin - 12.01.2022
+% Last edited by Emin Serin, 21.02.2022.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
@@ -22,18 +22,19 @@ dataShape = size(data);
 dataDim = length(dataShape);
 assert(ismember(dataDim,[2,3]),'Data provided is not a 2D or 3D matrix!')
 assert(dataShape(1) == dataShape(2),'Please provide correct form of data matrix. See help!')
+nodes = dataShape(1); 
 if dataDim == 2
     subjects = 1;
-else
+elseif dataDim == 3
+    assert(dataShape(1) == dataShape(2), 'Unrecognized dataset structure!')
     subjects = dataShape(3);
 end
-nodes = dataShape(1); 
 
 edgeIdx = single(find(triu(ones(nodes,nodes),1))); % finds edge indices.
 edgeMat = zeros(subjects,length(edgeIdx)); % pre-allocate.
 
 if dataDim == 2
-    edgeMat(1,:)=data(edgeIdx); % extract edge values.
+    edgeMat(1,:) = data(edgeIdx); % extract edge values.
 else
     for i = 1:subjects
         cMat = data(:,:,i); % Select current matrix.

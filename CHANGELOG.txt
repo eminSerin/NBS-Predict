@@ -6,7 +6,8 @@
 - The symmetry of the connectivity matrices is now automatically checked. 
 - Fix minor GUI issue in the results viewer window.
 - Fix edge weight issue when MAD, MSE or RMSE chosen. 
-- 
+- Users can also provide directory for holdout data. 
+- Refactor load functions to be compatible for loading a single dataset file (NodesxNodesxSubjects).
 
 ## [v1.0.0-beta.6] - 09.01.2022
 - NBS-Predict is now in v1.0.0-beta.6

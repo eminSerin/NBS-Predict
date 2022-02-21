@@ -22,7 +22,7 @@ function [y_pred] = NBSPredict_predict(model, varargin)
 % Output:
 %   y_pred: Predicted labels.
 %
-% Last edited by Emin Serin, 12.01.2022.
+% Last edited by Emin Serin, 18.02.2022.
 %
 % See also: run_NBSPredict
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -67,18 +67,18 @@ end
 % Load data! 
 % Connectome data.
 if ischar(connectome)
-    connData = load_file(connectome);
+    connData = loadData(connectome);
 elseif iscell(connectome)
     nFiles = length(connectome);
     for f = 1: nFiles
         cFile = connectome{f};
         if f == 1
-            tmp = load_file(cFile);
+            tmp = loadData(cFile);
             dataSize = size(tmp);
             connData = zeros([dataSize, nFiles]);
             connData(:, :, f) = tmp;
         end
-        connData(:, :, f) = load_file(cFile);
+        connData(:, :, f) = loadData(cFile);
     end 
 elseif ismatrix(connectome)
     connData = connectome;
@@ -90,7 +90,7 @@ end
 % Confound matrix. 
 if ~isempty(confMat)
     if ischar(confMat)
-        confMat = load_file(confMat);
+        confMat = loadData(confMat);
     elseif ismatrix(confMat)
         confMat = confMat;
     else
@@ -118,17 +118,18 @@ X = X(:, model.preprocess.edgeSelectMask);
 y_pred = model.Mdl.pred(model.estimator, X);
 end
 
-function data = load_file(fileName)
-    % Loads .mat or .csv files.
-    assert(exist(fileName, 'file') == 2, 'The file does not exist!')
-    ext = fileName(end-2:end); 
-    if strcmpi(ext, 'csv')
-        data = csvread(fileName);
-    elseif strcmpi(ext, 'mat')
-        data = load(fileName);
-        fieldName = fieldnames(data);
-        data = data.(fieldName{1});
-    else
-        error('Unrecognized file extension! Connectome file must be .csv or .mat!')
-    end
-end
+% TODO: Remove in the following versions. 
+% function data = loadData(fileName)
+%     % Loads .mat or .csv files.
+%     assert(exist(fileName, 'file') == 2, 'The file does not exist!')
+%     ext = fileName(end-2:end); 
+%     if strcmpi(ext, 'csv')
+%         data = csvread(fileName);
+%     elseif strcmpi(ext, 'mat')
+%         data = load(fileName);
+%         fieldName = fieldnames(data);
+%         data = data.(fieldName{1});
+%     else
+%         error('Unrecognized file extension! Connectome file must be .csv or .mat!')
+%     end
+% end
