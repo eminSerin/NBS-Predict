@@ -55,7 +55,7 @@ function run_NBSPredictGUI_OpeningFcn(hObject, eventdata, handles, varargin)
 % Choose default command line output for run_NBSPredictGUI
 handles.output = hObject;
 handles.NBSPredict.parameter.ifView = 1; % run NBS_Predict_view after analysis. 
-handles.verNBSPredict = '1.0.0-beta.6';
+handles.verNBSPredict = '1.0.0-beta.7';
 handles.NBSPredict.info.version = handles.verNBSPredict;
 handles.NBSPredict.info.workingDir = pwd;
 handles.maxCores = feature('numcores');
