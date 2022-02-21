@@ -239,6 +239,9 @@ function startButton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 if isfield(handles, 'cWorkspace')
     if exist(handles.cWorkspace, 'dir')
+        handles.workspaces(handles.workspaceList.Value) = [];
+        handles.workspaces = {handles.cWorkspace, handles.workspaces{:}};
+        save_workspace(handles);
         cd(handles.cWorkspace);
         closereq;
         run_NBSPredictGUI();

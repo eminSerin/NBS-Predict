@@ -35,16 +35,7 @@ verbose = NBSPredict.parameter.verbose;
 NBSPredict.parameter.ifModelExtract = 1;
 
 % Random Seed
-randSeed = NBSPredict.parameter.randSeed;
-if randSeed ~= -1 % -1 refers to random shuffle.
-    if NBSPredict.parameter.numCores > 1
-        rndSeeds = linspace(randSeed,randSeed+repCViter-1,repCViter);
-    else
-        rng(randSeed);
-    end
-else
-    rng('shuffle');
-end
+rndSeeds = generate_randomStream(NBSPredict.parameter.randSeed, repCViter);
 
 % Init parallel pool if desired.
 create_parallelPool(NBSPredict.parameter.numCores);
@@ -91,6 +82,7 @@ for cModelIdx = 1: nModels
     else
         % Run sequentially.
         for r = 1: repCViter
+            rng(rndSeeds(r));
             [outerCVscore,edgeWeight(r,:,:),...
                 truePredLabels(r,:,:),stability(r)] = outerFold(cNBSPredict);
             repCVscore(r) = outerCVscore;
@@ -353,15 +345,20 @@ function permScore = run_permTesting(NBSPredict)
 % p-value represents the fraction of models yielding similar to or better
 % prediction performance than the tested model.
 if NBSPredict.parameter.ifPerm
+    permIter = NBSPredict.parameter.permIter;
     fprintf('Permutation testing is running! Permutations: %d\n',...
-        NBSPredict.parameter.permIter);
+        permIter);
+    
+    % Random Seed
     if NBSPredict.parameter.randSeed ~= -1 % -1 refers to random shuffle.
         rng(NBSPredict.parameter.randSeed);
     else
         rng('shuffle');
     end
+    rndSeeds = generate_randomStream(randi(1e+9), permIter);
+    
     nSub = size(NBSPredict.data.y,1);
-    permCVscore = zeros(NBSPredict.parameter.permIter+1, 1, 'single');
+    permCVscore = zeros(permIter+1, 1, 'single');
     [permCVscore(1),~, ~, ~] = outerFold(NBSPredict);
     if NBSPredict.parameter.numCores > 1
         pctRunOnAll warning off % Suppress warnings.
@@ -369,26 +366,28 @@ if NBSPredict.parameter.ifPerm
             permMsg = 'This will take quite time. Please be patient...\n';
             fprintf(permMsg)
         end
-        parfor permIter = 1: NBSPredict.parameter.permIter
+        parfor p = 1: permIter
+            rng(rndSeeds(p));
             permNBSPredict = NBSPredict;
             permNBSPredict.data.y = permNBSPredict.data.y(randperm(nSub), :);
-            [permCVscore(permIter+1),~, ~, ~] = outerFold(permNBSPredict);
+            [permCVscore(p+1),~, ~, ~] = outerFold(permNBSPredict);
         end
     else
         warning('off') % Suppress warnings.
         if NBSPredict.parameter.verbose
             permMsg = 'Progress:';
-            permProg = CmdProgress(permMsg, NBSPredict.parameter.permIter);
+            permProg = CmdProgress(permMsg, permIter);
         end
-        for permIter = 1: NBSPredict.parameter.permIter
+        for p = 1: permIter
+            rng(rndSeeds(p));
             permNBSPredict = NBSPredict;
             permNBSPredict.data.y = permNBSPredict.data.y(randperm(nSub), :);
-            [permCVscore(permIter+1),~, ~, ~] = outerFold(permNBSPredict);
+            [permCVscore(p+1),~, ~, ~] = outerFold(permNBSPredict);
             permProg.increment;
         end
     end
     permScore = [permCVscore(1), ...
-        (sum(permCVscore >= permCVscore(1))-1)/NBSPredict.parameter.permIter];
+        (sum(permCVscore >= permCVscore(1))-1)/permIter];
     if NBSPredict.parameter.verbose
         fprintf(['Permutation testing has finished. ',...
             'Prediction performance: %.3f, p = %.3f\n'],...
@@ -399,6 +398,17 @@ end
 end
 
 %% Helper functions
+function rndSeeds = generate_randomStream(randSeed, iter)
+% generate_randomStream generates random stream for loop.
+
+if randSeed ~= -1 % -1 refers to random shuffle.
+    rng(randSeed);
+else
+    rng('shuffle');
+end
+rndSeeds = randi(1e+9, iter, 1);
+end
+
 function varargout = fit_hyperParam(data,hyperparam,MLhandle,metrics)
 % fit_hyperParam fits ML algorithm on provided data with hyperparameters
 % provided.
@@ -411,8 +421,6 @@ varargout = cell(1,nMetrics+2);
 
 [varargout{:}] = modelFitScore(Mdl,data,metrics);
 end
-
-
 
 function [reshapedEdgeWeight,meanEdgeWeight,wAdjMat,scaledMeanEdgeWeight,scaledWAdjMat]...
     = compute_meanWeights(edgeWeight,CVscore,nNodes,nEdges,edgeIdx,totalFold)
@@ -443,7 +451,7 @@ function [fileDir] = save_NBSPredict(NBSPredict)
 if NBSPredict.parameter.ifSave
     referencePath = NBSPredict.data.corrPath;
     saveDir = fileparts(referencePath); % parent director
-    if isfield(NBSPredict.parameter,'ifTest')
+    if NBSPredict.parameter.ifTest
         saveDir = [saveDir,filesep,'test',filesep,'Results',filesep,date,filesep];
     else
         saveDir = [saveDir,filesep,'Results',filesep,date,filesep];
@@ -461,7 +469,7 @@ if NBSPredict.parameter.ifSave
     end
     save(fileDir,'NBSPredict');
 else
-    if ~isfield(NBSPredict.parameter,'ifTest')
+    if ~NBSPredict.parameter.ifTest
         warning(['Save parameter is disabled! So, NBSPredict file will not be saved!',...
             ' To save it, set ifSave to 1.']);
     end
