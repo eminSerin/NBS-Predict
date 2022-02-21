@@ -22,7 +22,7 @@ function [] = show_NBSPredictProgress(NBSPredict,iter,scores)
 %       show_NBSPredictProgress(NBSPredict,repCViter,outerCVscore)
 %   end
 %
-% Last edited by Emin Serin, 05.09.2019
+% Last edited by Emin Serin, 21.02.2022
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if NBSPredict.parameter.verbose == 1
@@ -51,11 +51,11 @@ if NBSPredict.parameter.verbose == 1
         printHeader = @() fprintf([dash,'\n','|   Score   |\n',dash,'\n']);
         printIter = @(scores) fprintf('|   %.3f   |\n',scores);
     else
-        dash = '------------------------------------------------------';
+        dash = '--------------------------------------------------------';
         printHeader = @() fprintf([dash,'\n',...
-            '| Repeated CV Iteration |   Score   | Moving Average |\n',dash,'\n']);
-        printIter = @(scores) fprintf('|          %s           |   %.3f   |      %.3f     |\n',...
-            num2str(iter,'%02d'),scores(iter),mean(scores(1:iter)));
+            '|  Repeated CV Iteration  |   Score   | Moving Average |\n',dash,'\n']);
+        printIter = @(scores) fprintf('|           %s           |   %.3f   |      %.3f     |\n',...
+            num2str(iter,'%03d'),scores(iter),mean(scores(1:iter)));
     end
     
     % Print!.
@@ -64,7 +64,8 @@ if NBSPredict.parameter.verbose == 1
     elseif iter == 0
         printHeader();
     elseif iter == -1
-        fprintf([dash,'\nMean CV score of %dx%d repeated nested CV: %.2f\n'],...
-            NBSPredict.parameter.repCViter,NBSPredict.parameter.kFold,mean(scores));
+        fprintf([dash,'\n%dx%d repeated-CV: µScore: %.3f, σScore: %.3f\n'],...
+            NBSPredict.parameter.repCViter, NBSPredict.parameter.kFold,...
+            mean(scores), std(scores));
     end
 end

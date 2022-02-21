@@ -55,6 +55,7 @@ function run_NBSPredictGUI_OpeningFcn(hObject, eventdata, handles, varargin)
 % Choose default command line output for run_NBSPredictGUI
 handles.output = hObject;
 handles.NBSPredict.parameter.ifView = 1; % run NBS_Predict_view after analysis. 
+handles.NBSPredict.parameter.ifTest = 0;
 handles.verNBSPredict = '1.0.0-beta.7';
 handles.NBSPredict.info.version = handles.verNBSPredict;
 handles.NBSPredict.info.workingDir = pwd;
@@ -63,7 +64,6 @@ handles.maxCores = feature('numcores');
 % History function has been deactivated until the following versions!
 handles = loadHistory(handles);
 % handles.ifHistory = 0;
-
 
 % Update handles structure
 guidata(hObject, handles);
@@ -338,11 +338,9 @@ function designMatEdit_Callback(hObject, eventdata, handles)
 %        str2double(get(hObject,'String')) returns contents of designMatEdit as a double
 fileName = get(hObject,'String');
 if exist(fileName, 'file') == 2
-    if ~handles.ifHistory
-        y = loadData(fileName);
-%         handles.NBSPredict.data.y = y;
-        handles.NBSPredict.data.designPath = fileName;
-    end
+    y = loadData(fileName);
+    %         handles.NBSPredict.data.y = y;
+    handles.NBSPredict.data.designPath = fileName;
     ifClass = check_classification(y);
     if ifClass
         mlOptions = {'Auto (optimize models)','Decision Tree Classification',...
@@ -736,7 +734,7 @@ run_NBSPredict(handles.NBSPredict);
 
 
 %% Helper
-function [handles] = loadHistory(handles)
+function handles = loadHistory(handles)
 historyDir = [handles.NBSPredict.info.workingDir, filesep, 'history.mat'];
 handles.historyDir = historyDir;
 ifHistory = exist(historyDir, 'file') == 2;
@@ -760,7 +758,11 @@ if ifHistory
                 fun(handles.(callbacks{j}),[],handles);
             end
         end
+        handles.ifHistory = 0; 
+    catch
+        error('Error while loading parameters for %s.', callbacks{j});
     end
+else
+    handles.ifHistory = 0; 
 end
-handles.ifHistory = 0; 
 

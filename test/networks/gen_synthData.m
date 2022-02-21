@@ -50,7 +50,7 @@ function [varargout] = gen_synthData(varargin)
 %         statistic: identifying differences in brain networks.
 %         Neuroimage, 53(4), 1197-1207.
 %
-% Last edited by Emin Serin, 09.04.2021
+% Last edited by Emin Serin, 21.02.2022
 %
 % See also: test_NBSPredict, gen_BAnet, gen_SWnet, search_BF
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -105,7 +105,11 @@ if ifSave
 end
 
 if p.Results.randomState
-    rng(p.Results.randomState);
+    if p.Results.randomState == -1
+        rng('shuffle');
+    else
+        rng(p.Results.randomState);
+    end
 end
 %% Generate networks.
 % Check network generation method.
