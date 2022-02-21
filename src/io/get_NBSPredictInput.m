@@ -46,8 +46,12 @@ if isfield(NBSPredict,'info')
 end
 
 % Check important data are provided.
-assert(isfield(NBSPredict.data,'designPath'),'Design matrix is not provided!');
-NBSPredict.data.y = loadData(NBSPredict.data.designPath); % Load y
+if NBSPredict.parameter.ifTest
+    assert(isfield(NBSPredict.data, 'y'), 'Target is not provided!');
+else
+    assert(isfield(NBSPredict.data,'designPath'),'Design matrix is not provided!');
+    NBSPredict.data.y = loadData(NBSPredict.data.designPath); % Load y
+end
 assert(isfield(NBSPredict.parameter,'contrast'),'Contrast vector is not provided!');
 
 if isfield(NBSPredict.parameter,'ifHyperOpt')
