@@ -152,7 +152,7 @@ end
 
 if NBSPredict.parameter.ifModelOpt
     NBSPredict.results.bestEstimator = NBSPredict.parameter.MLmodels{bestEstimatorIdx};
-    if NBSPredict.parameter.verbose
+    if verbose
         % Print summary results if more than one estimators are used.
         fprintf('\n\n\n\t\t\t<strong>OVERALL RESULTS:</strong>\n\n');
         for cModelIdx = 1:nModels
@@ -365,7 +365,7 @@ if NBSPredict.parameter.ifPerm
     [permCVscore(1),~, ~, ~] = outerFold(NBSPredict);
     if NBSPredict.parameter.numCores > 1
         pctRunOnAll warning off % Suppress warnings.
-        if verbose
+        if NBSPredict.parameter.verbose
             permMsg = 'This will take quite time. Please be patient...\n';
             fprintf(permMsg)
         end
