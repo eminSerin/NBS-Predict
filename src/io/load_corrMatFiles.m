@@ -12,54 +12,69 @@ function [edgeMat,nodes,edgeIdx] = load_corrMatFiles(corrMatDir, verbose)
 % Output:
 %   edgeMat: Matrix of edges shrinked from subjects' correlation matrices.
 %   nodes: number of nodes.
-%   edgeIdx: Indices of edges found in participants correlation matrix. 
+%   edgeIdx: Indices of edges found in participants correlation matrix.
 %
-% Example: 
+% Example:
 %   corrMatDir = uigetdir('Please locate directory where correlation matrices found!');
 %   [edgeMat,nodes,edgeIdx] = load_corrMatFiles(corrMatDir)
 %
-% Emin Serin - 22.08.2019
+% Last edited by Emin Serin, 21.02.2022.
 %
-% See also: loadData, shrinkMat 
+% See also: loadData, shrinkMat
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 % Filter out . dir and '.DS_Store' which might be found in MacOS
 % directories.
 dataFiles = dir(corrMatDir);
 dirFilter = ~logical(strcmpi({dataFiles.name},'.DS_Store') + [dataFiles.isdir]);
-dataFiles = dataFiles(dirFilter); 
+dataFiles = dataFiles(dirFilter);
 filePath = [corrMatDir,filesep];
+
 % Load all data files into a structure.
 nFiles = length(dataFiles);
-% Preallocate 
-cData = loadData(dataFiles(1).name,filePath);
-data = zeros([size(cData),nFiles],'single');
 
 if verbose
     msg = 'Connectivity matrices are being loaded:';
     prog = CmdProgress(msg, nFiles);
 end
 
-try
-    for i = 1:nFiles
-        cData = loadData(dataFiles(i).name,filePath);
-        if istable(cData)
-            cData = table2array(cData);
+if nFiles > 1
+    % Preallocate
+    cData = loadData(dataFiles(1).name,filePath);
+    data = zeros([size(cData),nFiles],'single');
+    
+    try
+        % Load files.
+        for i = 1:nFiles
+            cData = loadData(dataFiles(i).name,filePath);
+            if istable(cData)
+                cData = table2array(cData);
+            end
+            data(:,:,i) = cData;
+            if verbose
+                prog.increment;
+            end
         end
-        data(:,:,i) = cData;
-        if verbose
-            prog.increment;
-        end
+    catch
+        error(['Error in loading correlation matrices.\n',...
+            'There is something wrong with %s.\n',...
+            'Please check the sample dataset for example data structure!'],...
+            [filePath,filesep,dataFiles(i).name]);
     end
-catch
-    error(['Error in loading correlation matrices.\n',...
-        'There is something wrong with %s.\n',...
-        'Please check the sample dataset for example data structure!'],...
-        [filePath,filesep,dataFiles(i).name]);
+elseif nFiles == 1
+    %     [~, ~, ext] = fileparts([filePath, dataFiles(1).name]);
+    data = loadData(dataFiles(1).name,filePath);
+    if verbose
+        prog.increment;
+    end
+else
+    error('No connectivity matrix found in the directory!')
 end
 
 if verbose
-   fprintf('Loaded matrices are shrinked into a single edge matrix...\n') 
+    fprintf('Loaded matrices are shrinked into a single edge matrix...\n')
 end
+
 % Shrinks data into edge matrix.
 [edgeMat,nodes,edgeIdx] = shrinkMat(data);
 end

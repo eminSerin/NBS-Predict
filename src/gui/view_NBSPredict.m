@@ -114,7 +114,6 @@ if metricLoc
     set(handles.metricPopUp,'Value',metricLoc);
 end
 
-handles = updateTitle(handles);
 
 % figureTitle = sprintf('%s: %.3f (%.3f, %.3f)',...
 %     [upper(metric(1)),metric(2:end)],...
@@ -137,6 +136,7 @@ set(handles.MLmodelsPop,'Value',MLmodelLoc);
 handles.plotResults.wThresh = 0;
 handles.cFig = 'adj';
 set(0, 'CurrentFigure', handles.viewNBSPredictFig);
+handles = updateTitle(handles);
 handles = plotUpdatedData(handles);
 guidata(hObject, handles);
 
@@ -414,6 +414,7 @@ handles.plotResults.truePredLabels = handles.plotData.(handles.cModel).truePredL
 % Update handles structure and plot
 handles = plotUpdatedData(handles);
 handles = updateTitle(handles);
+title(handles.figureTitle);
 if handles.ifClass
     [handles] =  updateConfMat(handles);
     if strcmpi(handles.cFig,'confMat')
@@ -450,6 +451,7 @@ handles.plotResults.metric = metric;
 wBar = waitbar(0, 'Computing...');
 set(0, 'CurrentFigure', handles.viewNBSPredictFig);
 handles = updateTitle(handles);
+title(handles.figureTitle);
 waitbar(1, wBar, 'Done!');
 close(wBar);
 guidata(hObject,handles);
@@ -604,11 +606,15 @@ if strcmpi(handles.plotData.metric,metric)
 
 else
     truePredLabels = handles.plotResults.truePredLabels;
-    score = compute_modelMetrics(truePredLabels(:,1),truePredLabels(:,2),metric);
+    if iscell(truePredLabels) && length(size(truePredLabels))==3
+        score = compute_mRCVscore(truePredLabels, metric);
+    else
+        score = compute_modelMetrics(truePredLabels(:,1),...
+            truePredLabels(:,2),metric);
+    end
     figTitle = sprintf('%s: %.3f',metricName,score);
 end
 handles.figureTitle = figTitle;
-title(figTitle);
 
 function [handles] = pcFontSize(handles)
 % Set font and font size if pc.
@@ -644,13 +650,10 @@ for i = 1: repCV
     CVscores(i,:) = crossValidation(subnetEvalFun,data,'kfold',kFold); % Run handler in CV.
 end
 
-meanCVscore = mean(nanmean(CVscores));
-stdCVscore = std(nanmean(CVscores));
-seCVscore = stdCVscore/sqrt(repCV);
-confScore = seCVscore*1.96; % p < .05
-upperCI = meanCVscore + confScore;
-lowerCI = meanCVscore - confScore;
-strCVscore = sprintf('Score : %.3f\n[%.3f, %.3f]',meanCVscore,lowerCI,upperCI);
+mRCVscore = mean(CVscores);
+meanCVscore = mean(mRCVscore);
+CI = compute_CI(mRCVscore);
+strCVscore = sprintf('Score : %.3f\n[%.3f, %.3f]',meanCVscore,CI(1),CI(2));
 set(handles.subNetEvalText,'String',strCVscore);
 waitbar(1, wBar, 'Done!');
 pause(0.5);

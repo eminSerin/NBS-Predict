@@ -19,7 +19,7 @@ function [mainNBSPredict] = get_NBSPredictInput(NBSPredict)
 % Example:
 %   [NBSPredict] = get_NBSPredictInput(NBSPredict);
 %
-% Emin Serin - 05.07.2020
+% Last edited by Emin Serin, 20.02.2022
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Set default parameters
@@ -44,6 +44,11 @@ end
 if isfield(NBSPredict,'info')
     default.info = NBSPredict.info;
 end
+
+% Check important data are provided.
+assert(isfield(NBSPredict.data,'designPath'),'Design matrix is not provided!');
+NBSPredict.data.y = loadData(NBSPredict.data.designPath); % Load y
+assert(isfield(NBSPredict.parameter,'contrast'),'Contrast vector is not provided!');
 
 if isfield(NBSPredict.parameter,'ifHyperOpt')
     % Set default hyperOptSteps parameter if ifHyperOpt exists and set to 1
@@ -77,6 +82,7 @@ if ~isfield(NBSPredict.parameter,'ifModelOpt')
     NBSPredict.parameter.ifModelOpt = 1;
 end
 ifModelOpt = NBSPredict.parameter.ifModelOpt;
+
 [ifClassif, nClasses] = check_classification(NBSPredict.data.y);
 if ifClassif
     % Set default models.
@@ -97,7 +103,7 @@ else
     else
         default.parameter.MLmodels = {'decisionTreeR'};
     end
-    default.parameter.metric = 'rmse';
+    default.parameter.metric = 'correlation';
     default.parameter.test = 'f-test';
 end
 
@@ -145,9 +151,6 @@ if ~isfield(default.data,'X')
     end
 end
 
-% Check important data are provided.
-assert(isfield(default.data,'y'),'Design matrix is not provided!');
-assert(isfield(default.parameter,'contrast'),'Contrast vector is not provided!');
 
 % Check if confound variable is provided. 
 nuisanceIdx = find(default.parameter.contrast == 0); 
