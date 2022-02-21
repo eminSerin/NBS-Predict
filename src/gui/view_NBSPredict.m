@@ -274,7 +274,7 @@ function confMatPush_Callback(hObject, eventdata, handles)
 % https://stackoverflow.com/questions/33451812/plot-confusion-matrix
 handles.cFig = 'confMat';
 datacursormode off;
-truePredLabels = handles.plotResults.truePredLabels;
+truePredLabels = handles.plotResults.truePredLabelsVec;
 confmat = handles.plotResults.confMat;
 labels = unique(truePredLabels);
 numlabels = size(confmat, 1); % number of labels
@@ -582,10 +582,11 @@ function [handles] =  updateConfMat(handles)
 % Generate confusion matrix.
 % truePredLabels = handles.
 truePredLabels = handles.plotData.(handles.cModel).truePredLabels;
-CM = compute_modelMetrics(truePredLabels(:,1),...
-    truePredLabels(:,2),'confusionMatrix');
+truePredLabelsVec = cell2mat(reshape(permute(truePredLabels, [2,1,3]),[],2));
+CM = compute_modelMetrics(truePredLabelsVec(:,1),...
+    truePredLabelsVec(:,2),'confusionMatrix');
 confMat = [CM.TN,CM.FN;CM.FP,CM.TP];
-handles.plotResults.truePredLabels = truePredLabels;
+handles.plotResults.truePredLabelsVec = truePredLabelsVec;
 handles.plotResults.confMat = confMat;
 
 function [handles] = updateTitle(handles)
