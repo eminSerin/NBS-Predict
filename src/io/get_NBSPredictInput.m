@@ -19,7 +19,7 @@ function [mainNBSPredict] = get_NBSPredictInput(NBSPredict)
 % Example:
 %   [NBSPredict] = get_NBSPredictInput(NBSPredict);
 %
-% Last edited by Emin Serin, 20.02.2022
+% Last edited by Emin Serin, 24.02.2022
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Set default parameters
@@ -169,6 +169,8 @@ if ~isempty(nuisanceIdx)
 else
     default.data.confounds = [];
 end
+% Extract y (i.e., independent variables) from the design matrix. 
+default.data.y = default.data.y(:, 1:2); 
 
 %% Hyperparameters
 % Set default hyperparameters for given model.

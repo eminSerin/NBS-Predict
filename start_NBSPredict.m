@@ -29,12 +29,12 @@ function [] = start_NBSPredict(varargin)
 %   You should have received a copy of the GNU General Public License
 %   along with this program. If not, see <http://www.gnu.org/licenses/>.
 %
-%   Release : 1.0.0-beta.6
+%   Release : 1.0.0-beta.8
 %   Mail to Author: emin.serin@charite.de
 %
 % See also: run_NBSPredictGUI, run_NBSPredict, test_NBSPredict
 
-verNBSPredict = '1.0.0-beta.7';
+verNBSPredict = '1.0.0-beta.8';
 
 welcomeMsg = ['\n\n\nWelcome to NBSPredict\n',...
     'Release: <strong>%s</strong> \n',...
