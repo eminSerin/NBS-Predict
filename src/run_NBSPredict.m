@@ -141,7 +141,6 @@ else
     [~,bestEstimatorIdx] = max(meanRepCVscore); % find min error.
 end
 
-
 if NBSPredict.parameter.ifModelOpt
     NBSPredict.results.bestEstimator = NBSPredict.parameter.MLmodels{bestEstimatorIdx};
     if verbose

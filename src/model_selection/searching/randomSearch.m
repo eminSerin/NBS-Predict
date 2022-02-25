@@ -13,7 +13,7 @@ function [bestParam,bestParamScore,bestParamIdx] = randomSearch(objFun,...
 %   objFun = Objective function (e.g., estimator).
 %   data = Data structure including X and y matrices. 
 %   paramGrid = Parameter grid.
-%   nIter: Number of iteration (default = 10).
+%   nIter: Number of iteration (default = 20).
 %   bestParamMethod = Method to choose best parameter ('best','median', default = "best").
 %       Check help section of bestParamMetric for detailed information. 
 %   metric = Performance metric used to evaluate model performance. 

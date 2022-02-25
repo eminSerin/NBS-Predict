@@ -91,9 +91,9 @@ ifModelOpt = NBSPredict.parameter.ifModelOpt;
 if ifClassif
     % Set default models.
     if ifModelOpt
-        default.parameter.MLmodels = {'decisionTreeC','svmC','LogReg','lda'};
+        default.parameter.MLmodels = {'LogReg','svmC','lda'};
     else
-        default.parameter.MLmodels = {'decisionTreeC'};
+        default.parameter.MLmodels = {'LogReg'};
     end
     default.parameter.metric = 'accuracy';
     if nClasses > 2
@@ -103,9 +103,9 @@ if ifClassif
     end
 else
     if ifModelOpt
-        default.parameter.MLmodels = {'decisionTreeR','svmR','LinReg'};
+        default.parameter.MLmodels = {'LinReg', 'svmR'};
     else
-        default.parameter.MLmodels = {'decisionTreeR'};
+        default.parameter.MLmodels = {'LinReg'};
     end
     default.parameter.metric = 'correlation';
     default.parameter.test = 'f-test';
@@ -155,7 +155,6 @@ if ~isfield(default.data,'X')
     end
 end
 
-
 % Check if confound variable is provided. 
 nuisanceIdx = find(default.parameter.contrast == 0); 
 if ~isempty(nuisanceIdx)
@@ -177,18 +176,24 @@ default.data.y = default.data.y(:, 1:2);
 for m = 1:numel(default.parameter.MLmodels)
     if default.parameter.ifHyperOpt
         switch default.parameter.MLmodels{m}
-            case 'svmC'
-                default.parameter.paramGrids(m).C = logspace(-1,3,hyperOptSteps);
-            case 'svmR'
-                default.parameter.paramGrids(m).epsilon = logspace(-1,2,hyperOptSteps);
             case {'decisionTreeC','decisionTreeR'}
                 %Rafael Gomes Mantovani, Tomáš Horváth, Ricardo Cerri,
                 %Sylvio Barbon Junior, Joaquin Vanschoren, André Carlos
                 %Ponce de Leon Ferreira de Carvalho, “An empirical study on
                 %hyperparameter tuning of decision trees” arXiv:1812.02207
                 default.parameter.paramGrids(m).MinLeafSize = linspace(1,20,hyperOptSteps);
-            case {'LinReg','LogReg'}
+                if strcmpi(default.parameter.MLmodels{m}, 'decisionTreeC')
+                    default.parameter.paramGrids(m).SplitCriterion = {'gdi','deviance'};
+                end
+            case {'LinReg','LogReg','svmC','svmR'}
                 default.parameter.paramGrids(m).lambda = logspace(-2,3,hyperOptSteps);
+                if ismember(default.parameter.MLmodels{m}, {'svmC','svmR'})
+                    % If SVM.
+                    default.parameter.paramGrids(m).solver =  {'sgd','asgd','lbfgs','dual'};
+                else
+                    % If regression.
+                    default.parameter.paramGrids(m).solver = {'sgd','asgd','lbfgs'};
+                end
             case {'lda'}
                 default.parameter.paramGrids(m).gamma = linspace(0,1,hyperOptSteps);
         end
