@@ -19,9 +19,12 @@ function [varargout] = run_nbsPredictGlm(X,y,contrast,test)
 %
 % TODO: Implement better nuisance control method!.
 %
-% Last edited by Emin Serin, 03.06.2020
+% Last edited by Emin Serin, 24.02.2022
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Check the dimensions of some variables. 
+assert(length(size(X)) == 2, 'X matrix has to be Nx2'); 
+assert(length(size(contrast)) == 2, 'There must be two contrast!'); 
 
 % Check if nuisance variable
 nuisance = find(~contrast);

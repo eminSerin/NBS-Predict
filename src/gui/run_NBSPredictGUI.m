@@ -56,7 +56,7 @@ function run_NBSPredictGUI_OpeningFcn(hObject, eventdata, handles, varargin)
 handles.output = hObject;
 handles.NBSPredict.parameter.ifView = 1; % run NBS_Predict_view after analysis. 
 handles.NBSPredict.parameter.ifTest = 0;
-handles.verNBSPredict = '1.0.0-beta.7';
+handles.verNBSPredict = '1.0.0-beta.8';
 handles.NBSPredict.info.version = handles.verNBSPredict;
 handles.NBSPredict.info.workingDir = pwd;
 handles.maxCores = feature('numcores');

@@ -1,4 +1,9 @@
-## [v1.0.0-beta.7] - 
+## [v1.0.0-beta.8] - 25.02.2022 
+- NBS-Predict is now in v1.0.0-beta.8
+- Fix minor bug in feature selection (when confounds are provided in the
+    design matrix, but not specified in the contrast vector.). 
+
+## [v1.0.0-beta.7] - 23.02.2022
 - NBS-Predict is now in v1.0.0-beta.7
 - Trained model is now automatically extracted. 
 - Add function (NBSPredict_predict) to predict novel data using the trained model. 
