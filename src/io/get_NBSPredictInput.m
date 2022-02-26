@@ -187,13 +187,13 @@ for m = 1:numel(default.parameter.MLmodels)
                 end
             case {'LinReg','LogReg','svmC','svmR'}
                 default.parameter.paramGrids(m).lambda = logspace(-2,3,hyperOptSteps);
-                if ismember(default.parameter.MLmodels{m}, {'svmC','svmR'})
-                    % If SVM.
-                    default.parameter.paramGrids(m).solver =  {'sgd','asgd','lbfgs','dual'};
-                else
-                    % If regression.
-                    default.parameter.paramGrids(m).solver = {'sgd','asgd','lbfgs'};
-                end
+%                 if ismember(default.parameter.MLmodels{m}, {'svmC','svmR'})
+%                     % If SVM.
+%                     default.parameter.paramGrids(m).solver =  {'sgd','asgd','lbfgs','dual'};
+%                 else
+%                     % If regression.
+%                     default.parameter.paramGrids(m).solver = {'sgd','asgd','lbfgs'};
+%                 end
             case {'lda'}
                 default.parameter.paramGrids(m).gamma = linspace(0,1,hyperOptSteps);
         end
