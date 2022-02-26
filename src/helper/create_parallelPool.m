@@ -19,10 +19,10 @@ if license('test','Distrib_Computing_Toolbox')
         if numCores > 1
             pool = gcp('nocreate');
             if isempty(pool)
-                parpool(numCores, "IdleTimeout", 360);
+                parpool(numCores, 'IdleTimeout', 360);
             elseif pool.NumWorkers ~= numCores
                 delete(pool);
-                parpool(numCores, "IdleTimeout", 360);
+                parpool(numCores, 'IdleTimeout', 360);
             end
         elseif numCores < 1
             error('The number of parallel workers cannot less than 1!')
