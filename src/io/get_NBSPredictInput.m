@@ -207,18 +207,18 @@ end
 
 %% Feature selection
 % Prepare a cell array including feature selection parameters.
-nFeatSelparams = numel(hyperOptParamNames);
-featSelParams = cell(nFeatSelparams*2,1);
-featSelParams(linspace(1,nFeatSelparams*2-1,nFeatSelparams)) = hyperOptParamNames; 
-cFeatParamIdx = 0;
-for i = 1:nFeatSelparams
-    cFeatParamIdx = cFeatParamIdx+2;
-    featSelParams(cFeatParamIdx) = {default.parameter.(hyperOptParamNames{i})};
+nSearchParams = numel(hyperOptParamNames);
+searchParams = cell(nSearchParams*2,1);
+searchParams(linspace(1,nSearchParams*2-1,nSearchParams)) = hyperOptParamNames; 
+cSearchParamIdx = 0;
+for i = 1:nSearchParams
+    cSearchParamIdx = cSearchParamIdx+2;
+    searchParams(cSearchParamIdx) = {default.parameter.(hyperOptParamNames{i})};
 end
 
 % assign feature selection function handle
-featSelHandle = str2func(default.parameter.selMethod); 
-default.featSelHandle = @(objFun,data,paramGrid) featSelHandle(objFun,data,paramGrid,featSelParams{:});
+searchHandle = str2func(default.parameter.selMethod); 
+default.searchHandle = @(objFun,data,paramGrid) searchHandle(objFun,data,paramGrid,searchParams{:});
 
 %% Return assigned default structure.
 mainNBSPredict = default; 

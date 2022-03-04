@@ -22,6 +22,32 @@ function [y_pred] = NBSPredict_predict(model, varargin)
 % Output:
 %   y_pred: Predicted labels.
 %
+% Example:
+%    NBSPredict_predict(NBSPredict.results.lda.model, 'connectome',... 
+%       '~/Documents/holdout/connMats/subject-001.mat',...
+%       'confMat', '~/Documents/holdout/confoundMat.mat');
+%
+%   Sample script to evaluate the holdout performance of the trained model.
+%   
+%   % Set main directory for the holdout prediction.
+%   holdoutDir = '~Documents/holdoutPrediction/'; 
+%   fprintf('Started predicting holdout subjects... \n');
+%
+%   % Model to predict holdout subjects.
+%   model = NBSPredict.results.lda.model;
+%   
+%   % Predict holdout subjects.
+%   yPred = NBSPredict_predict(model,...
+%   'connectome', [holdoutDir, 'connMats/'],...
+%   'confMat', [holdoutDir, 'confoundMat.csv']); 
+%   
+%   % Load true labels
+%   yTrue = csvread([holdoutDir, 'trueLabels.csv']);
+%   
+%   % Compute explained variance between predicted and true labels, and print.
+%   score = compute_modelMetrics(yTrue, yPred, 'explained_variance'); 
+%   fprintf('Explained variance: %.3f \n', score);
+%
 % Last edited by Emin Serin, 18.02.2022.
 %
 % See also: run_NBSPredict

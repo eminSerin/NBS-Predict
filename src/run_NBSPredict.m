@@ -17,7 +17,7 @@ function [NBSPredict] = run_NBSPredict(NBSPredict)
 %       parameter: Toolbox parameters.
 %       data: Substructure comprising data, contrast, directories and brain
 %           parcellation..
-%       featSelHandle: Function handle for selection algorithm.
+%       searchHandle: Function handle for selection algorithm.
 %       results: Substructure containing results.
 %   This structure is also saved in
 %       ~/Results/date/NBSPredict.mat directory.
@@ -259,8 +259,8 @@ function [bestParam] = middleFoldHyperOpt(data,NBSPredict)
 % cross-validation structure. middleFold performs feature selection using a
 % searching algorithm selected. If requested, a function for hyperparameter
 % optimization (i.e., inner layer) is called in this function.
-featureSelFun = @(data,param) optimize_hyperOpt(data,NBSPredict,param);
-[bestParam] = NBSPredict.featSelHandle(featureSelFun,data,...
+hyperOptFun = @(data,param) optimize_hyperOpt(data,NBSPredict,param);
+[bestParam] = NBSPredict.searchHandle(hyperOptFun,data,...
     NBSPredict.parameter.paramGrids);
 
     function [hyperOptResults] = optimize_hyperOpt(data,NBSPredict,params)
