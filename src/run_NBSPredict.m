@@ -17,7 +17,7 @@ function [NBSPredict] = run_NBSPredict(NBSPredict)
 %       parameter: Toolbox parameters.
 %       data: Substructure comprising data, contrast, directories and brain
 %           parcellation..
-%       featSelHandle: Function handle for selection algorithm.
+%       searchHandle: Function handle for selection algorithm.
 %       results: Substructure containing results.
 %   This structure is also saved in
 %       ~/Results/date/NBSPredict.mat directory.
@@ -56,6 +56,7 @@ edgeWeight = zeros(repCViter,NBSPredict.parameter.kFold,...
     nEdges,'single');
 stability = zeros(repCViter,1,'single');
 truePredLabels = cell(repCViter, NBSPredict.parameter.kFold,2);
+bestParams = cell(repCViter, NBSPredict.parameter.kFold);
 
 fileDir = save_NBSPredict(NBSPredict);
 cNBSPredict = NBSPredict; % current NBSPredict.
@@ -74,18 +75,18 @@ for cModelIdx = 1: nModels
         % Run parallelly.
         parfor r = 1: repCViter
             rng(rndSeeds(r));
-            [outerCVscore,edgeWeight(r,:,:),...
-                truePredLabels(r,:,:),stability(r)] = outerFold(cNBSPredict);
-            repCVscore(r) = outerCVscore;
-            show_NBSPredictProgress(cNBSPredict,r,outerCVscore);
+            [repCVscore(r),edgeWeight(r,:,:),...
+                truePredLabels(r,:,:),stability(r),...
+                bestParams(r,:)] = outerFold(cNBSPredict);
+            show_NBSPredictProgress(cNBSPredict,r,repCVscore(r));
         end
     else
         % Run sequentially.
         for r = 1: repCViter
             rng(rndSeeds(r));
-            [outerCVscore,edgeWeight(r,:,:),...
-                truePredLabels(r,:,:),stability(r)] = outerFold(cNBSPredict);
-            repCVscore(r) = outerCVscore;
+            [repCVscore(r),edgeWeight(r,:,:),...
+                truePredLabels(r,:,:),stability(r),...
+                bestParams(r,:)] = outerFold(cNBSPredict);
             show_NBSPredictProgress(cNBSPredict,r,repCVscore);
         end
     end
@@ -106,6 +107,9 @@ for cModelIdx = 1: nModels
     % Stability
     NBSPredict.results.(cModel).stability = stability;
     NBSPredict.results.(cModel).meanStability = mean(stability);
+    
+    % Best hyperparameters. 
+    NBSPredict.results.(cModel).bestParams = bestParams;
     
     % EdgeWeights
     maxScore_ = meanRCVscore; % will be used while scaling edge weights. 
@@ -140,7 +144,6 @@ if ismember(NBSPredict.parameter.metric,{'mad','rmse','mse'})
 else
     [~,bestEstimatorIdx] = max(meanRepCVscore); % find min error.
 end
-
 
 if NBSPredict.parameter.ifModelOpt
     NBSPredict.results.bestEstimator = NBSPredict.parameter.MLmodels{bestEstimatorIdx};
@@ -209,6 +212,7 @@ modelEvaluateFun = @(data) modelEvaluate(data,NBSPredict);
             end
             params = middleFoldHyperOpt(middleFoldData,NBSPredict);
         end
+        modelEvalResults.params = params;
         
         filterData.X = data.X_train;
         filterData.y = data.y_train;
@@ -241,12 +245,13 @@ modelEvaluateFun = @(data) modelEvaluate(data,NBSPredict);
         modelEvalResults.outerFoldEdgeWeight = edgeSelectMask .* weightScore;
     end
 
-varargout = cell(1,4);
+varargout = cell(1,5);
 
 varargout{1} = mean([outerFoldCVresults.score]);
 varargout{2} = [outerFoldCVresults.outerFoldEdgeWeight]';
 varargout{3} = reshape([outerFoldCVresults.truePredLabels],2,[])';
 varargout{4} = compute_stability(single([outerFoldCVresults.outerFoldEdgeWeight]' > 0));
+varargout{5} = {outerFoldCVresults.params};
 end
 
 function [bestParam] = middleFoldHyperOpt(data,NBSPredict)
@@ -254,8 +259,8 @@ function [bestParam] = middleFoldHyperOpt(data,NBSPredict)
 % cross-validation structure. middleFold performs feature selection using a
 % searching algorithm selected. If requested, a function for hyperparameter
 % optimization (i.e., inner layer) is called in this function.
-featureSelFun = @(data,param) optimize_hyperOpt(data,NBSPredict,param);
-[bestParam] = NBSPredict.featSelHandle(featureSelFun,data,...
+hyperOptFun = @(data,param) optimize_hyperOpt(data,NBSPredict,param);
+[bestParam] = NBSPredict.searchHandle(hyperOptFun,data,...
     NBSPredict.parameter.paramGrids);
 
     function [hyperOptResults] = optimize_hyperOpt(data,NBSPredict,params)
@@ -335,7 +340,6 @@ model.Mdl = Mdl;
 model.estimator = estimator;
 model.predictor = predictor; 
 model.preprocess = preprocess;
-
 end
 
 function permScore = run_permTesting(NBSPredict)
@@ -361,6 +365,10 @@ if NBSPredict.parameter.ifPerm
     permCVscore = zeros(permIter+1, 1, 'single');
     [permCVscore(1),~, ~, ~] = outerFold(NBSPredict);
     if NBSPredict.parameter.numCores > 1
+        if isempty(gcp('nocreate'))
+            % Init parallel pool if desired.
+            create_parallelPool(NBSPredict.parameter.numCores);
+        end
         pctRunOnAll warning off % Suppress warnings.
         if NBSPredict.parameter.verbose
             permMsg = 'This will take quite time. Please be patient...\n';

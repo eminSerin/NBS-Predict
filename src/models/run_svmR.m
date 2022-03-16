@@ -5,8 +5,9 @@ function [Mdl] = run_svmR(params)
 %
 % Arguments: 
 %   params: Structure including following hyperparameters:
-%   epsilon: Epsilon parameter (default = 0.1). 
-% 
+%       lambda: Lambda parameter. 
+%       solver: ML solver (default = 'sgd')
+%   
 % Output: 
 %   Mdl: Structure that includes fit, predict and score function handles. 
 %
@@ -14,11 +15,12 @@ function [Mdl] = run_svmR(params)
 %   https://en.wikipedia.org/wiki/Support-vector_machine
 %   https://www.mathworks.com/help/stats/understanding-support-vector-machine-regression.html
 %
-% Emin Serin - 10.08.2019
+% Last edited by Emin Serin, 25.02.2022
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Default parameters.
-defaultParams.epsilon = 0.1;
+defaultParams.lambda = 0;
+defaultParams.solver = 'sgd';
 
 if nargin < 1 || isempty(params)
     % Create struct if no provided.
@@ -28,7 +30,11 @@ end
 params = check_MLparams(params,defaultParams);
 
 % Function handles.
-Mdl.fit = @(X,y) fitrlinear(X,y,'Learner','svm','Epsilon', params.epsilon);
+Mdl.fit = @(X,y) fitrlinear(X, y, 'Learner','svm',...
+    'Lambda', params.lambda,...
+    'Solver', params.solver,...
+    'Regularization', 'ridge');
+
 Mdl.pred = @(clf,newX) clf.predict(newX);
 Mdl.score = @compute_modelMetrics;
 end

@@ -6,7 +6,7 @@ function [] = create_parallelPool(numCores)
 % Arguments:
 %   numCores = Number of CPU cores to use
 %
-% Emin Serin
+% Last edited by Emin Serin, 26.02.2022
 % 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -19,10 +19,10 @@ if license('test','Distrib_Computing_Toolbox')
         if numCores > 1
             pool = gcp('nocreate');
             if isempty(pool)
-                parpool(numCores);
+                parpool(numCores, 'IdleTimeout', 360);
             elseif pool.NumWorkers ~= numCores
                 delete(pool);
-                parpool(numCores);
+                parpool(numCores, 'IdleTimeout', 360);
             end
         elseif numCores < 1
             error('The number of parallel workers cannot less than 1!')

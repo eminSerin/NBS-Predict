@@ -18,6 +18,7 @@ function [Mdl] = run_decisionTreeC(params)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Default parameters.
 defaultParams.MinLeafSize = 1;
+defaultParams.SplitCriterion = 'gdi';
 
 if nargin < 1 || isempty(params)
     % Create struct if no provided.
@@ -27,7 +28,9 @@ end
 params = check_MLparams(params,defaultParams);
 
 % Function handles. 
-Mdl.fit = @(X,y) fitctree(X,y,'MinLeafSize',getfieldi(params,'MinLeafSize'));
+Mdl.fit = @(X,y) fitctree(X,y,...
+    'MinLeafSize',params.MinLeafSize,...
+    'SplitCriterion', params.SplitCriterion);
 Mdl.pred = @predict;
 Mdl.score = @compute_modelMetrics;
 end

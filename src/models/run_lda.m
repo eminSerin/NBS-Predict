@@ -14,11 +14,12 @@ function [Mdl] = run_lda(params)
 % Reference:
 %   https://en.wikipedia.org/wiki/Linear_discriminant_analysis
 %
-% Emin Serin - 10.08.2019
+% Last edited by Emin Serin, 25.02.2022
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Default parameters.
-defaultParams.delta = 0; defaultParams.gamma = 1;
+defaultParams.delta = 0; 
+defaultParams.gamma = 1;
 
 if nargin < 1 || isempty(params)
     % Create struct if no provided.
@@ -28,8 +29,11 @@ end
 params = check_MLparams(params,defaultParams);
 
 % Function handles
-Mdl.fit = @(X,y) fitcdiscr(X,y,'Delta',getfieldi(params,'delta'),...
-    'Gamma',getfieldi(params,'gamma'));
+Mdl.fit = @(X,y) fitcdiscr(X,y,...
+    'DiscrimType','linear',...
+    'Delta',params.delta,...
+    'Gamma',params.gamma);
+
 Mdl.pred = @predict;
 Mdl.score = @compute_modelMetrics;
 end
