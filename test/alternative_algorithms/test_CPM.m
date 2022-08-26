@@ -15,7 +15,7 @@ function [CPM_results] = test_CPM(NBSPredict)
 %   CPM_results - Structure similar to NBSPredict and can be used by
 %       simulation function.
 %
-% Last Edited by Emin Serin - 08.04.2021.
+% Last Edited by Emin Serin - 26.08.2022.
 %
 % See also: test_NBSPredict, sim_testNBSPredict
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -23,16 +23,15 @@ function [CPM_results] = test_CPM(NBSPredict)
 data.X = NBSPredict.data.X;
 data.y = NBSPredict.data.y(:,2);
 
+
 MLmodel = NBSPredict.parameter.MLmodels{:};
 
 CPM = run_CPM(data,'thresh',NBSPredict.parameter.pVal,...
     'verbose',NBSPredict.parameter.verbose,...
-    'learner',MLmodel,'repCVIter',NBSPredict.parameter.repCVIter,...
-    'randomState',NBSPredict.parameter.randomState,...
+    'learner',MLmodel,'repCViter',NBSPredict.parameter.repCViter,...
+    'randomState',NBSPredict.parameter.randSeed,...
     'metric',NBSPredict.parameter.metric,...
     'kFold',NBSPredict.parameter.kFold);
-weights = CPM.results.negSelectedEdges + CPM.results.posSelectedEdges;
-meanCVscore = mean([CPM.results.posMeanCVScore,CPM.results.negMeanCVScore]);
 
 % Save parameters
 CPM_results.parameter = CPM.parameter;
@@ -43,21 +42,26 @@ CPM_results.parameter.MLmodels = {CPM.parameter.learner};
 CPM_results.data.X = data.X;
 CPM_results.data.y = NBSPredict.data.y;
 CPM_results.data.edgeIdx = NBSPredict.data.edgeIdx;
-CPM_results.data.contrastedEdges = NBSPredict.data.contrastedEdges;
 
-% Scaled mean edge weight
-totalFold = NBSPredict.parameter.repCVIter*NBSPredict.parameter.kFold;
-scaler = MinMaxScaler([0,max(weights)]);
-scaledMeanEdgeWeight = scaler.fit_transform(weights); % Min-max scaled mean weights
-scaledMeanEdgeWeight = round(scaledMeanEdgeWeight,round(log10(totalFold))+1); % Tolarate minor difference. 
-
-% Save results
-CPM_results.results.(MLmodel).meanEdgeWeight = weights;
-CPM_results.results.(MLmodel).scaledMeanEdgeWeight = scaledMeanEdgeWeight;
-CPM_results.results.(MLmodel).meanRepCVscore = [CPM.results.posMeanCVScore,CPM.results.negMeanCVScore];
-CPM_results.results.(MLmodel).overalCVscore = meanCVscore;
-CPM_results.results.(MLmodel).posMeanCVScore = CPM.results.posMeanCVScore; 
-CPM_results.results.(MLmodel).negMeanCVScore = CPM.results.negMeanCVScore;
-
+if isfield(NBSPredict.data, 'contrastedEdges')
+    CPM_results.data.contrastedEdges = NBSPredict.data.contrastedEdges;
 end
 
+% Scaled mean edge weight
+totalFold = NBSPredict.parameter.repCViter * NBSPredict.parameter.kFold;
+
+
+% Save results
+CPM_results.results.(MLmodel) = CPM.results; 
+CPM_results.results.(MLmodel).posScaledWeights = ...
+    scale_edgeWeights(CPM.results.posWeights, totalFold);
+CPM_results.results.(MLmodel).negScaledWeights = ...
+    scale_edgeWeights(CPM.results.negWeights, totalFold);
+end
+
+function [scaledWeights] = scale_edgeWeights(weights, totalFold)
+% scales edge weights such that they distribute between 0 and 1. 
+scaler = MinMaxScaler([0,max(weights)]);
+scaledWeights = scaler.fit_transform(weights); % Min-max scaled mean weights
+scaledWeights = round(scaledWeights,round(log10(totalFold))+1); % Tolarate minor difference. 
+end

@@ -10,7 +10,7 @@ function [CPM] = run_CPM(data,varargin)
 %         analysis (i.e., partial correlation) if provided.
 %     thresh = p-value threshold to select features (default = 0.01). 
 %     kFold = Number of CV folds (default = 10).
-%     repCVIter = Number of CV repetition (default = 1).
+%     repCViter = Number of CV repetition (default = 1).
 %     numCores = Number of CPU cores (default = 1).
 %     metric = Performance metrics (correlation, mse; default = correlation).
 %     learner = Estimator (LinReg,svmR or decisionTreeR, default = LinReg).
@@ -31,14 +31,14 @@ function [CPM] = run_CPM(data,varargin)
 %     connectome-based predictive modeling to predict individual behavior
 %     from brain connectivity. nature protocols, 12(3), 506.
 %   
-% Last edited by Emin Serin, 08.04.2021.
+% Last edited by Emin Serin, 26.08.2022.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Input parser.
 % Default parameters for CPM.
 defaultVals.thresh = 0.01; defaultVals.numCores = 1;
 defaultVals.metric = 'correlation'; defaultVals.learner = 'LinReg';
-defaultVals.repCVIter = 1;  defaultVals.ifScale = 1; 
+defaultVals.repCViter = 1;  defaultVals.ifScale = 1; 
 defaultVals.kFold = 10; defaultVals.verbose = 1; 
 defaultVals.randomState = 42;
 learnerOptions = {'LinReg','decisionTreeR','svmR'};
@@ -55,7 +55,7 @@ addParameter(p,'kFold',defaultVals.kFold,validationNumeric);
 addParameter(p,'numCores',defaultVals.numCores,validationNumeric);
 addParameter(p,'metric',defaultVals.metric);
 addParameter(p,'ifScale',defaultVals.ifScale,validationNumeric);
-addParameter(p,'repCVIter',defaultVals.repCVIter,validationNumeric);
+addParameter(p,'repCViter',defaultVals.repCViter,validationNumeric);
 addParameter(p,'learner',defaultVals.learner,validationLearner);
 addParameter(p,'verbose',defaultVals.verbose,validationNumeric);
 addParameter(p,'randomState',defaultVals.randomState);
@@ -71,7 +71,7 @@ CPM.parameter.learner = p.Results.learner;
 CPM.parameter.kFold = p.Results.kFold;
 CPM.parameter.numCores = p.Results.numCores;
 CPM.parameter.metric = p.Results.metric;
-CPM.parameter.repCVIter = p.Results.repCVIter; 
+CPM.parameter.repCViter = p.Results.repCViter; 
 CPM.parameter.ifScale = p.Results.ifScale;
 CPM.parameter.randomState = p.Results.randomState;
 verbose = p.Results.verbose; 
@@ -79,7 +79,7 @@ verbose = p.Results.verbose;
 rng(p.Results.randomState);
 
 % Initiate parallel pool if desired.
-create_parallelPool(numCores);
+create_parallelPool(CPM.parameter.numCores);
 
 %% Run CPM in a k-fold CV structure. 
 if verbose
@@ -88,64 +88,85 @@ end
 objFun = @(data) evaluateModel(data,CPM.parameter.thresh,CPM.parameter.learner,...
     CPM.parameter.metric,CPM.parameter.ifScale);
 
-posCVscores = zeros(CPM.parameter.repCVIter,CPM.parameter.kFold);
+% Preallocate output variables.
+posCVscores = zeros(CPM.parameter.repCViter,CPM.parameter.kFold);
 negCVscores = posCVscores;
-posSelectedEdges = zeros(CPM.parameter.repCVIter,size(data.X,2));
+combCVscores = posCVscores; 
+posSelectedEdges = zeros(CPM.parameter.repCViter,size(data.X,2));
 negSelectedEdges = posSelectedEdges; 
-posMeanCVScores = zeros(CPM.parameter.repCVIter,1);
-negMeanCVScores = posMeanCVScores; 
+posMeanCVScores = zeros(CPM.parameter.repCViter,1);
+negMeanCVScores = posMeanCVScores;
+combMeanCVScores = posMeanCVScores;
 posStability = posMeanCVScores;
 negStability = posStability;
+posTruePredLabels = cell(CPM.parameter.repCViter, CPM.parameter.kFold,2);
+negTruePredLabels = posTruePredLabels;
+combTruePredLabels = posTruePredLabels; 
 
 tic;
+CVresults = cell(CPM.parameter.repCViter, 1);
 if p.Results.numCores > 1
-    parfor r = 1:CPM.parameter.repCVIter
-        CVresults = crossValidation(objFun,data,'kfold',CPM.parameter.kFold); % Run handler in CV.
-        
-        % Results
-        CVresultsPOS = [CVresults.pos];
-        CVresultsNEG = [CVresults.neg];
-        
-        posCVscores(r,:) = [CVresultsPOS.score];
-        posMeanCVScores(r) = mean([CVresultsPOS.score]);
-        posSelectedEdges(r,:) = mean([CVresultsPOS.selectedEdges],2)';
-        posStability(r) = compute_stability(single([CVresultsPOS.selectedEdges]'));
-        negCVscores(r,:) = [CVresultsNEG.score];
-        negMeanCVScores(r) = mean([CVresultsNEG.score]);
-        negSelectedEdges(r,:) =  mean([CVresultsNEG.selectedEdges],2)';
-        negStability(r) = compute_stability(single([CVresultsNEG.selectedEdges]'));
+    parfor r = 1:CPM.parameter.repCViter
+        CVresults(r) = {crossValidation(objFun,data,'kfold',CPM.parameter.kFold)}; % Run handler in CV.
     end
 else
-    for r = 1:CPM.parameter.repCVIter
-        CVresults = crossValidation(objFun,data,'kfold',CPM.parameter.kFold); % Run handler in CV.
-        
-        % Results
-        CVresultsPOS = [CVresults.pos];
-        CVresultsNEG = [CVresults.neg];
-        
-        posCVscores(r,:) = [CVresultsPOS.score];
-        posMeanCVScores(r) = mean([CVresultsPOS.score]);
-        posSelectedEdges(r,:) = mean([CVresultsPOS.selectedEdges],2)';
-        posStability(r) = compute_stability(single([CVresultsPOS.selectedEdges]'));
-        negCVscores(r,:) = [CVresultsNEG.score];
-        negMeanCVScores(r) = mean([CVresultsNEG.score]);
-        negSelectedEdges(r,:) =  mean([CVresultsNEG.selectedEdges],2)';
-        negStability(r) = compute_stability(single([CVresultsNEG.selectedEdges]'));
+    for r = 1:CPM.parameter.repCViter
+        CVresults(r) = {crossValidation(objFun,data,'kfold',CPM.parameter.kFold)}; % Run handler in CV.
     end
 end
+
+for r = 1:CPM.parameter.repCViter
+    % Results
+    CVresultsPOS = [CVresults{r}.pos];
+    CVresultsNEG = [CVresults{r}.neg];
+    CVresultsComb = [CVresults{r}.comb];
+    
+    % Positive
+    posCVscores(r,:) = [CVresultsPOS.score];
+    posMeanCVScores(r) = mean([CVresultsPOS.score]);
+    posSelectedEdges(r,:) = mean([CVresultsPOS.selectedEdges],2)';
+    posStability(r) = compute_stability(single([CVresultsPOS.selectedEdges]'));
+    posTruePredLabels(r,:,:) = reshape([CVresultsPOS.truePredLabels],2,[])';
+    
+    % Negative
+    negCVscores(r,:) = [CVresultsNEG.score];
+    negMeanCVScores(r) = mean([CVresultsNEG.score]);
+    negSelectedEdges(r,:) =  mean([CVresultsNEG.selectedEdges],2)';
+    negStability(r) = compute_stability(single([CVresultsNEG.selectedEdges]'));
+    negTruePredLabels(r,:,:) = reshape([CVresultsNEG.truePredLabels],2,[])';
+    
+    % Combined
+    combCVscores(r,:) = [CVresultsComb.score];
+    combMeanCVScores(r) = mean([CVresultsComb.score]);
+    combTruePredLabels(r,:,:) = reshape([CVresultsComb.truePredLabels],2,[])';
+end
+
 CPM.results.elapsedTime = toc;
+
+% Save results into the CPM structure. 
+% Positive
 CPM.results.posCVscores = posCVscores;
 CPM.results.posMeanCVScore = mean(posMeanCVScores);
-CPM.results.posSelectedEdges = mean(posSelectedEdges,1);
+CPM.results.posWeights = mean(posSelectedEdges,1);
 CPM.results.posStability = mean(posStability);
+CPM.results.posTruePredLabels = posTruePredLabels; 
+
+% Negative
 CPM.results.negCVscores = negCVscores;
 CPM.results.negMeanCVScore = mean(negMeanCVScores);
-CPM.results.negSelectedEdges = mean(negSelectedEdges,1);
+CPM.results.negWeights = mean(negSelectedEdges,1);
 CPM.results.negStability = mean(negStability);
+CPM.results.negTruePredLabels = negTruePredLabels; 
+
+% Combined
+CPM.results.combCVscores = combCVscores;
+CPM.results.combMeanCVScore = mean(combMeanCVScores);
+CPM.results.combTruePredLabels = combTruePredLabels; 
 
 if verbose
         fprintf('\nPositive Network: %.3f\n',CPM.results.posMeanCVScore);
         fprintf('Negative Network: %.3f\n',CPM.results.negMeanCVScore);
+        fprintf('Combined Network: %.3f\n',CPM.results.combMeanCVScore);
         fprintf('Total time elapsed (in minutes): %.2f\n',...
             CPM.results.elapsedTime/60);
 end
@@ -165,35 +186,59 @@ end
             data.X_test = deconf.transform(data.X_test,data.confound_test);
         end
         
-        [rMat,pMat] = corr(data.X_train,data.y_train);
-        
-        % Feature selection. Features with p-values that are lower than threshold
-        % are selected.
-        threshMask = pMat<thresh;
-        posEdgesMask = rMat > 0 & threshMask;
-        negEdgesMask = rMat < 0 & threshMask;
-        modelEvalResults.pos.selectedEdges = posEdgesMask;
-        modelEvalResults.neg.selectedEdges = negEdgesMask;
-        
-        % Calculate a single-subject summary values.
-        sumPos_train = sum(data.X_train(:,posEdgesMask),2);
-        sumNeg_train = sum(data.X_train(:,negEdgesMask),2);
-        sumPos_test = sum(data.X_test(:,posEdgesMask),2);
-        sumNeg_test = sum(data.X_test(:,negEdgesMask),2);
-        
+        % Organize CV data. 
         modelEvalData_positive.y_train = data.y_train;
         modelEvalData_positive.y_test = data.y_test;
         modelEvalData_negative = modelEvalData_positive;
-        modelEvalData_positive.X_train = sumPos_train;
-        modelEvalData_negative.X_train = sumNeg_train;
-        modelEvalData_positive.X_test = sumPos_test;
-        modelEvalData_negative.X_test = sumNeg_test;
+        modelEvalData_comb = modelEvalData_positive; 
         
+        % Select features.
+        [modelEvalResults] = feature_selection(data, thresh);
+        
+        % Calculate a single-subject summary values.
+        modelEvalData_positive.X_train = ...
+            sum(data.X_train(:, modelEvalResults.pos.selectedEdges),2);
+        modelEvalData_negative.X_train = ...
+            sum(data.X_train(:, modelEvalResults.neg.selectedEdges),2);
+        modelEvalData_comb.X_train = [modelEvalData_negative.X_train,...
+            modelEvalData_positive.X_train];
+        modelEvalData_positive.X_test = ...
+            sum(data.X_test(:, modelEvalResults.pos.selectedEdges),2);
+        modelEvalData_negative.X_test = ...
+            sum(data.X_test(:, modelEvalResults.neg.selectedEdges),2);
+        modelEvalData_comb.X_test = [modelEvalData_negative.X_test,...
+            modelEvalData_positive.X_test];
+        
+        % Fit ML models.
         Mdl = feval(['run_',learner]);
-        [modelEvalResults.pos.score] =...
+        
+        [modelEvalResults.pos.score,...
+            modelEvalResults.pos.truePredLabels] = ... % Positive
             modelFitScore(Mdl,modelEvalData_positive,metric);
-        [modelEvalResults.neg.score] =...
+        
+        [modelEvalResults.neg.score,...
+            modelEvalResults.neg.truePredLabels] =... % Negative
             modelFitScore(Mdl,modelEvalData_negative,metric);
+        
+        [modelEvalResults.comb.score,...
+            modelEvalResults.comb.truePredLabels] =... % Combined
+            modelFitScore(Mdl,modelEvalData_comb,metric);
+        
+        function [selEdges] = feature_selection(data, thresh)
+            % Selects features based on Pearson Correlation Coeffieicnt 
+            % between features and target.
+            
+            % Pearson's CC
+            [rMat,pMat] = corr(data.X_train,data.y_train);
+            
+            % Feature selection. Features with p-values that are lower than threshold
+            % are selected.
+            threshMask = pMat<thresh;
+            selEdges.pos.selectedEdges = rMat > 0 & threshMask;
+            selEdges.neg.selectedEdges = rMat < 0 & threshMask;
+        end
     end
     
 end
+
+
