@@ -1,4 +1,12 @@
-## [v1.0.0-beta.9] - 
+## [v1.0.0-beta.10] - 
+- Refactor CPM functions.
+- CPM can now provide predicted and true labels, so that user can compute further performance metrics. 
+- Prediction performance of combined network (positive and negative) is now provided.
+- Add confound correction to CPM. 
+- Add permutation testing to CPM. 
+- Move generate_randomStream to an external function. 
+
+## [v1.0.0-beta.9] - 16.03.2022
 - Drop Decision Tree Regressor and Classifier to avoid possible 
     incompatibilities with confound regression.
 - Minor tweaks in parallel processing. 
