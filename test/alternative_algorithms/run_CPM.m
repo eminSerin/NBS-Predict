@@ -14,9 +14,11 @@ function [CPM] = run_CPM(data,varargin)
 %     numCores = Number of CPU cores (default = 1).
 %     metric = Performance metrics (correlation, mse; default = correlation).
 %     learner = Estimator (LinReg,svmR or decisionTreeR, default = LinReg).
-%     verbose = Whether or not give messages (default = 1);
-%     randomState = Controls the randomness. Pass an integer value for
-%         reproducible results or 'shuffle' to randomize (default = 42).  
+%     verbose = Whether or not give messages (default = 1).
+%     randSeed = Controls the randomness. Pass an integer value for
+%         reproducible results or 'shuffle' to randomize (default = 42).
+%     ifPerm = Whether to run permutation testing (default = 0).
+%     permIter = Number of permutations (default = 100). 
 %   
 % Output:
 %     CPM: An outcome structure containing data, parameter and results.
@@ -31,7 +33,7 @@ function [CPM] = run_CPM(data,varargin)
 %     connectome-based predictive modeling to predict individual behavior
 %     from brain connectivity. nature protocols, 12(3), 506.
 %   
-% Last edited by Emin Serin, 26.08.2022.
+% Last edited by Emin Serin, 27.08.2022.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Input parser.
@@ -40,7 +42,8 @@ defaultVals.thresh = 0.01; defaultVals.numCores = 1;
 defaultVals.metric = 'correlation'; defaultVals.learner = 'LinReg';
 defaultVals.repCViter = 1;  defaultVals.ifScale = 1; 
 defaultVals.kFold = 10; defaultVals.verbose = 1; 
-defaultVals.randomState = 42;
+defaultVals.randSeed = 42; defaultVals.ifPerm = 0;
+defaultVals.permIter = 100; 
 learnerOptions = {'LinReg','decisionTreeR','svmR'};
 
 % Validation
@@ -58,8 +61,9 @@ addParameter(p,'ifScale',defaultVals.ifScale,validationNumeric);
 addParameter(p,'repCViter',defaultVals.repCViter,validationNumeric);
 addParameter(p,'learner',defaultVals.learner,validationLearner);
 addParameter(p,'verbose',defaultVals.verbose,validationNumeric);
-addParameter(p,'randomState',defaultVals.randomState);
-
+addParameter(p,'ifPerm',defaultVals.ifPerm,validationNumeric);
+addParameter(p,'randSeed',defaultVals.randSeed,validationNumeric);
+addParameter(p,'permIter',defaultVals.permIter,validationNumeric);
 
 % Parse inputs.
 parse(p,varargin{:});
@@ -73,19 +77,23 @@ CPM.parameter.numCores = p.Results.numCores;
 CPM.parameter.metric = p.Results.metric;
 CPM.parameter.repCViter = p.Results.repCViter; 
 CPM.parameter.ifScale = p.Results.ifScale;
-CPM.parameter.randomState = p.Results.randomState;
-verbose = p.Results.verbose; 
+CPM.parameter.randSeed = p.Results.randSeed;
+CPM.parameter.ifPerm = p.Results.ifPerm; 
+CPM.parameter.permIter = p.Results.permIter; 
+CPM.parameter.verbose = p.Results.verbose; 
 
-rng(p.Results.randomState);
+rng(p.Results.randSeed);
 
 % Initiate parallel pool if desired.
 create_parallelPool(CPM.parameter.numCores);
 
 %% Run CPM in a k-fold CV structure. 
-if verbose
-    fprintf('\nCPM is running!\n')
+if CPM.parameter.verbose
+    fprintf(['\nCPM is running!\n', ...
+        '%d-repeated %d-fold CV\n'],...
+        CPM.parameter.kFold, CPM.parameter.repCViter);
 end
-objFun = @(data) evaluateModel(data,CPM.parameter.thresh,CPM.parameter.learner,...
+CPM.objFun = @(data) evaluateModel(data,CPM.parameter.thresh,CPM.parameter.learner,...
     CPM.parameter.metric,CPM.parameter.ifScale);
 
 % Preallocate output variables.
@@ -107,11 +115,11 @@ tic;
 CVresults = cell(CPM.parameter.repCViter, 1);
 if p.Results.numCores > 1
     parfor r = 1:CPM.parameter.repCViter
-        CVresults(r) = {crossValidation(objFun,data,'kfold',CPM.parameter.kFold)}; % Run handler in CV.
+        CVresults(r) = {crossValidation(CPM.objFun,data,'kfold',CPM.parameter.kFold)}; % Run handler in CV.
     end
 else
     for r = 1:CPM.parameter.repCViter
-        CVresults(r) = {crossValidation(objFun,data,'kfold',CPM.parameter.kFold)}; % Run handler in CV.
+        CVresults(r) = {crossValidation(CPM.objFun,data,'kfold',CPM.parameter.kFold)}; % Run handler in CV.
     end
 end
 
@@ -163,12 +171,17 @@ CPM.results.combCVscores = combCVscores;
 CPM.results.combMeanCVScore = mean(combMeanCVScores);
 CPM.results.combTruePredLabels = combTruePredLabels; 
 
-if verbose
+if CPM.parameter.verbose
         fprintf('\nPositive Network: %.3f\n',CPM.results.posMeanCVScore);
         fprintf('Negative Network: %.3f\n',CPM.results.negMeanCVScore);
         fprintf('Combined Network: %.3f\n',CPM.results.combMeanCVScore);
-        fprintf('Total time elapsed (in minutes): %.2f\n',...
+        fprintf('Total time elapsed (in minutes): %.2f\n\n',...
             CPM.results.elapsedTime/60);
+end
+
+% Run Permutation test.
+if CPM.parameter.ifPerm
+    CPM.results.permScore = run_permTesting(CPM);
 end
 
     function [modelEvalResults] = evaluateModel(data,thresh,learner,metric,ifScale)
@@ -180,10 +193,10 @@ end
         end
         
         % Relate connectivity to behavior
-        if isfield(data,'confound_train')
+        if isfield(data,'confounds_train')
             deconf = ConfoundRegression; 
-            data.X_train = deconf.fit_transform(data.X_train,data.confound_train);
-            data.X_test = deconf.transform(data.X_test,data.confound_test);
+            data.X_train = deconf.fit_transform(data.X_train,data.confounds_train);
+            data.X_test = deconf.transform(data.X_test,data.confounds_test);
         end
         
         % Organize CV data. 
@@ -239,6 +252,111 @@ end
         end
     end
     
+end
+
+
+function permScore = run_permTesting(CPM)
+% Run Permutation test.
+% It randomly permutes target variable and run the same pipeline. 
+% It returns permutation score and p-value
+% p-value represents the fraction of models yielding similar to or better
+% prediction performance than the tested model.
+if CPM.parameter.ifPerm
+    permIter = CPM.parameter.permIter;
+    fprintf('Permutation testing is running! Permutations: %d\n',...
+        permIter);
+    
+    % Random Seed
+    set_randomSeed(CPM.parameter.randSeed)
+    rndSeeds = generate_randomStream(randi(1e+9), permIter);
+    
+    nSub = size(CPM.data.y,1);
+    
+    % Preallocate permutation testing scores.
+    posPermCVscore = zeros(permIter+1, 1, 'single');
+    negPermCVscore = posPermCVscore;
+    combPermCVscore = posPermCVscore;
+    
+    tic;
+    % Run ground analysis.
+    set_randomSeed(CPM.parameter.randSeed)
+    [posPermCVscore(1), negPermCVscore(1), combPermCVscore(1)] = crossVal_wrapper(CPM);
+    
+    % Permutation testing. 
+    if CPM.parameter.numCores > 1
+        if isempty(gcp('nocreate'))
+            % Init parallel pool if desired.
+            create_parallelPool(CPM.parameter.numCores);
+        end
+        pctRunOnAll warning off % Suppress warnings.
+        if CPM.parameter.verbose
+            permMsg = 'This will take quite time. Please be patient...\n';
+            fprintf(permMsg)
+        end
+        parfor p = 1: permIter
+            rng(rndSeeds(p));
+            permCPM = CPM;
+            permCPM.data.y = permCPM.data.y(randperm(nSub), :);
+            [posPermCVscore(p+1), negPermCVscore(p+1), combPermCVscore(p+1)] = crossVal_wrapper(permCPM);
+        end
+    else
+        warning('off') % Suppress warnings.
+        if CPM.parameter.verbose
+            permMsg = 'Progress:';
+            permProg = CmdProgress(permMsg, permIter);
+        end
+        for p = 1: permIter
+            rng(rndSeeds(p));
+            permCPM = CPM;
+            permCPM.data.y = permCPM.data.y(randperm(nSub), :);
+            [posPermCVscore(p+1), negPermCVscore(p+1), combPermCVscore(p+1)] = crossVal_wrapper(permCPM);
+            permProg.increment;
+        end
+    end
+    elapsedTime = toc; 
+    
+    permScore.pos = [posPermCVscore(1), ...
+        (sum(posPermCVscore >= posPermCVscore(1))-1)/permIter];
+    permScore.neg = [negPermCVscore(1), ...
+        (sum(negPermCVscore >= negPermCVscore(1))-1)/permIter];
+    permScore.comb = [combPermCVscore(1), ...
+        (sum(combPermCVscore >= combPermCVscore(1))-1)/permIter];
+    if CPM.parameter.verbose
+        fprintf(['Permutation testing has finished.\n',...
+            'Positive Network: %.3f, p = %.3f\n', ...
+            'Negative Network: %.3f, p = %.3f\n', ...
+            'Combined Network: %.3f, p = %.3f\n',...
+            'Total time elapsed (in minutes): %.2f\n\n'],...
+            permScore.pos(1), permScore.pos(2),...
+            permScore.neg(1), permScore.neg(2),...
+            permScore.comb(1), permScore.comb(2),...
+            elapsedTime/60);
+    end
+    warning('on'); % Reactivate warnings.
+end
+
+    function [] = set_randomSeed(randSeed)
+        % set_randomSeed sets seeds to the random generator. 
+        % Random Seed
+        if randSeed ~= -1 % -1 refers to random shuffle.
+            rng(randSeed);
+        else
+            rng('shuffle');
+        end
+    end
+
+end
+
+function [pos, neg, comb] = crossVal_wrapper(CPM)
+% crossVal_wrapper is a wrapper function to make crossValidation
+% function compatible with permutation testing function.
+cvResults = crossValidation(CPM.objFun,CPM.data,'kfold',CPM.parameter.kFold);
+pos = [cvResults.pos];
+neg = [cvResults.neg];
+comb = [cvResults.comb];
+pos = mean([pos.score]);
+neg = mean([neg.score]);
+comb = mean([comb.score]);
 end
 
 

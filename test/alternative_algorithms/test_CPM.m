@@ -15,23 +15,28 @@ function [CPM_results] = test_CPM(NBSPredict)
 %   CPM_results - Structure similar to NBSPredict and can be used by
 %       simulation function.
 %
-% Last Edited by Emin Serin - 26.08.2022.
+% Last Edited by Emin Serin - 27.08.2022.
 %
 % See also: test_NBSPredict, sim_testNBSPredict
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%
+%% Organize data.
 data.X = NBSPredict.data.X;
 data.y = NBSPredict.data.y(:,2);
-
+if isfield(NBSPredict.data, 'confounds')
+   data.confounds = NBSPredict.data.confounds; 
+end
 
 MLmodel = NBSPredict.parameter.MLmodels{:};
 
 CPM = run_CPM(data,'thresh',NBSPredict.parameter.pVal,...
     'verbose',NBSPredict.parameter.verbose,...
     'learner',MLmodel,'repCViter',NBSPredict.parameter.repCViter,...
-    'randomState',NBSPredict.parameter.randSeed,...
+    'randSeed',NBSPredict.parameter.randSeed,...
     'metric',NBSPredict.parameter.metric,...
-    'kFold',NBSPredict.parameter.kFold);
+    'kFold',NBSPredict.parameter.kFold,...
+    'ifPerm',NBSPredict.parameter.ifPerm,...
+    'permIter', NBSPredict.parameter.permIter,...
+    'numCores', NBSPredict.parameter.numCores);
 
 % Save parameters
 CPM_results.parameter = CPM.parameter;
@@ -49,7 +54,6 @@ end
 
 % Scaled mean edge weight
 totalFold = NBSPredict.parameter.repCViter * NBSPredict.parameter.kFold;
-
 
 % Save results
 CPM_results.results.(MLmodel) = CPM.results; 

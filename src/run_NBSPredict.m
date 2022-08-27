@@ -22,7 +22,7 @@ function [NBSPredict] = run_NBSPredict(NBSPredict)
 %   This structure is also saved in
 %       ~/Results/date/NBSPredict.mat directory.
 %
-% Last edited by Emin Serin, 21.02.2022
+% Last edited by Emin Serin, 27.08.2022
 %
 % See also: start_NBSPredictGUI, get_NBSPredictInput
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -406,17 +406,6 @@ end
 end
 
 %% Helper functions
-function rndSeeds = generate_randomStream(randSeed, iter)
-% generate_randomStream generates random stream for loop.
-
-if randSeed ~= -1 % -1 refers to random shuffle.
-    rng(randSeed);
-else
-    rng('shuffle');
-end
-rndSeeds = randi(1e+9, iter, 1);
-end
-
 function varargout = fit_hyperParam(data,hyperparam,MLhandle,metrics)
 % fit_hyperParam fits ML algorithm on provided data with hyperparameters
 % provided.
