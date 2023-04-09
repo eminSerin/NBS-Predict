@@ -16,7 +16,7 @@ function [varargout] = check_classification(y)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
 
-if length(size(y)) == 1
+if length(size(y)) == 1 || size(y, 2) == 1
     % If y is 1D.
     nClasses = numel(unique(y));
 else

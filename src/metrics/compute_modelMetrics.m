@@ -153,8 +153,10 @@ function [score] = balanced_accuracy(y_true,y_pred)
 CM = confusionMatrix(y_true, y_pred);
 perClass = diag(CM.confMat) ./ sum(CM.confMat, 2);
 if any(isnan(perClass))
-    warning('y_pred contains classes not in y_true.')
-    score = nanmean(perClass);
+    warnmsg = ["y_pred contains classes not in y_true. That might be",...
+        "due to small or unequal sample. Please use other metrics!"];
+    warning(warnmsg);
+    score = mean(perClass, "omitnan");
 else
     score = mean(perClass);
 end

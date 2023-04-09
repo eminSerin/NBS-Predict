@@ -41,7 +41,7 @@ rndSeeds = generate_randomStream(NBSPredict.parameter.randSeed, repCViter);
 create_parallelPool(NBSPredict.parameter.numCores);
 
 % Write an start tag.
-NBSPredict.info.startDate = date;
+NBSPredict.info.startDate = string(datetime("today"));
 startTime = tic;
 
 nEdges = numel(NBSPredict.data.edgeIdx);
@@ -160,7 +160,7 @@ if NBSPredict.parameter.ifModelOpt
     end
 end
 
-NBSPredict.info.endDate = date;
+NBSPredict.info.endDate = string(datetime("today"));
 timeElapsed = toc(startTime); % in minutes;
 NBSPredict.info.timeElapsed = timeElapsed;
 
@@ -168,7 +168,7 @@ if verbose
     fprintf('Total time elapsed (in minutes): %.2f\n',timeElapsed/60);
 end
 
-if fileDir
+if isstring(fileDir)
     if verbose
        fprintf('\nResults are being saved...\n') 
     end
@@ -447,20 +447,20 @@ function [fileDir] = save_NBSPredict(NBSPredict)
 % with suffix.
 if NBSPredict.parameter.ifSave
     referencePath = NBSPredict.data.corrPath;
-    saveDir = fileparts(referencePath); % parent director
+    saveDir = fileparts(referencePath); % parent directory
     if NBSPredict.parameter.ifTest
-        saveDir = [saveDir,filesep,'test',filesep,'Results',filesep,date,filesep];
+        saveDir = fullfile(saveDir, "test", "Results", string(datetime("today")));
     else
-        saveDir = [saveDir,filesep,'Results',filesep,date,filesep];
+        saveDir = fullfile(saveDir, "Results", string(datetime("today")));
     end
-    fileDir = [saveDir, 'NBSPredict.mat'];
+    fileDir = fullfile(saveDir, 'NBSPredict.mat');
     if ~exist(saveDir, 'dir')
         mkdirStatus = mkdir(saveDir);
         assert(mkdirStatus,'Folder could not be created! Please check folder permissions!');
     else
         fileNum = 1;
         while exist(fileDir, 'file') == 2
-            fileDir = [saveDir,['NBSPredict',num2str(fileNum),'.mat']];
+            fileDir = fullfile(saveDir, sprintf("NBSPredict_%d.mat", fileNum));
             fileNum = fileNum + 1;
         end
     end
