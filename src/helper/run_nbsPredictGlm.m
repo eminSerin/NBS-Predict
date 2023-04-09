@@ -40,7 +40,7 @@ if strcmpi(test,'t-test')
     mse = sum(resid.^2)/(nSub-nPred); % mean squared error
     se = sqrt(mse*(contrast*inv(X'*X)*contrast')); % standard error
     stats = (contrast*betas)./se; % t-values.
-    p = tcdf(stats,nSub-2,'upper');
+    p = 1 - tcdf(stats, nSub-2);
 elseif strcmpi(test,'f-test')
     % Run f-test.
     sse = sum(resid.^2); % SSE - sum of squares error
@@ -75,5 +75,3 @@ varargout{1} = stats;
 varargout{2} = p;
 varargout{3} = betas; 
 end
-
-

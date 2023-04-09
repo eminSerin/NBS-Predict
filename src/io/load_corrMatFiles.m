@@ -28,7 +28,6 @@ function [edgeMat,nodes,edgeIdx] = load_corrMatFiles(corrMatDir, verbose)
 dataFiles = dir(corrMatDir);
 dirFilter = ~logical(strcmpi({dataFiles.name},'.DS_Store') + [dataFiles.isdir]);
 dataFiles = dataFiles(dirFilter);
-filePath = [corrMatDir,filesep];
 
 % Load all data files into a structure.
 nFiles = length(dataFiles);
@@ -40,13 +39,13 @@ end
 
 if nFiles > 1
     % Preallocate
-    cData = loadData(dataFiles(1).name,filePath);
-    data = zeros([size(cData),nFiles],'single');
+    cData = loadData(dataFiles(1).name, corrMatDir);
+    data = zeros([size(cData), nFiles], 'single');
     
     try
         % Load files.
         for i = 1:nFiles
-            cData = loadData(dataFiles(i).name,filePath);
+            cData = loadData(dataFiles(i).name, corrMatDir);
             if istable(cData)
                 cData = table2array(cData);
             end
@@ -59,11 +58,11 @@ if nFiles > 1
         error(['Error in loading correlation matrices.\n',...
             'There is something wrong with %s.\n',...
             'Please check the sample dataset for example data structure!'],...
-            [filePath,filesep,dataFiles(i).name]);
+            fullfile(corrMatDir, dataFiles(i).name));
     end
 elseif nFiles == 1
     %     [~, ~, ext] = fileparts([filePath, dataFiles(1).name]);
-    data = loadData(dataFiles(1).name,filePath);
+    data = loadData(dataFiles(1).name, corrMatDir);
     if verbose
         prog.increment;
     end

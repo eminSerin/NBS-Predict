@@ -21,7 +21,7 @@ if nargin == 1
     % Use file if only file provided. 
     fileName = file;
 else
-    fileName = [path,file]; % create full file name. 
+    fileName = fullfile(path, file); % create full file name. 
 end
 [~,~,ext] = fileparts(fileName); % get file format. 
 
