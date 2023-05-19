@@ -1,0 +1,14 @@
+# Operating system files
+.DS_Store
+Thumbs.db
+.AppleDouble
+.LSOverride
+
+# Editor files
+.vscode/
+
+# Other files
+workspaces.mat
+src/ext/BrainNetViewer_20181219/tmp.edge
+src/ext/BrainNetViewer_20181219/tmp.node
+*.asv
