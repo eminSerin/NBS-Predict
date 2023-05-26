@@ -57,7 +57,12 @@ if ~isempty(varargin)
     run_NBSPredict(varargin{:});
 else
     fprintf('\nNBS-Predict GUI is starting...\n\n')
-    run_NBSPredictWorkspace();
+    try
+        run_NBSPredictWorkspace_updated();
+    catch
+        warning("The updated version of GUI is not compatible with your MATLAB version. The legacy version of GUI is starting...")
+        run_NBSPredictWorkspace();
+    end
 end
 
 end
