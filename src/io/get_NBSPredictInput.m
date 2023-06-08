@@ -35,6 +35,7 @@ default.parameter.scalingMethod = [];
 default.parameter.randSeed = 42;
 default.parameter.ifPerm = 0;
 default.parameter.permIter = 500;
+default.parameter.ifModelExtract = 1;
 
 if isstring(NBSPredict) || ischar(NBSPredict)
     assert(exist(NBSPredict, 'file') == 2, 'The input file is not found!') 
@@ -101,6 +102,7 @@ if ifClassif
     else
         default.parameter.test = 't-test';
     end
+    default.parameter.ifClass = 1;
 else
     if ifModelOpt
         default.parameter.MLmodels = {'LinReg', 'svmR'};
@@ -109,6 +111,7 @@ else
     end
     default.parameter.metric = 'correlation';
     default.parameter.test = 'f-test';
+    default.parameter.ifClass = 0;
 end
 
 %% Assign entered values.

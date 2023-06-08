@@ -22,7 +22,7 @@ function varargout = view_NBSPredict(varargin)
 
 % Edit the above text to modify the response to help view_NBSPredict
 
-% Last Modified by GUIDE v2.5 21-Jan-2020 17:02:29
+% Last Modified by GUIDE v2.5 05-Jun-2023 15:32:30
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -82,6 +82,8 @@ handles.plotData.y = NBSPredict.data.y;
 handles.plotData.nodes = NBSPredict.data.nodes;
 handles.plotData.edgeIdx = NBSPredict.data.edgeIdx;
 handles.plotData.ifPlotScaled = 1;
+handles.plotData.kFold = NBSPredict.parameter.kFold;
+handles.plotData.repCV = NBSPredict.parameter.repCViter;
 handles.ifShowLabel = 0;
 handles.plotData.confounds = NBSPredict.data.confounds;
 handles.plotData.scalingMethod = NBSPredict.parameter.scalingMethod;
@@ -108,11 +110,13 @@ if ifClass
 else
     metrics = {'MSE','RMSE','Correlation','R_squared','Explained_Variance','MAD'};
     set(handles.metricPopUp,'String',metrics);
+    handles.posNegNetPop.Visible = 'on'; 
+    handles.showNet = 'all';
 end
 [~,metricLoc] = ismember(handles.plotData.metric,lower(metrics));
 if metricLoc
     set(handles.metricPopUp,'Value',metricLoc);
-end
+end    
 
 
 % figureTitle = sprintf('%s: %.3f (%.3f, %.3f)',...
@@ -486,6 +490,33 @@ if isfield(handles,'brainNetFig') && isgraphics(handles.brainNetFig)
     brainNetPush_Callback(handles.brainNetPush, [], handles);
 end
 
+
+% --- Executes on selection change in posNegNetPop.
+function posNegNetPop_Callback(hObject, eventdata, handles)
+% hObject    handle to posNegNetPop (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns posNegNetPop contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from posNegNetPop
+buttonLabels = {'all', 'pos', 'neg'};
+handles.showNet = buttonLabels{get(hObject, 'Value')};
+plotUpdatedData(handles)
+guidata(hObject, handles)
+
+% --- Executes during object creation, after setting all properties.
+function posNegNetPop_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to posNegNetPop (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
 % --- Executes on button press in evalButton.
 function evalButton_Callback(hObject, eventdata, handles)
 % hObject    handle to evalButton (see GCBO)
@@ -502,7 +533,7 @@ if ifEval
     meanCVscore = evalSubnet(handles);
 end
 guidata(hObject,handles)
-
+plotUpdatedData(handles)
 
 %% Helper functions
 function [adjDataCursorTxt] = dataCursorUpdateFun(~,event_obj,handles)
@@ -545,14 +576,23 @@ end
 function [handles] = plotUpdatedData(handles)
 % plotUpdateData updates data with regards to parameter in handles given
 % and plots it into current figure axis.
+
 if handles.plotData.ifPlotScaled
+    if isfield(handles, 'showNet')
+        adjMat = handles.plotData.(handles.cModel).scaledWAdjMat .* ...
+            findPosNegMat(handles.plotData.(handles.cModel).corrXyMat, handles.showNet);
+    end
     [handles.plotResults.adj,handles.plotResults.G,handles.plotResults.labels,handles.plotResults.mask] =...
-        update_NBSPredictFigure(handles.plotData.(handles.cModel).scaledWAdjMat,...
-        handles.plotData.brainRegions.labels,handles.plotResults.wThresh);
+        update_NBSPredictFigure(adjMat, handles.plotData.brainRegions.labels,...
+        handles.plotResults.wThresh);
 else
+    if isfield(handles, 'showNet')
+        adjMat = handles.plotData.(handles.cModel).wAdjMat .* ...
+            findPosNegMat(handles.plotData.(handles.cModel), handles.showNet);
+    end
     [handles.plotResults.adj,handles.plotResults.G,handles.plotResults.labels,handles.plotResults.mask] =...
-        update_NBSPredictFigure(handles.plotData.(handles.cModel).wAdjMat,...
-        handles.plotData.brainRegions.labels,handles.plotResults.wThresh);
+        update_NBSPredictFigure(adjMat,handles.plotData.brainRegions.labels,...
+        handles.plotResults.wThresh);
 end
 % Create weight table to access edge weights easily.
 weightTable = table;
@@ -630,8 +670,10 @@ function [meanCVscore] = evalSubnet(handles)
 % Set parameters.
 wBar = waitbar(0, 'Processing...');
 kFold = 10;
+if handles.plotData.kFold < kFold
+    kFold = handles.plotData.kFold;
+end
 repCV = 10; % Run CV n times.
-
 CVscores = zeros(repCV,kFold); % preallocate.
 
 % Extract edge weights from suprathreshold subnetwork.
@@ -645,6 +687,8 @@ if ~isempty(handles.plotData.confounds)
     data.confounds = handles.plotData.confounds;
 end
 
+fprintf('Evaluating subnetwork %d times with %d-fold CV.\n',repCV,kFold);
+% Run CV.
 for i = 1: repCV
     waitbar(i/repCV, wBar);
     subnetEvalFun = @(data) subnetEvaluate(data,handles);
@@ -660,7 +704,17 @@ waitbar(1, wBar, 'Done!');
 pause(0.5);
 close(wBar);
 
-
+function maskedAdj = findPosNegMat(adjMat, net)
+if strcmpi(net, "all")
+    maskedAdj = 1;
+elseif strcmpi(net, "pos")
+    maskedAdj = (adjMat > 0);
+elseif strcmpi(net, "neg")
+    maskedAdj = (adjMat < 0);
+else
+    error("Network must be all, pos, or neg.")
+end
+    
 function score = subnetEvaluate(data,handles)
 MLhandle = gen_MLhandles(handles.cModel);
 Mdl = MLhandle();
