@@ -31,9 +31,6 @@ NBSPredict = get_NBSPredictInput(NBSPredict);
 repCViter = NBSPredict.parameter.repCViter;
 verbose = NBSPredict.parameter.verbose;
 
-% TODO: Remove after development.
-NBSPredict.parameter.ifModelExtract = 1;
-
 % Random Seed
 rndSeeds = generate_randomStream(NBSPredict.parameter.randSeed, repCViter);
 
@@ -57,6 +54,7 @@ edgeWeight = zeros(repCViter,NBSPredict.parameter.kFold,...
 stability = zeros(repCViter,1,'single');
 truePredLabels = cell(repCViter, NBSPredict.parameter.kFold,2);
 bestParams = cell(repCViter, NBSPredict.parameter.kFold);
+corrXy = cell(repCViter, 1);
 
 fileDir = save_NBSPredict(NBSPredict);
 cNBSPredict = NBSPredict; % current NBSPredict.
@@ -77,7 +75,7 @@ for cModelIdx = 1: nModels
             rng(rndSeeds(r));
             [repCVscore(r),edgeWeight(r,:,:),...
                 truePredLabels(r,:,:),stability(r),...
-                bestParams(r,:)] = outerFold(cNBSPredict);
+                bestParams(r,:), corrXy{r, :}] = outerFold(cNBSPredict);
             show_NBSPredictProgress(cNBSPredict,r,repCVscore(r));
         end
     else
@@ -86,7 +84,7 @@ for cModelIdx = 1: nModels
             rng(rndSeeds(r));
             [repCVscore(r),edgeWeight(r,:,:),...
                 truePredLabels(r,:,:),stability(r),...
-                bestParams(r,:)] = outerFold(cNBSPredict);
+                bestParams(r,:), corrXy{r, :}] = outerFold(cNBSPredict);
             show_NBSPredictProgress(cNBSPredict,r,repCVscore);
         end
     end
@@ -94,6 +92,13 @@ for cModelIdx = 1: nModels
     if NBSPredict.parameter.ifModelExtract
         % Extract model if desired.
         NBSPredict.results.(cModel).model = modelExtract(cNBSPredict);
+    end
+
+    % Repeated CV corr between edges and outcome
+    if ~NBSPredict.parameter.ifClass
+        NBSPredict.results.(cModel).corrXyMat = gen_weightedAdjMat(NBSPredict.data.nodes, ...
+            NBSPredict.data.edgeIdx, ...
+            sum(cell2mat(corrXy'), 2));
     end
     
     % Repeated CV scores.
@@ -216,7 +221,11 @@ modelEvaluateFun = @(data) modelEvaluate(data,NBSPredict);
         
         filterData.X = data.X_train;
         filterData.y = data.y_train;
+        if ~NBSPredict.parameter.ifClass
+            modelEvalResults.corrXy = corr(filterData.X, filterData.y(:, 2));
+        end
         edgeSelectMask = run_graphPval(filterData,NBSPredict);
+        
         
         % Transform data for model evaluation using parameters found in middle fold.
         modelEvalData.X = data.X_train;
@@ -245,13 +254,16 @@ modelEvaluateFun = @(data) modelEvaluate(data,NBSPredict);
         modelEvalResults.outerFoldEdgeWeight = edgeSelectMask .* weightScore;
     end
 
-varargout = cell(1,5);
 
 varargout{1} = mean([outerFoldCVresults.score]);
 varargout{2} = [outerFoldCVresults.outerFoldEdgeWeight]';
 varargout{3} = reshape([outerFoldCVresults.truePredLabels],2,[])';
 varargout{4} = compute_stability(single([outerFoldCVresults.outerFoldEdgeWeight]' > 0));
 varargout{5} = {outerFoldCVresults.params};
+varargout{6} = [];
+if ~NBSPredict.parameter.ifClass
+    varargout{6} = sum([outerFoldCVresults.corrXy], 2);
+end
 end
 
 function [bestParam] = middleFoldHyperOpt(data,NBSPredict)
