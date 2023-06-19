@@ -501,7 +501,7 @@ function posNegNetPop_Callback(hObject, eventdata, handles)
 %        contents{get(hObject,'Value')} returns selected item from posNegNetPop
 buttonLabels = {'all', 'pos', 'neg'};
 handles.showNet = buttonLabels{get(hObject, 'Value')};
-plotUpdatedData(handles)
+handles = plotUpdatedData(handles);
 guidata(hObject, handles)
 
 % --- Executes during object creation, after setting all properties.
@@ -618,6 +618,7 @@ if handles.evalButton.Value
 end
 handles.uitable1.Data = table2cell(sortedTable);
 
+
 function [handles] =  updateConfMat(handles)
 % Generate confusion matrix.
 % truePredLabels = handles.
@@ -712,7 +713,7 @@ elseif strcmpi(net, "pos")
 elseif strcmpi(net, "neg")
     maskedAdj = (adjMat < 0);
 else
-    error("Network must be all, pos, or neg.")
+    error("Network must be all, pos, or neg.");
 end
     
 function score = subnetEvaluate(data,handles)
