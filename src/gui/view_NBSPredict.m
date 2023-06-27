@@ -577,24 +577,24 @@ function [handles] = plotUpdatedData(handles)
 % plotUpdateData updates data with regards to parameter in handles given
 % and plots it into current figure axis.
 
+% Get the adjacency matrix based on whether or not to plot scaled data
 if handles.plotData.ifPlotScaled
-    if isfield(handles, 'showNet')
-        adjMat = handles.plotData.(handles.cModel).scaledWAdjMat .* ...
-            findPosNegMat(handles.plotData.(handles.cModel).corrXyMat, handles.showNet);
-    end
-    [handles.plotResults.adj,handles.plotResults.G,handles.plotResults.labels,handles.plotResults.mask] =...
-        update_NBSPredictFigure(adjMat, handles.plotData.brainRegions.labels,...
-        handles.plotResults.wThresh);
+    adjMat = handles.plotData.(handles.cModel).scaledWAdjMat;
 else
-    if isfield(handles, 'showNet')
-        adjMat = handles.plotData.(handles.cModel).wAdjMat .* ...
-            findPosNegMat(handles.plotData.(handles.cModel), handles.showNet);
-    end
-    [handles.plotResults.adj,handles.plotResults.G,handles.plotResults.labels,handles.plotResults.mask] =...
-        update_NBSPredictFigure(adjMat,handles.plotData.brainRegions.labels,...
-        handles.plotResults.wThresh);
+    adjMat = handles.plotData.(handles.cModel).wAdjMat;
 end
-% Create weight table to access edge weights easily.
+
+% Apply positive/negative network mask if applicable
+if isfield(handles, 'showNet')
+    adjMat = adjMat .* findPosNegMat(handles.plotData.(handles.cModel).corrXyMat,...
+        handles.showNet);
+end
+
+% Update the figure with the new adjacency matrix
+[handles.plotResults.adj, handles.plotResults.G, handles.plotResults.labels, handles.plotResults.mask] = ...
+    update_NBSPredictFigure(adjMat, handles.plotData.brainRegions.labels, handles.plotResults.wThresh);
+
+    % Create weight table to access edge weights easily.
 weightTable = table;
 [weightTable.X,weightTable.Y,weightTable.Weight] = find(handles.plotResults.adj);
 handles.plotResults.weightTable = weightTable;
