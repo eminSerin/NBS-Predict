@@ -31,6 +31,9 @@ NBSPredict = get_NBSPredictInput(NBSPredict);
 repCViter = NBSPredict.parameter.repCViter;
 verbose = NBSPredict.parameter.verbose;
 
+% TODO: Remove after development.
+% NBSPredict.parameter.ifModelExtract = 1;
+
 % Random Seed
 rndSeeds = generate_randomStream(NBSPredict.parameter.randSeed, repCViter);
 
@@ -177,7 +180,7 @@ if isstring(fileDir)
     if verbose
        fprintf('\nResults are being saved...\n') 
     end
-    save(fileDir,'NBSPredict');
+    save_wrapper(fileDir,NBSPredict);
 end
 
 if NBSPredict.parameter.ifView
@@ -476,12 +479,27 @@ if NBSPredict.parameter.ifSave
             fileNum = fileNum + 1;
         end
     end
-    save(fileDir,'NBSPredict');
+    save_wrapper(fileDir, NBSPredict);
 else
     if ~NBSPredict.parameter.ifTest
         warning(['Save parameter is disabled! So, NBSPredict file will not be saved!',...
             ' To save it, set ifSave to 1.']);
     end
     fileDir = 0;
+end
+end
+
+function [] = save_wrapper(file, data)
+% save_wrapper saves data in a file. It is a wrapper for save function.
+% It tries to save data in v7.3 format if it is not possible to save in
+% v7. If it is not possible to save in v7.3, it will give a warning.
+try 
+    save(file, 'data');
+catch
+    try 
+        save(file, '-v7.3', 'data');
+    catch
+        warning('Data could not be saved!');
+    end
 end
 end
