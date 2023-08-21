@@ -355,6 +355,7 @@ model.Mdl = Mdl;
 model.estimator = estimator;
 model.predictor = predictor; 
 model.preprocess = preprocess;
+model.preprocess.edgeIdx = NBSPredict.data.edgeIdx;
 end
 
 function permScore = run_permTesting(NBSPredict)
@@ -489,17 +490,17 @@ else
 end
 end
 
-function [] = save_wrapper(file, data)
-% save_wrapper saves data in a file. It is a wrapper for save function.
+function [] = save_wrapper(file, NBSPredict)
+% save_wrapper saves NBSPredict in a file. It is a wrapper for save function.
 % It tries to save data in v7.3 format if it is not possible to save in
 % v7. If it is not possible to save in v7.3, it will give a warning.
 try 
-    save(file, 'data');
+    save(file, 'NBSPredict');
 catch
     try 
-        save(file, '-v7.3', 'data');
+        save(file, '-v7.3', 'NBSPredict');
     catch
-        warning('Data could not be saved!');
+        warning('NBSPredict could not be saved!');
     end
 end
 end

@@ -92,21 +92,9 @@ end
 
 % Load data! 
 % Connectome data.
-if ischar(connectome)
+if ischar(connectome) || isstring(connectome)
     connData = loadData(connectome);
-elseif iscell(connectome)
-    nFiles = length(connectome);
-    for f = 1: nFiles
-        cFile = connectome{f};
-        if f == 1
-            tmp = loadData(cFile);
-            dataSize = size(tmp);
-            connData = zeros([dataSize, nFiles]);
-            connData(:, :, f) = tmp;
-        end
-        connData(:, :, f) = loadData(cFile);
-    end 
-elseif ismatrix(connectome)
+elseif ismatrix(connectome) && ~isstring(connectome)
     connData = connectome;
 else
    error(['Unrecognized input type!',...
@@ -126,7 +114,7 @@ if ~isempty(confMat)
 end
 
 % Shrink connectivity matrices into edge matrices.
-X = shrinkMat(connData); 
+X = connData(model.preprocess.edgeIdx)'; 
 
 % Predicts label using given data.
 if ~isempty(model.preprocess.scaler)
