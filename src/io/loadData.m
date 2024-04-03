@@ -34,11 +34,7 @@ switch ext
         field = fieldnames(tmp);
         cData = tmp.(field{:});
     case '.csv'
-        try
-            cData = csvread(fileName);
-        catch
-            cData = readtable(fileName);
-        end
+        cData = readtable(fileName);
     otherwise
         error('Unrecognized file extension! Connectome file must be .csv or .mat!');
 end
