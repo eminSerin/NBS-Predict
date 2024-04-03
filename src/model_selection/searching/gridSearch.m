@@ -3,30 +3,30 @@ function [bestParam,bestParamScore,bestParamIdx] = gridSearch(objFun,data,...
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % gridSearch performs grid search over hyperparameter space provided and
 % returns best hyperparameter combination.
-%   
+%
 % Arguments
 %   objFun = Objective function (e.g., estimator).
-%   data = Data structure including X and y matrices. 
+%   data = Data structure including X and y matrices.
 %   paramGrid = Parameter grid.
-%   kFold = Number of CV folds (default = 10). 
-%   metric = Performance metric used to evaluate model performance. 
+%   kFold = Number of CV folds (default = 10).
+%   metric = Performance metric used to evaluate model performance.
 %   numCores = Number of CPU cores to use (default = 1).
 %   bestParamMethod = Method to choose best parameter ('best','median', default = "best").
-%       Check help section of bestParamMetric for detailed information.     
+%       Check help section of bestParamMetric for detailed information.
 %
 % Output:
-%   bestParams = Best hyperparameter combination choosen. 
-%   bestParamScore = Score of best hyperparameters choosen. 
+%   bestParams = Best hyperparameter combination choosen.
+%   bestParamScore = Score of best hyperparameters choosen.
 %
 % Emin Serin - 05.07.2020
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Input
-% validate parameters and return default parameters if no provided. 
-searchInputs = get_searchInputs('gridSearch',varargin{:}); 
-kFold = searchInputs.kFold; 
+% validate parameters and return default parameters if no provided.
+searchInputs = get_searchInputs('gridSearch', data.y, varargin{:});
+kFold = searchInputs.kFold;
 %% Main loop
-[~,nComb] = get_paramGridShapeComb(paramGrid); % get total number of combinations. 
-paramSpaceIdx = linspace(1,nComb,nComb); 
+[~,nComb] = get_paramGridShapeComb(paramGrid); % get total number of combinations.
+paramSpaceIdx = linspace(1,nComb,nComb);
 
 CVscore = zeros(kFold,nComb);
 for iter = 1:nComb
@@ -40,7 +40,7 @@ for iter = 1:nComb
     CVscore(:,iter) = [cvResults.score];
 end
 
-% Return best parameters. 
+% Return best parameters.
 [bestParam,bestParamScore,bestParamIdx] = get_bestParam(CVscore,...
     paramSpaceIdx,paramGrid,searchInputs.bestParamMethod);
 end

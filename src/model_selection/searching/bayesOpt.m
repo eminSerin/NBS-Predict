@@ -31,7 +31,7 @@ function [bestParam,bestParamScore,bestParamIdx] = bayesOpt(objFun,...
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Input
 % validate parameters and return default parameters if no provided. 
-searchInputs = get_searchInputs('bayesOpt',varargin{:}); 
+searchInputs = get_searchInputs('bayesOpt', data.y, varargin{:}); 
 nIter = searchInputs.nIter; kFold = searchInputs.kFold;
 numCores = searchInputs.numCores; bestParamMethod = searchInputs.bestParamMethod;
 %%
