@@ -38,13 +38,14 @@ addParameter(p,'randomState',defaultVals.randomState);
 % Parse input
 parse(p,varargin{:});
 
-% Input 
+% If number of folds are greater than sample, then set it to sample size. 
 kFold = p.Results.kFold;
-numCores = p.Results.numCores;
-ifRand =  p.Results.ifRand;
+if kFold > size(data.y,1)
+    kFold = size(data.y,1);
+end
 
 % Init parallel pool.
-create_parallelPool(numCores);
+create_parallelPool(p.Results.numCores);
 
 % Set random state. 
 if p.Results.randomState
@@ -53,13 +54,13 @@ end
 
 %%
 % Generate CV indices.
-cvFoldIdx = gen_cvpartition(data.y,kFold,ifRand);
+cvFoldIdx = gen_cvpartition(data.y,kFold,p.Results.ifRand);
 
 % Preallocate.
 trainTestData = prepare_trainTestData(data,cvFoldIdx(1));
 CVresults = fun(trainTestData);
 
-if ~(numCores > 1)
+if ~(p.Results.numCores > 1)
     for fold = 2:kFold
         trainTestData = prepare_trainTestData(data,cvFoldIdx(fold));
         CVresults(fold,1) = fun(trainTestData);

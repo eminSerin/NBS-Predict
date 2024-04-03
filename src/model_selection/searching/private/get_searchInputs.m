@@ -1,4 +1,4 @@
-function [searchInputs] = get_searchInputs(searchMethod,varargin)
+function [searchInputs] = get_searchInputs(searchMethod, y, varargin)
 % GET_SEARCHINPUTS validates and returns inputs required for a specific
 % searching algorithm. It also returns default inputs if no input are
 % provided. Please check help section in the searching algorithms for
@@ -9,6 +9,7 @@ function [searchInputs] = get_searchInputs(searchMethod,varargin)
 %       randomSearch: Randomized search. 
 %       gridSearch: Grid search
 %       bayesOpt: Bayesian optimization
+%   y = Target variable.
 %   varargin = varargin cell array that you obtained in searching
 %       algorithms.
 %
@@ -57,8 +58,15 @@ assert(any(strcmpi(searchMethod,availSearchMethods)),['Incorrect searching metho
 
 % Base parameters which found in all searching algorithms.
 searchInputs.numCores = p.Results.numCores;
-searchInputs.kFold = p.Results.kFold;
 bestParamMethod = p.Results.bestParamMethod;
+
+% Set parameters for grid search.
+nSample = size(y, 1);
+if p.Results.kFold > nSample
+    searchInputs.kFold = nSample;
+else
+    searchInputs.kFold = p.Results.kFold;
+end
 
 switch lower(searchMethod)
     case {'randomsearch','bayesopt'}

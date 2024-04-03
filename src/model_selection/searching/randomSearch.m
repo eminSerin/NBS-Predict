@@ -34,7 +34,7 @@ function [bestParam,bestParamScore,bestParamIdx] = randomSearch(objFun,...
 %%
 % Input
 % validate parameters and return default parameters if no provided. 
-searchInputs = get_searchInputs('randomSearch',varargin{:}); 
+searchInputs = get_searchInputs('randomSearch', data.y, varargin{:}); 
 nIter = searchInputs.nIter; kFold = searchInputs.kFold;
 
 % Draw an uniform random sample from parameter space without replacement.

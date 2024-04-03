@@ -174,6 +174,19 @@ end
 % Extract y (i.e., independent variables) from the design matrix. 
 default.data.y = default.data.y(:, 1:2); 
 
+% Check if LOOCV is selected.
+if default.parameter.kFold == -1 
+    default.parameter.kFold = size(default.data.y,1);
+end
+% if LOOCV and regression, then throw error
+if ~default.parameter.ifClass && default.parameter.kFold == size(default.data.y,1)
+    error('LOOCV cannot be used for regression problems!');
+end
+if default.parameter.kFold == size(default.data.y,1)
+    default.parameter.repCViter = 1;
+    warning('LOOCV is selected. repCViter is set to 1.');
+end
+
 %% Hyperparameters
 % Set default hyperparameters for given model.
 for m = 1:numel(default.parameter.MLmodels)
