@@ -12,3 +12,5 @@ workspaces.mat
 src/ext/BrainNetViewer_20181219/tmp.edge
 src/ext/BrainNetViewer_20181219/tmp.node
 *.asv
+src/.DS_Store
+test/.DS_Store
