@@ -65,7 +65,7 @@ for i = m0+1:n
     eIdx = eIdx + m*2;
 end
 
-if ~issymmetric(g)
+if ~is_symmetric(g)
     error('Network is not symmetric. Please run the function again.');
 end
 
