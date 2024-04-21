@@ -38,7 +38,7 @@ if dataDim == 2
 else
     for i = 1:subjects
         cMat = data(:,:,i); % Select current matrix.
-        if ~issymmetric(cMat)
+        if ~is_symmetric(cMat)
             warning('Given matrix is not symmetric! Data index: %d', i)
         end
         edgeMat(i,:)=cMat(edgeIdx); % extract edge values.
