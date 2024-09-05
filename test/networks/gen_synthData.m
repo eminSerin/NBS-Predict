@@ -106,9 +106,9 @@ end
 
 if p.Results.randomState
     if p.Results.randomState == -1
-        rng('shuffle');
+        set_seed('shuffle');
     else
-        rng(p.Results.randomState);
+        set_seed(p.Results.randomState);
     end
 end
 %% Generate networks.

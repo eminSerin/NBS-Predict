@@ -82,7 +82,7 @@ CPM.parameter.ifPerm = p.Results.ifPerm;
 CPM.parameter.permIter = p.Results.permIter; 
 CPM.parameter.verbose = p.Results.verbose; 
 
-rng(p.Results.randSeed);
+set_seed(p.Results.randSeed);
 
 % Initiate parallel pool if desired.
 create_parallelPool(CPM.parameter.numCores);
@@ -294,7 +294,7 @@ if CPM.parameter.ifPerm
             fprintf(permMsg)
         end
         parfor p = 1: permIter
-            rng(rndSeeds(p));
+            set_seed(rndSeeds(p));
             permCPM = CPM;
             permCPM.data.y = permCPM.data.y(randperm(nSub), :);
             [posPermCVscore(p+1), negPermCVscore(p+1), combPermCVscore(p+1)] = crossVal_wrapper(permCPM);
@@ -306,7 +306,7 @@ if CPM.parameter.ifPerm
             permProg = CmdProgress(permMsg, permIter);
         end
         for p = 1: permIter
-            rng(rndSeeds(p));
+            set_seed(rndSeeds(p));
             permCPM = CPM;
             permCPM.data.y = permCPM.data.y(randperm(nSub), :);
             [posPermCVscore(p+1), negPermCVscore(p+1), combPermCVscore(p+1)] = crossVal_wrapper(permCPM);
@@ -339,9 +339,9 @@ end
         % set_randomSeed sets seeds to the random generator. 
         % Random Seed
         if randSeed ~= -1 % -1 refers to random shuffle.
-            rng(randSeed);
+            set_seed(randSeed);
         else
-            rng('shuffle');
+            set_seed('shuffle');
         end
     end
 
