@@ -1,5 +1,5 @@
 # Operating system files
-.DS_Store
+*.DS_Store
 Thumbs.db
 .AppleDouble
 .LSOverride
@@ -14,3 +14,5 @@ src/ext/BrainNetViewer_20181219/tmp.node
 *.asv
 src/.DS_Store
 test/.DS_Store
+src/.DS_Store
+

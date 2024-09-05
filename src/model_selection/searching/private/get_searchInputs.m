@@ -88,7 +88,7 @@ end
 
 % Set random state. 
 if p.Results.randomState
-    rng(p.Results.randomState);
+    set_seed(p.Results.randomState);
 end
 
 end

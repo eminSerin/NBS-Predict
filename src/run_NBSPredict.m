@@ -75,7 +75,7 @@ for cModelIdx = 1: nModels
     if cNBSPredict.parameter.numCores > 1
         % Run parallelly.
         parfor r = 1: repCViter
-            rng(rndSeeds(r));
+            set_seed(rndSeeds(r));
             [repCVscore(r),edgeWeight(r,:,:),...
                 truePredLabels(r,:,:),stability(r),...
                 bestParams(r,:), corrXy{r, :}] = outerFold(cNBSPredict);
@@ -84,7 +84,7 @@ for cModelIdx = 1: nModels
     else
         % Run sequentially.
         for r = 1: repCViter
-            rng(rndSeeds(r));
+            set_seed(rndSeeds(r));
             [repCVscore(r),edgeWeight(r,:,:),...
                 truePredLabels(r,:,:),stability(r),...
                 bestParams(r,:), corrXy{r, :}] = outerFold(cNBSPredict);
@@ -371,9 +371,9 @@ if NBSPredict.parameter.ifPerm
     
     % Random Seed
     if NBSPredict.parameter.randSeed ~= -1 % -1 refers to random shuffle.
-        rng(NBSPredict.parameter.randSeed);
+        set_seed(NBSPredict.parameter.randSeed);
     else
-        rng('shuffle');
+        set_seed('shuffle');
     end
     rndSeeds = generate_randomStream(randi(1e+9), permIter);
     
@@ -391,7 +391,7 @@ if NBSPredict.parameter.ifPerm
             fprintf(permMsg)
         end
         parfor p = 1: permIter
-            rng(rndSeeds(p));
+            set_seed(rndSeeds(p));
             permNBSPredict = NBSPredict;
             permNBSPredict.data.y = permNBSPredict.data.y(randperm(nSub), :);
             [permCVscore(p+1),~, ~, ~] = outerFold(permNBSPredict);
@@ -403,7 +403,7 @@ if NBSPredict.parameter.ifPerm
             permProg = CmdProgress(permMsg, permIter);
         end
         for p = 1: permIter
-            rng(rndSeeds(p));
+            set_seed(rndSeeds(p));
             permNBSPredict = NBSPredict;
             permNBSPredict.data.y = permNBSPredict.data.y(randperm(nSub), :);
             [permCVscore(p+1),~, ~, ~] = outerFold(permNBSPredict);

@@ -30,10 +30,10 @@ if randSeed ~= -1 % -1 refers to random shuffle.
     if NBSPredict.parameter.numCores > 1
         rndSeeds = linspace(randSeed,randSeed+totalRepCViter-1,totalRepCViter);
     else
-        rng(randSeed);
+        set_seed(randSeed);
     end
 else
-    rng('shuffle');
+    set_seed('shuffle');
 end
 
 % Init parallel pool if desired.
@@ -75,7 +75,7 @@ for cModelIdx = 1: nModels
     if cNBSPredict.parameter.numCores > 1
         % Run parallelly.
         parfor repCViter = 1: totalRepCViter
-            rng(rndSeeds(repCViter));
+            set_seed(rndSeeds(repCViter));
             if ifLinear
                 [outerCVscore,edgeWeight(repCViter,:,:),...
                     truePredLabels(repCViter,:,:),stability(repCViter),...

@@ -118,7 +118,7 @@ forIter = round(simIter/numCores);
 simIter = numCores*forIter;
 
 % Generate random seeds. 
-rng(p.Results.randSeed);
+set_seed(p.Results.randSeed);
 randSeeds = randi(1000000,simIter,1);
 simResults.info.randSeeds = randSeeds;
 
