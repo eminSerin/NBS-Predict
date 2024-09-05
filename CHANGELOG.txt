@@ -1,4 +1,19 @@
-## [v1.0.0-beta.10] - 
+## [v1.0.0-beta.13] - 05.09.2024
+- Fix random seed error in newer versions of MATLAB.
+
+## [v1.0.0-beta.12-hotfix] - 21.04.2024
+- Add function to check if given matrix symmetric with tolerance. 
+- Fix minor bug in NBSPredict_predict. 
+
+## [v1.0.0-beta.12] - 03.04.2024
+- Reintroduced LOOCV for classification problems (no LOOCV for regression yet). 
+- Fix minor bugs in GUI. 
+
+## [v1.0.0-beta.11] - 21.08.2023
+- Fix minor bugs in novel data prediction function.
+- Fix minor bugs in saving results. 
+
+## [v1.0.0-beta.10] - 19.06.2023
 - Refactor CPM functions.
 - CPM can now provide predicted and true labels, so that user can compute further performance metrics. 
 - Prediction performance of combined network (positive and negative) is now provided.
