@@ -154,8 +154,8 @@ CM = confusionMatrix(y_true, y_pred);
 perClass = diag(CM.confMat) ./ sum(CM.confMat, 2);
 if any(isnan(perClass))
     warnmsg = ["y_pred contains classes not in y_true. That might be",...
-        "due to small or unequal sample. Please use other metrics!"];
-    warning(warnmsg);
+        " due to small or unequal sample. Please use other metrics!"];
+    warning(warnmsg(1) + warnmsg(2));
     score = mean(perClass, "omitnan");
 else
     score = mean(perClass);
