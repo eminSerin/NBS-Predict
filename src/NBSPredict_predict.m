@@ -114,7 +114,7 @@ if ~isempty(confMat)
 end
 
 % Shrink connectivity matrices into edge matrices.
-X = shrinkMat(connData);
+X = shrinkMat(connData, model.preprocess.edgeIdx);
 
 
 % Predicts label using given data.

@@ -1,4 +1,4 @@
-function [edgeMat,nodes,edgeIdx] = shrinkMat(data)
+function [edgeMat,nodes,edgeIdx] = shrinkMat(data, preEdgeIdx)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % shrinkMat extracts values of each edge in a correlation matrix and store
 % in a array.
@@ -6,23 +6,25 @@ function [edgeMat,nodes,edgeIdx] = shrinkMat(data)
 % Arguments:
 %   data = Data matrix where correlation matrix from each participant
 %   stored in. (nodes x nodes x subject)
+%   preEdgeIdx: Pre-existing edge indices to extract edges from. Optional
+%       input. If not provided, edge indices are calculated internally.
 %
 % Output:
 %   edgeMat = 2D matrix where each row is subjects given and each column is
 %       edge values.
-%   nodes = Number of nodes. 
-%   edgeIdx = List of indices of edges in a correlation matrix. 
+%   nodes = Number of nodes.
+%   edgeIdx = List of indices of edges in a correlation matrix.
 %
 % Last edited by Emin Serin, 21.02.2022.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
-% Check data size. 
-dataShape = size(data); 
+% Check data size.
+dataShape = size(data);
 dataDim = length(dataShape);
 assert(ismember(dataDim,[2,3]),'Data provided is not a 2D or 3D matrix!')
 assert(dataShape(1) == dataShape(2),'Please provide correct form of data matrix. See help!')
-nodes = dataShape(1); 
+nodes = dataShape(1);
 if dataDim == 2
     subjects = 1;
 elseif dataDim == 3
@@ -30,7 +32,13 @@ elseif dataDim == 3
     subjects = dataShape(3);
 end
 
-edgeIdx = single(find(triu(ones(nodes,nodes),1))); % finds edge indices.
+% Find edge indices.
+if nargin == 1 || isempty(preEdgeIdx)
+    edgeIdx = single(find(triu(ones(nodes,nodes),1))); % finds edge indices.
+    preEdgeIdx = [];
+else
+    edgeIdx = preEdgeIdx;
+end
 edgeMat = zeros(subjects,length(edgeIdx)); % pre-allocate.
 
 if dataDim == 2
@@ -46,8 +54,9 @@ else
 end
 
 % Remove features where nonzero features are 10% or less.
+% Will not run if edgeIdx is provided.
 ifAdjMat = (numel(unique(edgeMat))==2)& all(ismember(edgeMat,[0,1]));
-if ~ifAdjMat
+if ~ifAdjMat && isempty(preEdgeIdx)
     SMR = 0.1; % Signal to missing value ratio (default = 0.1, at least %10 of nonzero)
     logicalEdgeMat = edgeMat;
     logicalEdgeMat((logicalEdgeMat ~= 0)&(~isnan(logicalEdgeMat))) = 1;
