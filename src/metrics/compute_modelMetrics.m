@@ -193,86 +193,105 @@ end
 end
 
 function [score] = auc(y_true,y_pred)
-% Area Under the Receiver Operating Characteristic Curve.
+% Approximate Area Under the ROC Curve from hard labels.
+% NOTE: sklearn's roc_auc_score requires probability scores and sweeps
+% across all thresholds. This function uses a single operating point
+% from hard labels, so results will generally differ from sklearn.
 CM = confusionMatrix(y_true,y_pred);
 TP = CM.TP; FP = CM.FP; TN = CM.TN; FN = CM.FN;
 checkMultiClass(TP); % Check if no multilabel class provided.
-TPR = TP / (TP + FN); % true positive rate
-FPR = FP / (FP + TN); % false positive rate
 if (TP + FN) == 0 || (FP + TN) == 0
     zeroDivisionWarning('AUC')
     score = 0;
 else
-   X = [0;TPR;1]; % coordinates of TPR.
-   Y = [0;FPR;1]; % coordinates of FPR.
-   score = trapz(Y,X); % apply trapezoid rule to find AUC. 
+    TPR = TP / (TP + FN); % true positive rate (sensitivity)
+    FPR = FP / (FP + TN); % false positive rate (1 - specificity)
+    % ROC curve: FPR on x-axis, TPR on y-axis.
+    fprPoints = [0; FPR; 1]; % x-axis
+    tprPoints = [0; TPR; 1]; % y-axis
+    score = trapz(fprPoints, tprPoints);
 end
 end
 
 function [score] = sensitivity(y_true,y_pred)
-% Sensitivity
+% Sensitivity (Recall / True Positive Rate), macro-averaged.
 CM = confusionMatrix(y_true,y_pred);
 TP = CM.TP; FN = CM.FN;
-if (TP + FN) == 0
-    zeroDivisionWarning('Sensitivity')
+denom = TP + FN;
+if all(denom == 0)
+    zeroDivisionWarning('Sensitivity');
     score = 0;
 else
-    score = mean(TP ./ (TP + FN)); % Sensitivity
+    perClass = TP ./ denom;
+    perClass(denom == 0) = 0;  % Handle classes with no positive samples.
+    score = mean(perClass);
 end
 end
 
 function [score] = specificity(y_true,y_pred)
-% Specificity
+% Specificity (True Negative Rate), macro-averaged.
 CM = confusionMatrix(y_true,y_pred);
 FP = CM.FP; TN = CM.TN;
-if (TN + FP) == 0
-   zeroDivisionWarning('Specificity')
-   score = 0;
-else 
-    score = mean(TN ./ (TN + FP)); % Specificity
+denom = TN + FP;
+if all(denom == 0)
+    zeroDivisionWarning('Specificity');
+    score = 0;
+else
+    perClass = TN ./ denom;
+    perClass(denom == 0) = 0;  % Handle classes with no negative samples.
+    score = mean(perClass);
 end
 end
 
 function [score] = precision(y_true,y_pred)
-% Precision
+% Precision (Positive Predictive Value), macro-averaged.
 CM = confusionMatrix(y_true,y_pred);
 FP = CM.FP; TP = CM.TP;
-if (TP + FP) == 0
-   zeroDivisionWarning('Precision')
-   score = 0;
-else 
-    score = mean(TP ./ (TP + FP)); % Precision
+denom = TP + FP;
+if all(denom == 0)
+    zeroDivisionWarning('Precision');
+    score = 0;
+else
+    perClass = TP ./ denom;
+    perClass(denom == 0) = 0;  % Handle classes with no predicted positives.
+    score = mean(perClass);
 end
 end
 
 function [score] = recall(y_true,y_pred)
-% Recall
+% Recall (same as Sensitivity), macro-averaged.
 CM = confusionMatrix(y_true,y_pred);
 TP = CM.TP; FN = CM.FN;
-if (TP + FN) == 0
-   zeroDivisionWarning('Recall')
-   score = 0;
+denom = TP + FN;
+if all(denom == 0)
+    zeroDivisionWarning('Recall');
+    score = 0;
 else
-    score =  mean(TP./(TP + FN)); % Recall
+    perClass = TP ./ denom;
+    perClass(denom == 0) = 0;
+    score = mean(perClass);
 end
 end
 
 function [score] = f1(y_true,y_pred)
-% F1 Score
-precisionScore = precision(y_true,y_pred);
-recallScore = recall(y_true,y_pred);
-if (precisionScore + recallScore) == 0
-   zeroDivisionWarning('F1')
-   score = 0;
-else
-    score = 2*((precisionScore*recallScore)/(precisionScore+recallScore)); % F1 Score
-end
+% F1 Score, macro-averaged.
+% Computes F1 per class, then averages (matching sklearn's average='macro').
+CM = confusionMatrix(y_true,y_pred);
+TP = CM.TP; FP = CM.FP; FN = CM.FN;
+precPerClass = TP ./ (TP + FP);
+recPerClass  = TP ./ (TP + FN);
+% Handle classes where denominator is zero.
+precPerClass(isnan(precPerClass)) = 0;
+recPerClass(isnan(recPerClass))   = 0;
+f1PerClass = 2 * (precPerClass .* recPerClass) ./ (precPerClass + recPerClass);
+f1PerClass(isnan(f1PerClass)) = 0;  % 0/0 case: both precision and recall are 0.
+score = mean(f1PerClass);
 end
 
 %% REGRESSION
 function [score] = mse(y_true,y_pred)
 % Mean Squared Error
-score = sum((y_true-y_pred).^2)/numel(y_true);
+score = mean((y_true - y_pred).^2);
 end
 
 function [score] = rmse(y_true,y_pred)
@@ -286,32 +305,54 @@ score = corr(y_true,y_pred);
 end
 
 function [score] = explained_variance(y_true,y_pred)
-% Explained Variance
-score = 1 - var(y_true-y_pred)/var(y_true);
+% Explained Variance (matches sklearn.metrics.explained_variance_score).
+varY = var(y_true);
+if varY == 0
+    if var(y_true - y_pred) == 0
+        score = 1.0;  % Perfect prediction of constant target.
+    else
+        score = 0.0;  % Non-perfect prediction of constant target.
+    end
+else
+    score = 1 - var(y_true - y_pred) / varY;
+end
 end
 
 function [score] = mad(y_true,y_pred)
-% Median Absolute Difference
-score = median(abs(y_true-y_pred));
+% Median Absolute Error (backward-compatible alias).
+% See median_absolute_error.
+score = median_absolute_error(y_true, y_pred);
+end
+
+function [score] = median_absolute_error(y_true,y_pred)
+% Median Absolute Error (matches sklearn.metrics.median_absolute_error).
+score = median(abs(y_true - y_pred));
 end
 
 function [score] = r_squared(y_true,y_pred)
-% R Square
+% R Squared (matches sklearn.metrics.r2_score).
 numerator = sum((y_true - y_pred).^2);
 denominator = sum((y_true - mean(y_true)).^2);
-score = mean(1 - (numerator/denominator));
+if denominator == 0
+    if numerator == 0
+        score = 1.0;  % Perfect prediction of constant target.
+    else
+        score = 0.0;  % Non-perfect prediction of constant target.
+    end
+else
+    score = 1 - (numerator / denominator);
+end
 end
 
 %% Helper Function
 function [] = checkMultiClass(x)
-assert(numel(x) >= 1,'Multi-class data provided! You can only use binary labels.');
+assert(numel(x) == 1,'Multi-class data provided! You can only use binary labels.');
 end
 
 function labels = ensure_columnVector(labels)
-    dims = size(labels);
-    if dims(2) > dims(1)
-       labels = labels'; 
-    end
+    assert(min(size(labels)) == 1, ...
+        'compute_modelMetrics: Input must be a vector, not a matrix.');
+    labels = labels(:);
 end
 
 function [] = zeroDivisionWarning(metricName)
