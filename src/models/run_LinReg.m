@@ -1,12 +1,12 @@
 function [Mdl] = run_LinReg(params)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% run_LogReg returns Mdl structure including function handles of fit,
+% run_LinReg returns Mdl structure including function handles of fit,
 % predict and score functions for linear regression. 
 %
 % Arguments: 
 %   params: Structure including following hyperparameters:
 %   lambda: Lambda parameter (default = 0). 
-%   solver: ML solver (default = 'sgd')
+%   solver: ML solver (default = 'lbfgs')
 % 
 % Output: 
 %   Mdl: Structure that includes fit, predict and score function handles. 
@@ -14,12 +14,12 @@ function [Mdl] = run_LinReg(params)
 % Reference:
 %   https://en.wikipedia.org/wiki/Linear_regression
 %
-% Last edited by Emin Serin, 25.02.2022
+% Last edited by Emin Serin, 14.05.2026
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Default parameters.
 defaultParams.lambda = 0;
-defaultParams.solver = 'sgd';
+defaultParams.solver = 'lbfgs'; % lbfgs: full-gradient quasi-Newton, stable for p >> n (sgd is for large-n).
 
 if nargin < 1 || isempty(params)
     % Create struct if no provided.

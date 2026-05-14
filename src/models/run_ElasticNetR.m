@@ -33,8 +33,12 @@ end
 % Validate hyperparameter provided (if not, return default hyperparameters)
 params = check_MLparams(params,defaultParams);
 
+% Build glmnet options with only the expected fields.
+glmnetParams.alpha = params.alpha;
+glmnetParams.lambda = params.lambda;
+
 % Function handles.
-Mdl.fit = @(X,y) glmnet(X,y,'gaussian', params);
+Mdl.fit = @(X,y) glmnet(X,y,'gaussian', glmnetParams);
 Mdl.pred = @(clf,newX) predict(clf,newX);
 Mdl.score = @compute_modelMetrics;
 end

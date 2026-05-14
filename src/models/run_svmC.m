@@ -7,7 +7,7 @@ function [Mdl] = run_svmC(params)
 % Arguments: 
 %   params: Structure including following hyperparameters:
 %       lambda: Lambda parameter. 
-%       solver: ML solver (default = 'sgd')
+%       solver: ML solver (default = 'lbfgs')
 % 
 % Output: 
 %   Mdl: Structure that includes fit, predict and score function handles. 
@@ -16,12 +16,12 @@ function [Mdl] = run_svmC(params)
 %   https://en.wikipedia.org/wiki/Support_vector_machine
 %   https://uk.mathworks.com/help/stats/fitclinear.html
 %
-% Last edited by Emin Serin, 25.02.2022
+% Last edited by Emin Serin, 14.05.2026
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Default parameters.
 defaultParams.lambda = 0;
-defaultParams.solver = 'sgd';
+defaultParams.solver = 'lbfgs'; % lbfgs: full-gradient quasi-Newton, stable for p >> n (sgd is for large-n).
 
 if nargin < 1 || isempty(params)
     % Create struct if no provided.

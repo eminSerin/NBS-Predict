@@ -6,7 +6,7 @@ function [Mdl] = run_LogReg(params)
 % Arguments: 
 %   params: Structure including following hyperparameters:
 %   lambda: Lambda parameter (default = 0). 
-%   solver: ML solver (default = 'sgd')
+%   solver: ML solver (default = 'lbfgs')
 % 
 % Output: 
 %   Mdl: Structure that includes fit, predict and score function handles. 
@@ -14,12 +14,12 @@ function [Mdl] = run_LogReg(params)
 % Reference:
 %   https://en.wikipedia.org/wiki/Logistic_regression
 %
-% Last edited by Emin Serin, 25.02.2022
+% Last edited by Emin Serin, 14.05.2026
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Default parameters.
 defaultParams.lambda = 0;
-defaultParams.solver = 'sgd';
+defaultParams.solver = 'lbfgs'; % lbfgs: full-gradient quasi-Newton, stable for p >> n (sgd is for large-n).
 
 if nargin < 1 || isempty(params)
     % Create struct if no provided.

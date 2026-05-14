@@ -18,6 +18,7 @@ function [Mdl] = run_decisionTreeR(params)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Default parameters.
 defaultParams.MinLeafSize = 1;
+defaultParams.SplitCriterion = 'mse';
 
 if nargin < 1 || isempty(params)
     % Create struct if no provided.
@@ -26,8 +27,10 @@ end
 % Validate hyperparameter provided (if not, return default hyperparameters)
 params = check_MLparams(params,defaultParams);
 
-% Function handles. 
-Mdl.fit = @(X,y) fitrtree(X,y,'MinLeafSize',getfieldi(params,'MinLeafSize'));
-Mdl.pred = @predict;
+% Function handles.
+Mdl.fit = @(X,y) fitrtree(X,y,...
+    'MinLeafSize', params.MinLeafSize,...
+    'SplitCriterion', params.SplitCriterion);
+Mdl.pred = @(clf,newX) clf.predict(newX);
 Mdl.score = @compute_modelMetrics;
 end

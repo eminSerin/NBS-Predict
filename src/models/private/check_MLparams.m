@@ -18,7 +18,7 @@ function [readyParams] = check_MLparams(params,defaultParams)
 % Example:
 %     [readyParams] = check_MLparams(params,defaultParams);
 %
-% Emin Serin - 15.08.2019
+% Emin Serin - 14.05.2026
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if ~(nargin==2)
@@ -27,33 +27,50 @@ if ~(nargin==2)
     error('Wrong parameters are provided. Please check help section!');
 end
 
-% Throw warning if no required parameter found in params structure
-% provided. 
 paramNames = fieldnames(params);
 defaultParamNames = fieldnames(defaultParams);
-lParamNames = lower(paramNames); 
+lParamNames = lower(paramNames);
 lDefaultParamNames = lower(defaultParamNames);
-paramMask = ismember(lDefaultParamNames,lParamNames);
-if ~isempty(paramNames)
-    try
-        assert(any(paramMask),'noExistentParam');
-    catch ME
-        switch ME.message
-            case 'noExistentParam'
-                warning(['No parameters found in params structure!',...
-                    ' Please check help for proper parameter structure!',...
-                    ' All parameters are set to default values!'])
-        end
+paramMask = ismember(lDefaultParamNames, lParamNames);
+
+% Warn if a non-empty params struct contains no recognised parameters.
+if ~isempty(paramNames) && ~any(paramMask)
+    warning(['No parameters found in params structure!', ...
+        ' Please check help for proper parameter structure!', ...
+        ' All parameters are set to default values!'])
+end
+
+% Warn about extra / unknown parameters (catches typos).
+extraParamsMask = ~ismember(lParamNames, lDefaultParamNames);
+if any(extraParamsMask)
+    unknownNames = paramNames(extraParamsMask);
+    warning('check_MLparams: Unknown parameter(s) provided: %s. These will be ignored.', ...
+        strjoin(unknownNames, ', '));
+end
+
+% Set default values for parameters that were not provided.
+nonexistentParamsIdx = find(~paramMask);
+for i = 1:numel(nonexistentParamsIdx)
+    cIdx = nonexistentParamsIdx(i);
+    params.(defaultParamNames{cIdx}) = defaultParams.(defaultParamNames{cIdx});
+end
+
+% Normalize user-supplied field names to canonical (default) casing so
+% that downstream code using params.FieldName always works correctly.
+existentParamsIdx = find(paramMask);
+for i = 1:numel(existentParamsIdx)
+    cIdx = existentParamsIdx(i);
+    canonicalName = defaultParamNames{cIdx};
+    % Find the user's field that matched (case-insensitive).
+    userFieldIdx = strcmpi(canonicalName, paramNames);
+    userFieldName = paramNames{userFieldIdx};
+    if ~strcmp(userFieldName, canonicalName)
+        % Rename: copy value under canonical name, then remove old name.
+        params.(canonicalName) = params.(userFieldName);
+        params = rmfield(params, userFieldName);
     end
 end
 
-% Set default values to parameters that are not provided. 
-nonexistentParamsIdx = find(~paramMask);
-for i = 1: numel(nonexistentParamsIdx)
-    cNonexistentParamIdx = nonexistentParamsIdx(i);
-    params.(defaultParamNames{cNonexistentParamIdx})...
-        = defaultParams.(defaultParamNames{cNonexistentParamIdx});
-end
 readyParams = params;
 end
 

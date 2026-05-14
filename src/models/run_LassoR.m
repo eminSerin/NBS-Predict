@@ -1,6 +1,6 @@
 function [Mdl] = run_LassoR(params)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% run_LassoC returns Mdl structure including function handles of
+% run_LassoR returns Mdl structure including function handles of
 % builtin fit, predict and score functions for Lasso regression.
 %
 % Arguments: 
@@ -16,10 +16,13 @@ function [Mdl] = run_LassoR(params)
 %
 % Emin Serin - 10.08.2019
 %
+% Last edited by Emin Serin, 14.05.2026
+%
 % See also: fitclinear, run_LassoC, run_NBSPredict_Lasso
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Default parameters.
 defaultParams.lambda = 'auto';
+defaultParams.solver = 'sparsa'; % sparsa: sparse reconstruction, purpose-built for L1/lasso in p >> n.
 
 if nargin < 1 || isempty(params)
     % Create struct if no provided.
@@ -30,7 +33,8 @@ params = check_MLparams(params,defaultParams);
 
 % Function handles.
 Mdl.fit = @(X,y) fitrlinear(X,y,'Learner','leastsquares',...
-    'Regularization','lasso','Lambda', params.lambda);
+    'Regularization','lasso','Lambda', params.lambda,...
+    'Solver', params.solver);
 Mdl.pred = @(clf,newX) clf.predict(newX);
 Mdl.score = @compute_modelMetrics;
 end

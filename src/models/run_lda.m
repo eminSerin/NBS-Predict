@@ -34,6 +34,6 @@ Mdl.fit = @(X,y) fitcdiscr(X,y,...
     'Delta',params.delta,...
     'Gamma',params.gamma);
 
-Mdl.pred = @predict;
+Mdl.pred = @(clf,newX) clf.predict(newX);
 Mdl.score = @compute_modelMetrics;
 end

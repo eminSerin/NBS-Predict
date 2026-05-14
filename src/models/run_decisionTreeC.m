@@ -31,6 +31,6 @@ params = check_MLparams(params,defaultParams);
 Mdl.fit = @(X,y) fitctree(X,y,...
     'MinLeafSize',params.MinLeafSize,...
     'SplitCriterion', params.SplitCriterion);
-Mdl.pred = @predict;
+Mdl.pred = @(clf,newX) clf.predict(newX);
 Mdl.score = @compute_modelMetrics;
 end

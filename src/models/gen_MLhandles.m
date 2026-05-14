@@ -36,14 +36,13 @@ function [MLhandle] = gen_MLhandles(modelName)
 % Check if only one input is provided. 
 assert(nargin == 1, 'Inaccurate inputs given. Please check help section!');
 
-% Check if model name given is correct. 
+% Check if model name given is correct (validatestring gives fuzzy matching). 
 availableModels = {'svmC','decisionTreeC','LogReg','lda','ElasticNetC',...
     'LassoC','decisionTreeR','svmR','LinReg','ElasticNetR','LassoR'};
-assert(ismember(modelName,availableModels),...
-    'Model name is incorrect! Please check help section!')
+modelName = validatestring(modelName, availableModels, 'gen_MLhandles', 'modelName');
 
 % Function handle. 
-MLhandle= str2func(['run_',modelName]);
+MLhandle = str2func(['run_',modelName]);
 end
 
 

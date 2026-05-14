@@ -34,8 +34,12 @@ end
 params = check_MLparams(params,defaultParams);
 %params.nlambda = 100; % number of lambda parameters.
 
+% Build glmnet options with only the expected fields.
+glmnetParams.alpha = params.alpha;
+glmnetParams.lambda = params.lambda;
+
 % Function handles.
-Mdl.fit = @(X,y) glmnet(X,y,'binomial', params);
+Mdl.fit = @(X,y) glmnet(X,y,'binomial', glmnetParams);
 %Mdl.fit = @(X,y) glmnet(X,y,'binomial');
 Mdl.pred = @(clf,newX) predict(clf,newX);
 Mdl.score = @compute_modelMetrics;
