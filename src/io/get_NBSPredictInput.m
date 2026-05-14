@@ -38,8 +38,12 @@ default.parameter.permIter = 500;
 default.parameter.ifModelExtract = 1;
 
 if isstring(NBSPredict) || ischar(NBSPredict)
-    assert(exist(NBSPredict, 'file') == 2, 'The input file is not found!') 
-    load(NBSPredict)
+    assert(exist(NBSPredict, 'file') == 2, 'The input file is not found!')
+    tmp = load(NBSPredict);
+    fields = fieldnames(tmp);
+    assert(numel(fields) == 1 && strcmp(fields{1}, 'NBSPredict'), ...
+        'MAT file must contain exactly one variable named "NBSPredict".');
+    NBSPredict = tmp.NBSPredict;
 end
 
 if isfield(NBSPredict,'info')
@@ -80,7 +84,7 @@ switch hyperOptMethods
     case 'gridSearch'
         hyperOptParamNames = {};
 end
-hyperOptParamNames = {hyperOptParamNames{:},'kFold','bestParamMethod','metric'};
+hyperOptParamNames = [hyperOptParamNames, {'kFold','bestParamMethod','metric'}];
 
 if ~isfield(NBSPredict.parameter,'ifModelOpt')
     % Set ifModelOpt parameter if no provided.
@@ -148,12 +152,24 @@ if ~isfield(default.data,'X')
        error('Brain regions are not provided!')
     else
         try
-            brainRegions = loadData(default.data.brainRegionsPath);
-            brainRegions.Properties.VariableNames = {'X','Y','Z','labels'};
+            [~, ~, ext] = fileparts(default.data.brainRegionsPath);
+            if strcmpi(ext, '.mat')
+                % loadData returns the sole variable from a MAT file.
+                brainRegions = loadData(default.data.brainRegionsPath);
+                % Wrap numeric array into a table so downstream code can
+                % use table operations uniformly.
+                brainRegions = array2table(brainRegions, ...
+                    'VariableNames', {'X','Y','Z','labels'});
+            else
+                % CSV/TXT: read as a table directly.
+                brainRegions = readtable(default.data.brainRegionsPath);
+                brainRegions.Properties.VariableNames = {'X','Y','Z','labels'};
+            end
             default.data.brainRegions = brainRegions;
-        catch 
-            error(['Brain regions cannot be loaded. ',...
-                'Please check the sample data for the example input structure!']);
+        catch ME
+            error(['Brain regions cannot be loaded: %s\n' ...
+                'Please check the sample data for the example input structure!'], ...
+                ME.message);
         end
     end
 end
@@ -162,27 +178,33 @@ end
 nuisanceIdx = find(default.parameter.contrast == 0); 
 if ~isempty(nuisanceIdx)
     if ~isfield(NBSPredict.data,'confounds')
-        confoundsIdx = nuisanceIdx(nuisanceIdx~=1); 
-        default.data.confounds = default.data.y(:,confoundsIdx);
-        default.data.y(:,confoundsIdx) = [];
+        if any(nuisanceIdx == 1)
+            warning(['get_NBSPredictInput:contrastCol1Zero', ...
+                'Contrast position 1 is 0 but will be ignored ', ...
+                '(column 1 is reserved for subject IDs).']);
+        end
+        confoundsIdx = nuisanceIdx(nuisanceIdx ~= 1); 
+        default.data.confounds = default.data.y(:, confoundsIdx);
+        default.data.y(:, confoundsIdx) = [];
         default.parameter.originalContrast = default.parameter.contrast;
         default.parameter.contrast(confoundsIdx) = [];
     end
 else
     default.data.confounds = [];
 end
-% Extract y (i.e., independent variables) from the design matrix. 
+% Extract y (i.e., dependent variable) from the design matrix.
+assert(size(default.data.y, 2) >= 2, ...
+    'Design matrix has fewer than 2 columns after confound removal.');
 default.data.y = default.data.y(:, 1:2); 
 
 % Check if LOOCV is selected.
-if default.parameter.kFold == -1 
-    default.parameter.kFold = size(default.data.y,1);
+if default.parameter.kFold == -1
+    default.parameter.kFold = size(default.data.y, 1);
 end
-% if LOOCV and regression, then throw error
-if ~default.parameter.ifClass && default.parameter.kFold == size(default.data.y,1)
-    error('LOOCV cannot be used for regression problems!');
-end
-if default.parameter.kFold == size(default.data.y,1)
+if default.parameter.kFold == size(default.data.y, 1)
+    if ~default.parameter.ifClass
+        error('LOOCV cannot be used for regression problems!');
+    end
     default.parameter.repCViter = 1;
     warning('LOOCV is selected. repCViter is set to 1.');
 end
@@ -222,14 +244,10 @@ if ~isfield(default.parameter,'bestParamMethod')
 end
 
 %% Feature selection
-% Prepare a cell array including feature selection parameters.
-nSearchParams = numel(hyperOptParamNames);
-searchParams = cell(nSearchParams*2,1);
-searchParams(linspace(1,nSearchParams*2-1,nSearchParams)) = hyperOptParamNames; 
-cSearchParamIdx = 0;
-for i = 1:nSearchParams
-    cSearchParamIdx = cSearchParamIdx+2;
-    searchParams(cSearchParamIdx) = {default.parameter.(hyperOptParamNames{i})};
+% Prepare a cell array of name-value pairs for the feature selection method.
+searchParams = {};
+for i = 1:numel(hyperOptParamNames)
+    searchParams = [searchParams, hyperOptParamNames{i}, {default.parameter.(hyperOptParamNames{i})}]; %#ok<AGROW>
 end
 
 % assign feature selection function handle

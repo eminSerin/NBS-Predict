@@ -1,41 +1,44 @@
 function isSymmetric = is_symmetric(matrix, tolerance)
-% IS_SYMMETRIC Checks if a given matrix is symmetric within a specified tolerance.
+% IS_SYMMETRIC Checks if a matrix is symmetric within a given tolerance.
 %
 % Syntax:
+%   isSymmetric = is_symmetric(matrix)
 %   isSymmetric = is_symmetric(matrix, tolerance)
 %
 % Input Arguments:
-%   matrix - A square matrix to be checked for symmetry.
-%   tolerance - A scalar value specifying the tolerance for the symmetry check. 
-%               If not provided, the default value is 1e-15.
+%   matrix    - A numeric matrix to be checked for symmetry.
+%   tolerance - Non-negative scalar tolerance (default: scaled by matrix
+%               magnitude and size, similar to MATLAB's issymmetric).
+%               Use 0 for exact symmetry (equivalent to issymmetric(matrix)).
 %
-% Output Argument:
-%   isSymmetric - A logical value indicating whether the matrix is symmetric 
-%                 within the specified tolerance. Returns true if the matrix 
-%                 is symmetric and false otherwise.
+% Output:
+%   isSymmetric - Logical scalar; true if symmetric within tolerance.
+%
+% Notes:
+%   - Non-square matrices always return false.
+%   - Matrices containing NaN are always reported as non-symmetric since
+%     NaN comparisons return false.
+%   - For exact symmetry with no tolerance, prefer the built-in issymmetric().
 %
 % Example:
-%   matrix = [1, 2; 2, 1];
-%   isSymmetric = is_symmetric(matrix, 1e-15);
-%
-%   This will return true as the matrix is symmetric within the tolerance of 1e-15.
-%
-% Note:
-%   The function first checks if the matrix is square. If not, it returns false. 
-%   Then it calculates the absolute difference between the matrix and its transpose. 
-%   If all elements in the difference matrix are within the tolerance, it returns true. 
-%   Otherwise, it returns false.
-%
-if nargin < 2
-    tolerance = 1e-15;
+%   is_symmetric([1 2; 2 1])         % true
+%   is_symmetric([1 2; 2+1e-12 1])   % true (within default tolerance)
+%   is_symmetric([1 2; 3 1])         % false
+
+if nargin < 2 || isempty(tolerance)
+    % Scale tolerance by matrix magnitude and size (robust to large values).
+    tolerance = eps(max(abs(matrix(:)))) * size(matrix, 1);
+end
+
+assert(isscalar(tolerance) && isnumeric(tolerance) && tolerance >= 0, ...
+    'is_symmetric:invalidTolerance', ...
+    'Tolerance must be a non-negative numeric scalar.');
+
+% Non-square matrices cannot be symmetric.
 if size(matrix, 1) ~= size(matrix, 2)
     isSymmetric = false;
     return;
 end
 
-% Calculate the difference between the matrix and its transpose
-diffMatrix = abs(matrix - matrix');
-
-% Check if all elements in the difference matrix are within the tolerance
-isSymmetric = all(all(diffMatrix <= tolerance));
+isSymmetric = all(abs(matrix - matrix') <= tolerance, 'all');
 end

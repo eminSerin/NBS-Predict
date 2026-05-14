@@ -1,80 +1,104 @@
-function [edgeMat,nodes,edgeIdx] = load_corrMatFiles(corrMatDir, verbose)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% load_corrMatFiles loads correlation matrices into a data matrix and extract
-% values of edges into a single NxF matrix where N is subjects, and F is
-% features. Correlation matrices can be .txt or .mat. However, all
-% correlation matrices must be same format!
+function [edgeMat, nodes, edgeIdx] = load_corrMatFiles(corrMatDir, verbose)
+% LOAD_CORRMATFILES Loads correlation matrices and extracts edge features.
+%
+% Loads all connectivity matrices from a directory into a single edge
+% matrix of size (subjects x features), where features are upper-triangle
+% edge values.
 %
 % Arguments:
-%   corrMatDir: Directory where correlation matrices locate. Make sure that
-%   all correlation matrices in the directory given!
+%   corrMatDir - Directory containing correlation matrix files. All files
+%                must be the same format (.mat, .csv, or .txt) and the same
+%                dimensions.
+%   verbose    - Logical flag to show loading progress (default: true).
 %
 % Output:
-%   edgeMat: Matrix of edges shrinked from subjects' correlation matrices.
-%   nodes: number of nodes.
-%   edgeIdx: Indices of edges found in participants correlation matrix.
+%   edgeMat - (subjects x features) matrix of edge values.
+%   nodes   - Number of nodes.
+%   edgeIdx - Linear indices of edges in the correlation matrix.
 %
 % Example:
-%   corrMatDir = uigetdir('Please locate directory where correlation matrices found!');
-%   [edgeMat,nodes,edgeIdx] = load_corrMatFiles(corrMatDir)
+%   corrMatDir = uigetdir('Select directory containing correlation matrices');
+%   [edgeMat, nodes, edgeIdx] = load_corrMatFiles(corrMatDir);
 %
-% Last edited by Emin Serin, 21.02.2022.
+% Last edited by Emin Serin, 14.05.2026.
 %
 % See also: loadData, shrinkMat
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Filter out . dir and '.DS_Store' which might be found in MacOS
-% directories.
+if nargin < 2
+    verbose = true;
+end
+
+% Collect files and filter out directories and all dot-files (e.g.,
+% .DS_Store, ._* resource forks, .gitkeep, Thumbs.db on Windows).
 dataFiles = dir(corrMatDir);
-dirFilter = ~logical(strcmpi({dataFiles.name},'.DS_Store') + [dataFiles.isdir]);
+names = {dataFiles.name};
+isHidden = cellfun(@(n) startsWith(n, '.'), names);
+dirFilter = ~[dataFiles.isdir] & ~isHidden;
 dataFiles = dataFiles(dirFilter);
 
-% Load all data files into a structure.
+% Sort alphabetically to ensure consistent, OS-independent ordering.
+[~, sortIdx] = sort({dataFiles.name});
+dataFiles = dataFiles(sortIdx);
+
 nFiles = length(dataFiles);
 
+if nFiles == 0
+    error('load_corrMatFiles:noFiles', ...
+        'No connectivity matrix files found in directory: %s', corrMatDir);
+end
+
 if verbose
-    msg = 'Connectivity matrices are being loaded:';
-    prog = CmdProgress(msg, nFiles);
+    prog = CmdProgress('Connectivity matrices are being loaded:', nFiles);
 end
 
 if nFiles > 1
-    % Preallocate
+    % Load the first file to determine matrix size, then preallocate.
     cData = loadData(dataFiles(1).name, corrMatDir);
-    data = zeros([size(cData), nFiles], 'single');
-    
+    expectedSize = size(cData);
+    data = zeros([expectedSize, nFiles], 'like', cData);
+    data(:, :, 1) = cData;
+    if verbose
+        prog.increment;
+    end
+
+    % Load remaining files.
     try
-        % Load files.
-        for i = 1:nFiles
+        for i = 2:nFiles
             cData = loadData(dataFiles(i).name, corrMatDir);
-            if istable(cData)
-                cData = table2array(cData);
-            end
-            data(:,:,i) = cData;
+
+            % Validate dimensions match across files.
+            assert(isequal(size(cData), expectedSize), ...
+                'load_corrMatFiles:dimensionMismatch', ...
+                ['Matrix in "%s" has size [%s] but expected [%s]. ' ...
+                 'All matrices must have the same dimensions.'], ...
+                dataFiles(i).name, num2str(size(cData)), num2str(expectedSize));
+
+            data(:, :, i) = cData;
             if verbose
                 prog.increment;
             end
         end
-    catch
-        error(['Error in loading correlation matrices.\n',...
-            'There is something wrong with %s.\n',...
-            'Please check the sample dataset for example data structure!'],...
-            fullfile(corrMatDir, dataFiles(i).name));
+    catch ME
+        error('load_corrMatFiles:loadError', ...
+            ['Error loading correlation matrices.\n' ...
+             'File: %s\n' ...
+             'Cause: %s\n' ...
+             'Please check the sample dataset for the expected data structure.'], ...
+            fullfile(corrMatDir, dataFiles(i).name), ME.message);
     end
-elseif nFiles == 1
-    %     [~, ~, ext] = fileparts([filePath, dataFiles(1).name]);
+
+else
+    % Single-file case.
     data = loadData(dataFiles(1).name, corrMatDir);
     if verbose
         prog.increment;
     end
-else
-    error('No connectivity matrix found in the directory!')
 end
 
 if verbose
-    fprintf('Loaded matrices are shrinked into a single edge matrix...\n')
+    fprintf('Loaded matrices are being shrunk into a single edge matrix...\n')
 end
 
-% Shrinks data into edge matrix.
-[edgeMat,nodes,edgeIdx] = shrinkMat(data);
+% Shrink data into edge matrix.
+[edgeMat, nodes, edgeIdx] = shrinkMat(data);
 end
-

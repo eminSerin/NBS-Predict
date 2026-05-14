@@ -1,41 +1,56 @@
-function [cData] = loadData(file,path)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% loadData loads data for NBSPredict. It only supports .csv or .mat files.
+function cData = loadData(file, path)
+% LOADDATA Loads data for NBSPredict. Supports .csv, .txt, and .mat files.
 %
-% Arguments: 
-%   file = File name.  
-%   path = File path. 
+% Arguments:
+%   file - File name (with extension).
+%   path - File path (optional). If omitted, 'file' is treated as the full
+%          path.
 %
 % Output:
-%   cData = Data important from structure. 
+%   cData - Loaded data as a numeric matrix (double).
 %
 % Example:
-%   [cData] = loadData(file,path);
+%   cData = loadData('connectome.mat', '/data/subject01/');
+%   cData = loadData('/data/subject01/connectome.mat');
 %
-% Last edited by Emin Serin, 18.02.2022.
+% Notes:
+%   - .mat files must contain exactly one variable.
+%   - .csv and .txt files are expected to contain purely numeric data.
 %
-% See also: load_corrMatFiles 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%
-if nargin == 1
-    % Use file if only file provided. 
+% Last edited by Emin Serin, 14.05.2026.
+%
+% See also: load_corrMatFiles
+
+if nargin < 2
     fileName = file;
 else
-    fileName = fullfile(path, file); % create full file name. 
+    fileName = fullfile(path, file);
 end
-[~,~,ext] = fileparts(fileName); % get file format. 
 
-assert(exist(fileName, 'file') == 2, 'The file does not exist!');
+% Validate file exists before any further processing.
+assert(exist(fileName, 'file') == 2, ...
+    'loadData:fileNotFound', 'File does not exist: %s', fileName);
 
-switch ext
+[~, ~, ext] = fileparts(fileName);
+
+switch lower(ext)
     case '.mat'
-        % if mat file.
         tmp = load(fileName);
-        field = fieldnames(tmp);
-        cData = tmp.(field{:});
-    case '.csv'
-        cData = readtable(fileName);
+        fields = fieldnames(tmp);
+        assert(numel(fields) == 1, ...
+            'loadData:multipleVars', ...
+            ['MAT file "%s" contains %d variables; expected exactly 1. ' ...
+             'Variables found: %s'], ...
+            fileName, numel(fields), strjoin(fields, ', '));
+        cData = tmp.(fields{1});
+
+    case {'.csv', '.txt'}
+        % readmatrix returns a plain double array for numeric files.
+        cData = readmatrix(fileName);
+
     otherwise
-        error('Unrecognized file extension! Connectome file must be .csv or .mat!');
+        error('loadData:unsupportedFormat', ...
+            ['Unrecognized file extension "%s". ' ...
+             'Supported formats: .mat, .csv, .txt'], ext);
 end
 end
