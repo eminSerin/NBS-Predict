@@ -6,7 +6,7 @@ function [Mdl] = run_svmR(params)
 % Arguments: 
 %   params: Structure including following hyperparameters:
 %       lambda: Lambda parameter. 
-%       solver: ML solver (default = 'lbfgs')
+%       solver: ML solver (default = 'dual')
 %   
 % Output: 
 %   Mdl: Structure that includes fit, predict and score function handles. 
@@ -20,7 +20,7 @@ function [Mdl] = run_svmR(params)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Default parameters.
 defaultParams.lambda = 0;
-defaultParams.solver = 'lbfgs'; % lbfgs: full-gradient quasi-Newton, stable for p >> n (sgd is for large-n).
+defaultParams.solver = 'dual'; % dual: dual-form solvers (l1quick, lp2, qp), stable for p >> n (sgd is for large-n).
 
 if nargin < 1 || isempty(params)
     % Create struct if no provided.

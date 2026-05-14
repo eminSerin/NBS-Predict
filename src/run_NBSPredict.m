@@ -31,9 +31,6 @@ NBSPredict = get_NBSPredictInput(NBSPredict);
 repCViter = NBSPredict.parameter.repCViter;
 verbose = NBSPredict.parameter.verbose;
 
-% TODO: Remove after development.
-% NBSPredict.parameter.ifModelExtract = 1;
-
 % Random Seed
 rndSeeds = generate_randomStream(NBSPredict.parameter.randSeed, repCViter);
 
@@ -46,7 +43,6 @@ startTime = tic;
 
 nEdges = numel(NBSPredict.data.edgeIdx);
 nModels = numel(NBSPredict.parameter.MLmodels);
-% nSub = size(NBSPredict.data.y,1);
 
 % Preallocation
 repCVscore = zeros(repCViter,1,'single');
@@ -68,7 +64,7 @@ for cModelIdx = 1: nModels
     if isfield(NBSPredict.parameter,'paramGrids')
         cNBSPredict.parameter.paramGrids = NBSPredict.parameter.paramGrids(cModelIdx);
     end
-    cNBSPredict.parameter.model = cModel; % TODO: remove after oop progress fun.
+    cNBSPredict.parameter.model = cModel;
     MLhandle = gen_MLhandles(cNBSPredict.parameter.model);
     cNBSPredict.MLhandle = MLhandle;
     show_NBSPredictProgress(cNBSPredict,0);
@@ -78,7 +74,7 @@ for cModelIdx = 1: nModels
             set_seed(rndSeeds(r));
             [repCVscore(r),edgeWeight(r,:,:),...
                 truePredLabels(r,:,:),stability(r),...
-                bestParams(r,:), corrXy{r, :}] = outerFold(cNBSPredict);
+                bestParams(r,:), corrXy{r, 1}] = outerFold(cNBSPredict);
             show_NBSPredictProgress(cNBSPredict,r,repCVscore(r));
         end
     else
@@ -87,7 +83,7 @@ for cModelIdx = 1: nModels
             set_seed(rndSeeds(r));
             [repCVscore(r),edgeWeight(r,:,:),...
                 truePredLabels(r,:,:),stability(r),...
-                bestParams(r,:), corrXy{r, :}] = outerFold(cNBSPredict);
+                bestParams(r,:), corrXy{r, 1}] = outerFold(cNBSPredict);
             show_NBSPredictProgress(cNBSPredict,r,repCVscore);
         end
     end
@@ -99,9 +95,10 @@ for cModelIdx = 1: nModels
 
     % Repeated CV corr between edges and outcome
     if ~NBSPredict.parameter.ifClass
+        totalFold = NBSPredict.parameter.repCViter*NBSPredict.parameter.kFold;
         NBSPredict.results.(cModel).corrXyMat = gen_weightedAdjMat(NBSPredict.data.nodes, ...
             NBSPredict.data.edgeIdx, ...
-            sum(cell2mat(corrXy'), 2));
+            sum(cell2mat(corrXy'), 2) / totalFold);
     end
     
     % Repeated CV scores.
@@ -150,7 +147,7 @@ end
 if ismember(NBSPredict.parameter.metric,{'mad','rmse','mse'})
     [~,bestEstimatorIdx] = min(meanRepCVscore); % find min error.
 else
-    [~,bestEstimatorIdx] = max(meanRepCVscore); % find min error.
+    [~,bestEstimatorIdx] = max(meanRepCVscore); % find max score.
 end
 
 if NBSPredict.parameter.ifModelOpt
@@ -164,7 +161,7 @@ if NBSPredict.parameter.ifModelOpt
                 NBSPredict.parameter.MLmodels{cModelIdx},meanRepCVscore(cModelIdx),...
                 meanRepCVscoreCI(cModelIdx,:))
         end
-        fprintf('Estimator with minimum error is <strong>%s</strong> \n',NBSPredict.results.bestEstimator);
+        fprintf('Best estimator is <strong>%s</strong> \n',NBSPredict.results.bestEstimator);
     end
 end
 
@@ -311,15 +308,17 @@ function [edgeSelectMask] = run_graphPval(data,NBSPredict)
 [~, pVal] = run_nbsPredictGlm(data.y,data.X,NBSPredict.parameter.contrast,...
     NBSPredict.parameter.test);
 cEdgesIdx = find(pVal < NBSPredict.parameter.pVal);
-[extIdx] = extractComponentIdx(NBSPredict.data.nodes,...
-    NBSPredict.data.edgeIdx,cEdgesIdx);
-edgeSelectMask = false(size(data.X,2),1);
-edgeSelectMask(extIdx) = true;
 if isempty(cEdgesIdx)
    warning(['No features survived the feature selection! ',...
        'The data might not contain enough effect or you should ',...
        'use more liberal p-value thresholds!'])
+   edgeSelectMask = false(size(data.X,2),1);
+   return;
 end
+[extIdx] = extractComponentIdx(NBSPredict.data.nodes,...
+    NBSPredict.data.edgeIdx,cEdgesIdx);
+edgeSelectMask = false(size(data.X,2),1);
+edgeSelectMask(extIdx) = true;
 end
 
 function [model] = modelExtract(NBSPredict)
@@ -333,29 +332,28 @@ if ~isempty(NBSPredict.data.confounds)
     data.confounds = NBSPredict.data.confounds;
 end
 
-% Preprocess the data. 
-[data, preprocess.scaler, preprocess.confCorr] = preprocess_data(data, ...
-    NBSPredict.parameter.scalingMethod);
-
 params = [];
 if NBSPredict.parameter.ifHyperOpt
     % Perfom hyperparameter optimization if selected.
     params = middleFoldHyperOpt(data,NBSPredict);
 end
+
+% Preprocess the data. 
+[data, preprocess.scaler, preprocess.confCorr] = preprocess_data(data, ...
+    NBSPredict.parameter.scalingMethod);
+
 preprocess.edgeSelectMask = run_graphPval(data, NBSPredict); % Feature selection.
 data.X = data.X(:, preprocess.edgeSelectMask);
 data.y = data.y(:, 2);
 Mdl = NBSPredict.MLhandle(params);
 estimator = Mdl.fit(data.X, data.y); % Fit model.
-predictor = @(X, confMat) predict_label(estimator, X, Mdl, edgeSelectMask, ...
-    scaler, confCorr, confMat);
 
 % Save parameters and models into a structure.
 model.Mdl = Mdl;
 model.estimator = estimator;
-model.predictor = predictor; 
 model.preprocess = preprocess;
 model.preprocess.edgeIdx = NBSPredict.data.edgeIdx;
+model.predictor = @(X, confMat) NBSPredict_predict(model, 'connectome', X, 'confMat', confMat);
 end
 
 function permScore = run_permTesting(NBSPredict)
@@ -364,60 +362,67 @@ function permScore = run_permTesting(NBSPredict)
 % It returns permutation score and p-value
 % p-value represents the fraction of models yielding similar to or better
 % prediction performance than the tested model.
-if NBSPredict.parameter.ifPerm
-    permIter = NBSPredict.parameter.permIter;
-    fprintf('Permutation testing is running! Permutations: %d\n',...
-        permIter);
-    
-    % Random Seed
-    if NBSPredict.parameter.randSeed ~= -1 % -1 refers to random shuffle.
-        set_seed(NBSPredict.parameter.randSeed);
-    else
-        set_seed('shuffle');
+permIter = NBSPredict.parameter.permIter;
+fprintf('Permutation testing is running! Permutations: %d\n',...
+    permIter);
+
+% Random Seed
+if NBSPredict.parameter.randSeed ~= -1 % -1 refers to random shuffle.
+    set_seed(NBSPredict.parameter.randSeed);
+else
+    set_seed('shuffle');
+end
+rndSeeds = generate_randomStream(randi(1e+9), permIter);
+
+nSub = size(NBSPredict.data.y,1);
+permCVscore = zeros(permIter+1, 1, 'single');
+[permCVscore(1),~, ~, ~] = outerFold(NBSPredict);
+if NBSPredict.parameter.numCores > 1
+    if isempty(gcp('nocreate'))
+        % Init parallel pool if desired.
+        create_parallelPool(NBSPredict.parameter.numCores);
     end
-    rndSeeds = generate_randomStream(randi(1e+9), permIter);
-    
-    nSub = size(NBSPredict.data.y,1);
-    permCVscore = zeros(permIter+1, 1, 'single');
-    [permCVscore(1),~, ~, ~] = outerFold(NBSPredict);
-    if NBSPredict.parameter.numCores > 1
-        if isempty(gcp('nocreate'))
-            % Init parallel pool if desired.
-            create_parallelPool(NBSPredict.parameter.numCores);
-        end
-        pctRunOnAll warning off % Suppress warnings.
+    pctRunOnAll warning off % Suppress warnings.
+    if NBSPredict.parameter.verbose
+        permMsg = 'This will take quite time. Please be patient...\n';
+        fprintf(permMsg)
+    end
+    parfor p = 1: permIter
+        set_seed(rndSeeds(p));
+        permNBSPredict = NBSPredict;
+        permNBSPredict.data.y = permNBSPredict.data.y(randperm(nSub), :);
+        [permCVscore(p+1),~, ~, ~] = outerFold(permNBSPredict);
+    end
+    pctRunOnAll warning on % Reactivate warnings.
+else
+    prevWarningState = warning('off'); % Suppress warnings.
+    if NBSPredict.parameter.verbose
+        permMsg = 'Progress:';
+        permProg = CmdProgress(permMsg, permIter);
+    end
+    for p = 1: permIter
+        set_seed(rndSeeds(p));
+        permNBSPredict = NBSPredict;
+        permNBSPredict.data.y = permNBSPredict.data.y(randperm(nSub), :);
+        [permCVscore(p+1),~, ~, ~] = outerFold(permNBSPredict);
         if NBSPredict.parameter.verbose
-            permMsg = 'This will take quite time. Please be patient...\n';
-            fprintf(permMsg)
-        end
-        parfor p = 1: permIter
-            set_seed(rndSeeds(p));
-            permNBSPredict = NBSPredict;
-            permNBSPredict.data.y = permNBSPredict.data.y(randperm(nSub), :);
-            [permCVscore(p+1),~, ~, ~] = outerFold(permNBSPredict);
-        end
-    else
-        warning('off') % Suppress warnings.
-        if NBSPredict.parameter.verbose
-            permMsg = 'Progress:';
-            permProg = CmdProgress(permMsg, permIter);
-        end
-        for p = 1: permIter
-            set_seed(rndSeeds(p));
-            permNBSPredict = NBSPredict;
-            permNBSPredict.data.y = permNBSPredict.data.y(randperm(nSub), :);
-            [permCVscore(p+1),~, ~, ~] = outerFold(permNBSPredict);
             permProg.increment;
         end
     end
-    permScore = [permCVscore(1), ...
-        (sum(permCVscore >= permCVscore(1))-1)/permIter];
-    if NBSPredict.parameter.verbose
-        fprintf(['Permutation testing has finished. ',...
-            'Prediction performance: %.3f, p = %.3f\n'],...
-            permScore(1), permScore(2));
-    end
-    warning('on'); % Reactivate warnings.
+    warning(prevWarningState); % Reactivate warnings.
+end
+
+if ismember(NBSPredict.parameter.metric, {'rmse','mse','mad'})
+    pVal = (sum(permCVscore <= permCVscore(1))-1)/permIter;
+else
+    pVal = (sum(permCVscore >= permCVscore(1))-1)/permIter;
+end
+permScore = [permCVscore(1), pVal];
+
+if NBSPredict.parameter.verbose
+    fprintf(['Permutation testing has finished. ',...
+        'Prediction performance: %.3f, p = %.3f\n'],...
+        permScore(1), permScore(2));
 end
 end
 
