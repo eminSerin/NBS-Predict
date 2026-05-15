@@ -73,7 +73,7 @@ function [maxParamScore,maxParamIdx] = get_maxParam(meanCVscore)
 [maxParamScore,maxParamIdx] = max(meanCVscore); % maximum score (i.e., minimum error).
 end
 
-function [minParamScore,minParamIdx] = get_minParam(meanCVscore) %#ok<*DEFNU>
+function [minParamScore,minParamIdx] = get_minParam(meanCVscore) 
 % getMaxParam returns parameters with minimum mean CV error.
-[minParamScore,minParamIdx] = max(meanCVscore); % minimum error.
+[minParamScore,minParamIdx] = min(meanCVscore); % minimum error.
 end

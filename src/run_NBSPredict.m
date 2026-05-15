@@ -139,7 +139,7 @@ for cModelIdx = 1: nModels
     
     % Run Permutation test.
     if NBSPredict.parameter.ifPerm
-        NBSPredict.results.(cModel).permScore = run_permTesting(cNBSPredict);
+        NBSPredict.results.(cModel).permScore = run_permTesting(cNBSPredict, meanRepCVscore(cModelIdx));
     end
         
 end
@@ -225,6 +225,7 @@ modelEvaluateFun = @(data) modelEvaluate(data,NBSPredict);
             modelEvalResults.corrXy = corr(filterData.X, filterData.y(:, 2));
         end
         edgeSelectMask = run_graphPval(filterData,NBSPredict);
+        modelEvalResults.edgeSelectMask = edgeSelectMask;
         
         
         % Transform data for model evaluation using parameters found in middle fold.
@@ -258,7 +259,7 @@ modelEvaluateFun = @(data) modelEvaluate(data,NBSPredict);
 varargout{1} = mean([outerFoldCVresults.score]);
 varargout{2} = [outerFoldCVresults.outerFoldEdgeWeight]';
 varargout{3} = reshape([outerFoldCVresults.truePredLabels],2,[])';
-varargout{4} = compute_stability(single([outerFoldCVresults.outerFoldEdgeWeight]' > 0));
+varargout{4} = compute_stability(single([outerFoldCVresults.edgeSelectMask]'));
 varargout{5} = {outerFoldCVresults.params};
 varargout{6} = [];
 if ~NBSPredict.parameter.ifClass
@@ -356,15 +357,21 @@ model.preprocess.edgeIdx = NBSPredict.data.edgeIdx;
 model.predictor = @(X, confMat) NBSPredict_predict(model, 'connectome', X, 'confMat', confMat);
 end
 
-function permScore = run_permTesting(NBSPredict)
+function permScore = run_permTesting(NBSPredict, observedScore)
 % Run Permutation test.
-% It randomly permutes target variable and run the same pipeline. 
-% It returns permutation score and p-value
-% p-value represents the fraction of models yielding similar to or better
-% prediction performance than the tested model.
+% It randomly permutes target variable and runs the same repeated CV
+% pipeline as the main training loop.
+% It returns the p-value derived from the null distribution.
+% p-value represents the fraction of permuted models yielding similar to
+% or better prediction performance than the observed model.
+%
+% Arguments:
+%   NBSPredict    - NBSPredict structure (current model).
+%   observedScore - Mean repeated CV score from the main training run.
+%                   Passed in to avoid redundant re-computation.
 permIter = NBSPredict.parameter.permIter;
-fprintf('Permutation testing is running! Permutations: %d\n',...
-    permIter);
+repCViter = NBSPredict.parameter.repCViter;
+fprintf('Permutation testing is running! Permutations: %d\n', permIter);
 
 % Random Seed
 if NBSPredict.parameter.randSeed ~= -1 % -1 refers to random shuffle.
@@ -372,11 +379,16 @@ if NBSPredict.parameter.randSeed ~= -1 % -1 refers to random shuffle.
 else
     set_seed('shuffle');
 end
-rndSeeds = generate_randomStream(randi(1e+9), permIter);
+
+% Generate seeds: one master seed per permutation iteration.
+permSeeds = generate_randomStream(randi(1e+9), permIter);
 
 nSub = size(NBSPredict.data.y,1);
 permCVscore = zeros(permIter+1, 1, 'single');
-[permCVscore(1),~, ~, ~] = outerFold(NBSPredict);
+
+% Use the observed score from the main training run directly.
+permCVscore(1) = single(observedScore);
+
 if NBSPredict.parameter.numCores > 1
     if isempty(gcp('nocreate'))
         % Init parallel pool if desired.
@@ -385,13 +397,42 @@ if NBSPredict.parameter.numCores > 1
     pctRunOnAll warning off % Suppress warnings.
     if NBSPredict.parameter.verbose
         permMsg = 'This will take quite time. Please be patient...\n';
-        fprintf(permMsg)
+        fprintf(permMsg);
+
+        % Setup progress tracking for parfor
+        if ~verLessThan('matlab', '9.2') % R2017a+
+            permProg = CmdProgress('Progress:', permIter);
+            dq = parallel.pool.DataQueue;
+            afterEach(dq, @(~) permProg.increment());
+        else
+            fprintf('Progress (each dot = 1 perm): \n');
+        end
     end
+
     parfor p = 1: permIter
-        set_seed(rndSeeds(p));
+        set_seed(permSeeds(p));
         permNBSPredict = NBSPredict;
         permNBSPredict.data.y = permNBSPredict.data.y(randperm(nSub), :);
-        [permCVscore(p+1),~, ~, ~] = outerFold(permNBSPredict);
+        % Repeated CV for this permutation.
+        repSeeds = generate_randomStream(randi(1e+9), repCViter);
+        repScores = zeros(repCViter, 1, 'single');
+        for r = 1:repCViter
+            set_seed(repSeeds(r));
+            [repScores(r),~, ~, ~] = outerFold(permNBSPredict);
+        end
+        permCVscore(p+1) = mean(repScores);
+
+        if NBSPredict.parameter.verbose
+            if ~verLessThan('matlab', '9.2')
+                send(dq, 1);
+            else
+                fprintf('.');
+            end
+        end
+    end
+
+    if NBSPredict.parameter.verbose && verLessThan('matlab', '9.2')
+        fprintf('\n'); % Clean up newline for legacy fallback
     end
     pctRunOnAll warning on % Reactivate warnings.
 else
@@ -401,10 +442,17 @@ else
         permProg = CmdProgress(permMsg, permIter);
     end
     for p = 1: permIter
-        set_seed(rndSeeds(p));
+        set_seed(permSeeds(p));
         permNBSPredict = NBSPredict;
         permNBSPredict.data.y = permNBSPredict.data.y(randperm(nSub), :);
-        [permCVscore(p+1),~, ~, ~] = outerFold(permNBSPredict);
+        % Repeated CV for this permutation.
+        repSeeds = generate_randomStream(randi(1e+9), repCViter);
+        repScores = zeros(repCViter, 1, 'single');
+        for r = 1:repCViter
+            set_seed(repSeeds(r));
+            [repScores(r),~, ~, ~] = outerFold(permNBSPredict);
+        end
+        permCVscore(p+1) = mean(repScores);
         if NBSPredict.parameter.verbose
             permProg.increment;
         end
@@ -413,9 +461,9 @@ else
 end
 
 if ismember(NBSPredict.parameter.metric, {'rmse','mse','mad'})
-    pVal = (sum(permCVscore <= permCVscore(1))-1)/permIter;
+    pVal = sum(permCVscore <= permCVscore(1)) / (permIter + 1);
 else
-    pVal = (sum(permCVscore >= permCVscore(1))-1)/permIter;
+    pVal = sum(permCVscore >= permCVscore(1)) / (permIter + 1);
 end
 permScore = [permCVscore(1), pVal];
 

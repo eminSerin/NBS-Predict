@@ -40,11 +40,13 @@ classdef ConfoundRegression < baseScaler
             % Removes features without any information (i.e., features with
             % all zeros)
             obj.confound = confound;
+            obj.fitParams.addIntercept = ~ConfoundRegression.hasConstantColumn(confound);
+            confoundDesign = ConfoundRegression.addIntercept(confound, obj.fitParams.addIntercept);
             obj.nzMask = ~all((data == 0 | isnan(data)));
             nzData = data(:,obj.nzMask);
             
             % Least-squares
-            obj.fitParams.weights = linsolve(confound,nzData);
+            obj.fitParams.weights = linsolve(confoundDesign,nzData);
         end
         
         function transformedData = transform(obj,data,confound)
@@ -52,16 +54,31 @@ classdef ConfoundRegression < baseScaler
             if nargin < 3
                 confound = obj.confound;
             end
+            confoundDesign = ConfoundRegression.addIntercept(confound, obj.fitParams.addIntercept);
             nzData = data(:,obj.nzMask);
-            corrnzData = nzData-confound*obj.fitParams.weights; % Residuals
+            corrnzData = nzData-confoundDesign*obj.fitParams.weights; % Residuals
             transformedData = data; 
             transformedData(:,obj.nzMask) = corrnzData;
         end
-        
+
         function transformedData = fit_transform(obj,data,confound)
             fit(obj,data,confound);
             transformedData = transform(obj,data);
         end
     end
-end
 
+    methods (Access = private, Static)
+        function [design] = addIntercept(confound, ifAdd)
+            if ifAdd
+                design = [ones(size(confound, 1), 1), confound];
+            else
+                design = confound;
+            end
+        end
+
+        function [tf] = hasConstantColumn(confound)
+            tol = 10 * eps;
+            tf = any(all(abs(confound - confound(1, :)) <= tol, 1));
+        end
+    end
+end

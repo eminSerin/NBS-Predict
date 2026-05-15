@@ -118,19 +118,6 @@ if metricLoc
     set(handles.metricPopUp,'Value',metricLoc);
 end    
 
-
-% figureTitle = sprintf('%s: %.3f (%.3f, %.3f)',...
-%     [upper(metric(1)),metric(2:end)],...
-%     handles.plotData.(handles.cModel).meanRepCVscore,...
-%     handles.plotData.(handles.cModel).meanCVscoreCI);
-% 
-% if isfield(handles.plotData.(handles.cModel), 'permScore')
-%     permScore = handles.plotData.(handles.cModel).permScore;
-%     figureTitle = sprintf([figureTitle, ' Permutation: %.3f, p = %.3f'],...
-%         permScore(1), permScore(2));
-% end
-% handles.figureTitle = figureTitle;
-
 % Set MLmodelPop handle.
 set(handles.MLmodelsPop,'String',handles.plotData.MLmodels);
 MLmodelLoc = find(strcmpi(cModel, handles.plotData.MLmodels));
@@ -640,10 +627,9 @@ if strcmpi(handles.plotData.metric,metric)
         handles.plotData.(handles.cModel).meanCVscoreCI);
     
     if isfield(handles.plotData.(handles.cModel), 'permScore')
-        % If permutation score exists.
+        % If permutation score exists, show only the p-value.
         permScore = handles.plotData.(handles.cModel).permScore;
-        figTitle = sprintf([figTitle, ' Permutation: %.3f, p = %.3f'],...
-            permScore(1), permScore(2));
+        figTitle = sprintf([figTitle, ', p = %.3f'], permScore(2));
     end
 
 else
