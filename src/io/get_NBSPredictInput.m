@@ -178,11 +178,6 @@ end
 nuisanceIdx = find(default.parameter.contrast == 0); 
 if ~isempty(nuisanceIdx)
     if ~isfield(NBSPredict.data,'confounds')
-        if any(nuisanceIdx == 1)
-            warning(['get_NBSPredictInput:contrastCol1Zero', ...
-                'Contrast position 1 is 0 but will be ignored ', ...
-                '(column 1 is reserved for subject IDs).']);
-        end
         confoundsIdx = nuisanceIdx(nuisanceIdx ~= 1); 
         default.data.confounds = default.data.y(:, confoundsIdx);
         default.data.y(:, confoundsIdx) = [];
