@@ -14,7 +14,7 @@ NBS-Predict operates in a cross-validation structure (nested if hyperparameter o
 NBS-Predict requires the following software and toolboxes to run properly: 
 
 ```
-Matlab (2016b or newer) 
+Matlab (2020b or newer) 
 Statistics and Machine Learning Toolbox
 Parallel Computing Toolbox (optional)
 ```
@@ -90,11 +90,7 @@ Also, see the [Tutorial_Simulation.pdf](docs/Tutorial_Simulation.pdf) document f
 
 ## Versioning
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/eminSerin/NBS-Predict). 
-
-## Compatibility
-
-NBS-Predict was developed on Matlab R2017b and tested on Matlab R2017b and R2018b. 
+For the versions available, see the [tags on this repository](https://github.com/eminSerin/NBS-Predict).  
 
 ## Authors
 

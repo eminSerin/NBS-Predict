@@ -11,6 +11,7 @@ function [CVresults] = crossValidation(fun,data,varargin)
 %   ifRand = if randomized (default = 1)
 %   randomState: Controls the randomness. Pass an integer value for
 %       reproducible results (default = 'shuffle').  
+%   Classification problems use stratified k-fold partitions.
 %
 % Output:
 %   CVscore = Cross-validation score. 
@@ -47,14 +48,16 @@ end
 % Init parallel pool.
 create_parallelPool(p.Results.numCores);
 
-% Set random state. 
-if p.Results.randomState
-    rng(p.Results.randomState);
+% Set random state.
+randomState = p.Results.randomState;
+if isnumeric(randomState) || ischar(randomState)
+    rng(randomState);
 end
 
 %%
 % Generate CV indices.
-cvFoldIdx = gen_cvpartition(data.y,kFold,p.Results.ifRand);
+ifClass = check_classification(data.y);
+cvFoldIdx = gen_cvpartition(data.y,kFold,p.Results.ifRand,ifClass);
 
 % Preallocate.
 trainTestData = prepare_trainTestData(data,cvFoldIdx(1));
