@@ -16,7 +16,7 @@ function [NBSPredict] = run_NBSPredict(NBSPredict)
 %       info = Several information and parameters.
 %       parameter: Toolbox parameters.
 %       data: Substructure comprising data, contrast, directories and brain
-%           parcellation..
+%           parcellation.
 %       searchHandle: Function handle for selection algorithm.
 %       results: Substructure containing results.
 %   This structure is also saved in
@@ -139,7 +139,9 @@ for cModelIdx = 1: nModels
     
     % Run Permutation test.
     if NBSPredict.parameter.ifPerm
-        NBSPredict.results.(cModel).permScore = run_permTesting(cNBSPredict, meanRepCVscore(cModelIdx));
+        [NBSPredict.results.(cModel).permScore, ...
+            NBSPredict.results.(cModel).permTruePredLabels] = ...
+            run_permTesting(cNBSPredict, meanRepCVscore(cModelIdx));
     end
         
 end
@@ -258,7 +260,8 @@ modelEvaluateFun = @(data) modelEvaluate(data,NBSPredict);
 
 varargout{1} = mean([outerFoldCVresults.score]);
 varargout{2} = [outerFoldCVresults.outerFoldEdgeWeight]';
-varargout{3} = reshape([outerFoldCVresults.truePredLabels],2,[])';
+varargout{3} = cellfun(@single, reshape([outerFoldCVresults.truePredLabels],2,[])', ...
+    'UniformOutput', false);
 varargout{4} = compute_stability(single([outerFoldCVresults.edgeSelectMask]'));
 varargout{5} = {outerFoldCVresults.params};
 varargout{6} = [];
@@ -357,7 +360,7 @@ model.preprocess.edgeIdx = NBSPredict.data.edgeIdx;
 model.predictor = @(X, confMat) NBSPredict_predict(model, 'connectome', X, 'confMat', confMat);
 end
 
-function permScore = run_permTesting(NBSPredict, observedScore)
+function [permScore, permTruePredLabels] = run_permTesting(NBSPredict, observedScore)
 % Run Permutation test.
 % It randomly permutes target variable and runs the same repeated CV
 % pipeline as the main training loop.
@@ -369,6 +372,10 @@ function permScore = run_permTesting(NBSPredict, observedScore)
 %   NBSPredict    - NBSPredict structure (current model).
 %   observedScore - Mean repeated CV score from the main training run.
 %                   Passed in to avoid redundant re-computation.
+%
+% Output:
+%   permScore          - [observedScore, pValue].
+%   permTruePredLabels - Null labels as permIter x repCViter x kFold x 2 cells.
 permIter = NBSPredict.parameter.permIter;
 repCViter = NBSPredict.parameter.repCViter;
 fprintf('Permutation testing is running! Permutations: %d\n', permIter);
@@ -385,6 +392,7 @@ permSeeds = generate_randomStream(randi(1e+9), permIter);
 
 nSub = size(NBSPredict.data.y,1);
 permCVscore = zeros(permIter+1, 1, 'single');
+permTruePredLabels = cell(permIter, repCViter, NBSPredict.parameter.kFold, 2);
 
 % Use the observed score from the main training run directly.
 permCVscore(1) = single(observedScore);
@@ -416,11 +424,13 @@ if NBSPredict.parameter.numCores > 1
         % Repeated CV for this permutation.
         repSeeds = generate_randomStream(randi(1e+9), repCViter);
         repScores = zeros(repCViter, 1, 'single');
+        cPermTruePredLabels = cell(repCViter, NBSPredict.parameter.kFold, 2);
         for r = 1:repCViter
             set_seed(repSeeds(r));
-            [repScores(r),~, ~, ~] = outerFold(permNBSPredict);
+            [repScores(r),~, cPermTruePredLabels(r,:,:), ~] = outerFold(permNBSPredict);
         end
         permCVscore(p+1) = mean(repScores);
+        permTruePredLabels(p,:,:,:) = cPermTruePredLabels;
 
         if NBSPredict.parameter.verbose
             if ~verLessThan('matlab', '9.2')
@@ -448,11 +458,13 @@ else
         % Repeated CV for this permutation.
         repSeeds = generate_randomStream(randi(1e+9), repCViter);
         repScores = zeros(repCViter, 1, 'single');
+        cPermTruePredLabels = cell(repCViter, NBSPredict.parameter.kFold, 2);
         for r = 1:repCViter
             set_seed(repSeeds(r));
-            [repScores(r),~, ~, ~] = outerFold(permNBSPredict);
+            [repScores(r),~, cPermTruePredLabels(r,:,:), ~] = outerFold(permNBSPredict);
         end
         permCVscore(p+1) = mean(repScores);
+        permTruePredLabels(p,:,:,:) = cPermTruePredLabels;
         if NBSPredict.parameter.verbose
             permProg.increment;
         end
