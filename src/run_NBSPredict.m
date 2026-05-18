@@ -155,7 +155,8 @@ for cModelIdx = 1: nModels
         [NBSPredict.results.(cModel).permScore, ...
             NBSPredict.results.(cModel).permTruePredLabels, ...
             NBSPredict.results.(cModel).permEdgeWeight, ...
-            NBSPredict.results.(cModel).permSelectedEdges] = ...
+            NBSPredict.results.(cModel).permSelectedEdges, ...
+            NBSPredict.results.(cModel).permStatWeightedEdges] = ...
             run_permTesting(cNBSPredict, meanRepCVscore(cModelIdx));
         NBSPredict.results.(cModel).permEdgeWeightPValues = ...
             compute_permEdgePvals(NBSPredict.results.(cModel).edgeWeight, ...
@@ -163,6 +164,9 @@ for cModelIdx = 1: nModels
         NBSPredict.results.(cModel).permSelectedEdgesPValues = ...
             compute_permEdgePvals(NBSPredict.results.(cModel).selectedEdges, ...
             NBSPredict.results.(cModel).permSelectedEdges);
+        NBSPredict.results.(cModel).permStatWeightedEdgesPValues = ...
+            compute_permEdgePvals(NBSPredict.results.(cModel).statWeightedEdges, ...
+            NBSPredict.results.(cModel).permStatWeightedEdges);
     end
         
 end
@@ -385,7 +389,8 @@ model.preprocess.edgeIdx = NBSPredict.data.edgeIdx;
 model.predictor = @(X, confMat) NBSPredict_predict(model, 'connectome', X, 'confMat', confMat);
 end
 
-function [permScore, permTruePredLabels, permEdgeWeight, permSelectedEdges] = run_permTesting(NBSPredict, observedScore)
+function [permScore, permTruePredLabels, permEdgeWeight, permSelectedEdges, ...
+    permStatWeightedEdges] = run_permTesting(NBSPredict, observedScore)
 % Run Permutation test.
 % It randomly permutes target variable and runs the same repeated CV
 % pipeline as the main training loop.
@@ -403,6 +408,7 @@ function [permScore, permTruePredLabels, permEdgeWeight, permSelectedEdges] = ru
 %   permTruePredLabels - Null labels as permIter x repCViter x kFold x 2 cells.
 %   permEdgeWeight     - Mean null edge weights as permIter x nEdges.
 %   permSelectedEdges  - Mean null selected edges as permIter x nEdges.
+%   permStatWeightedEdges - Mean null statistic-weighted edges as permIter x nEdges.
 permIter = NBSPredict.parameter.permIter;
 repCViter = NBSPredict.parameter.repCViter;
 fprintf('Permutation testing is running! Permutations: %d\n', permIter);
@@ -423,6 +429,7 @@ permCVscore = zeros(permIter+1, 1, 'single');
 permTruePredLabels = cell(permIter, repCViter, NBSPredict.parameter.kFold, 2);
 permEdgeWeight = zeros(permIter, nEdges, 'single');
 permSelectedEdges = zeros(permIter, nEdges, 'single');
+permStatWeightedEdges = zeros(permIter, nEdges, 'single');
 
 % Use the observed score from the main training run directly.
 permCVscore(1) = single(observedScore);
@@ -456,12 +463,14 @@ if NBSPredict.parameter.numCores > 1
         repScores = zeros(repCViter, NBSPredict.parameter.kFold, 'single');
         cPermEdgeWeight = zeros(repCViter, NBSPredict.parameter.kFold, nEdges, 'single');
         cPermSelectedEdges = false(repCViter, NBSPredict.parameter.kFold, nEdges);
+        cPermStatWeightedEdges = zeros(repCViter, NBSPredict.parameter.kFold, nEdges, 'single');
         cPermTruePredLabels = cell(repCViter, NBSPredict.parameter.kFold, 2);
         for r = 1:repCViter
             set_seed(repSeeds(r));
             [repScores(r,:),cPermEdgeWeight(r,:,:), ...
                 cPermTruePredLabels(r,:,:), ~, ~, ~, ...
-                cPermSelectedEdges(r,:,:)] = outerFold(permNBSPredict);
+                cPermSelectedEdges(r,:,:), ...
+                cPermStatWeightedEdges(r,:,:)] = outerFold(permNBSPredict);
         end
         permCVscore(p+1) = mean(repScores(:));
         permTruePredLabels(p,:,:,:) = cPermTruePredLabels;
@@ -469,6 +478,8 @@ if NBSPredict.parameter.numCores > 1
         permEdgeWeight(p,:) = mean(cPermEdgeWeightFlat,2);
         cPermSelectedEdgesFlat = reshape(ipermute(cPermSelectedEdges,[3 2 1]),nEdges,[]);
         permSelectedEdges(p,:) = mean(single(cPermSelectedEdgesFlat),2);
+        cPermStatWeightedEdgesFlat = reshape(ipermute(cPermStatWeightedEdges,[3 2 1]),nEdges,[]);
+        permStatWeightedEdges(p,:) = mean(cPermStatWeightedEdgesFlat,2);
 
         if NBSPredict.parameter.verbose
             if ~verLessThan('matlab', '9.2')
@@ -498,12 +509,14 @@ else
         repScores = zeros(repCViter, NBSPredict.parameter.kFold, 'single');
         cPermEdgeWeight = zeros(repCViter, NBSPredict.parameter.kFold, nEdges, 'single');
         cPermSelectedEdges = false(repCViter, NBSPredict.parameter.kFold, nEdges);
+        cPermStatWeightedEdges = zeros(repCViter, NBSPredict.parameter.kFold, nEdges, 'single');
         cPermTruePredLabels = cell(repCViter, NBSPredict.parameter.kFold, 2);
         for r = 1:repCViter
             set_seed(repSeeds(r));
             [repScores(r,:),cPermEdgeWeight(r,:,:), ...
                 cPermTruePredLabels(r,:,:), ~, ~, ~, ...
-                cPermSelectedEdges(r,:,:)] = outerFold(permNBSPredict);
+                cPermSelectedEdges(r,:,:), ...
+                cPermStatWeightedEdges(r,:,:)] = outerFold(permNBSPredict);
         end
         permCVscore(p+1) = mean(repScores(:));
         permTruePredLabels(p,:,:,:) = cPermTruePredLabels;
@@ -511,6 +524,8 @@ else
         permEdgeWeight(p,:) = mean(cPermEdgeWeightFlat,2);
         cPermSelectedEdgesFlat = reshape(ipermute(cPermSelectedEdges,[3 2 1]),nEdges,[]);
         permSelectedEdges(p,:) = mean(single(cPermSelectedEdgesFlat),2);
+        cPermStatWeightedEdgesFlat = reshape(ipermute(cPermStatWeightedEdges,[3 2 1]),nEdges,[]);
+        permStatWeightedEdges(p,:) = mean(cPermStatWeightedEdgesFlat,2);
         if NBSPredict.parameter.verbose
             permProg.increment;
         end
