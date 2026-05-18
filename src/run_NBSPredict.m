@@ -153,7 +153,8 @@ for cModelIdx = 1: nModels
     % Run Permutation test.
     if NBSPredict.parameter.ifPerm
         [NBSPredict.results.(cModel).permScore, ...
-            NBSPredict.results.(cModel).permTruePredLabels] = ...
+            NBSPredict.results.(cModel).permTruePredLabels, ...
+            NBSPredict.results.(cModel).permEdgeWeight] = ...
             run_permTesting(cNBSPredict, meanRepCVscore(cModelIdx));
     end
         
@@ -377,7 +378,7 @@ model.preprocess.edgeIdx = NBSPredict.data.edgeIdx;
 model.predictor = @(X, confMat) NBSPredict_predict(model, 'connectome', X, 'confMat', confMat);
 end
 
-function [permScore, permTruePredLabels] = run_permTesting(NBSPredict, observedScore)
+function [permScore, permTruePredLabels, permEdgeWeight] = run_permTesting(NBSPredict, observedScore)
 % Run Permutation test.
 % It randomly permutes target variable and runs the same repeated CV
 % pipeline as the main training loop.
@@ -393,8 +394,10 @@ function [permScore, permTruePredLabels] = run_permTesting(NBSPredict, observedS
 % Output:
 %   permScore          - [observedScore, pValue].
 %   permTruePredLabels - Null labels as permIter x repCViter x kFold x 2 cells.
+%   permEdgeWeight     - Null edge weights as permIter x nEdges x totalFold.
 permIter = NBSPredict.parameter.permIter;
 repCViter = NBSPredict.parameter.repCViter;
+totalFold = repCViter * NBSPredict.parameter.kFold;
 fprintf('Permutation testing is running! Permutations: %d\n', permIter);
 
 % Random Seed
@@ -408,8 +411,10 @@ end
 permSeeds = generate_randomStream(randi(1e+9), permIter);
 
 nSub = size(NBSPredict.data.y,1);
+nEdges = numel(NBSPredict.data.edgeIdx);
 permCVscore = zeros(permIter+1, 1, 'single');
 permTruePredLabels = cell(permIter, repCViter, NBSPredict.parameter.kFold, 2);
+permEdgeWeight = zeros(permIter, nEdges, totalFold, 'single');
 
 % Use the observed score from the main training run directly.
 permCVscore(1) = single(observedScore);
@@ -441,13 +446,17 @@ if NBSPredict.parameter.numCores > 1
         % Repeated CV for this permutation.
         repSeeds = generate_randomStream(randi(1e+9), repCViter);
         repScores = zeros(repCViter, NBSPredict.parameter.kFold, 'single');
+        cPermEdgeWeight = zeros(repCViter, NBSPredict.parameter.kFold, nEdges, 'single');
         cPermTruePredLabels = cell(repCViter, NBSPredict.parameter.kFold, 2);
         for r = 1:repCViter
             set_seed(repSeeds(r));
-            [repScores(r,:),~, cPermTruePredLabels(r,:,:), ~] = outerFold(permNBSPredict);
+            [repScores(r,:),cPermEdgeWeight(r,:,:), ...
+                cPermTruePredLabels(r,:,:), ~] = outerFold(permNBSPredict);
         end
         permCVscore(p+1) = mean(repScores(:));
         permTruePredLabels(p,:,:,:) = cPermTruePredLabels;
+        cPermEdgeWeightFlat = reshape(ipermute(cPermEdgeWeight,[3 2 1]),nEdges,[]);
+        permEdgeWeight(p,:,:) = reshape(cPermEdgeWeightFlat,1,nEdges,totalFold);
 
         if NBSPredict.parameter.verbose
             if ~verLessThan('matlab', '9.2')
@@ -475,13 +484,17 @@ else
         % Repeated CV for this permutation.
         repSeeds = generate_randomStream(randi(1e+9), repCViter);
         repScores = zeros(repCViter, NBSPredict.parameter.kFold, 'single');
+        cPermEdgeWeight = zeros(repCViter, NBSPredict.parameter.kFold, nEdges, 'single');
         cPermTruePredLabels = cell(repCViter, NBSPredict.parameter.kFold, 2);
         for r = 1:repCViter
             set_seed(repSeeds(r));
-            [repScores(r,:),~, cPermTruePredLabels(r,:,:), ~] = outerFold(permNBSPredict);
+            [repScores(r,:),cPermEdgeWeight(r,:,:), ...
+                cPermTruePredLabels(r,:,:), ~] = outerFold(permNBSPredict);
         end
         permCVscore(p+1) = mean(repScores(:));
         permTruePredLabels(p,:,:,:) = cPermTruePredLabels;
+        cPermEdgeWeightFlat = reshape(ipermute(cPermEdgeWeight,[3 2 1]),nEdges,[]);
+        permEdgeWeight(p,:,:) = reshape(cPermEdgeWeightFlat,1,nEdges,totalFold);
         if NBSPredict.parameter.verbose
             permProg.increment;
         end
