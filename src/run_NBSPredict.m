@@ -45,10 +45,13 @@ nEdges = numel(NBSPredict.data.edgeIdx);
 nModels = numel(NBSPredict.parameter.MLmodels);
 
 % Preallocation
-repCVscore = zeros(repCViter,1,'single');
+repCVscore = zeros(repCViter,NBSPredict.parameter.kFold,'single');
 meanRepCVscore = zeros(nModels,1);
 meanRepCVscoreCI = zeros(nModels,2);
 edgeWeight = zeros(repCViter,NBSPredict.parameter.kFold,...
+    nEdges,'single');
+selectedEdges = false(repCViter, NBSPredict.parameter.kFold, nEdges);
+statWeightedEdges = zeros(repCViter, NBSPredict.parameter.kFold,...
     nEdges,'single');
 stability = zeros(repCViter,1,'single');
 truePredLabels = cell(repCViter, NBSPredict.parameter.kFold,2);
@@ -72,19 +75,23 @@ for cModelIdx = 1: nModels
         % Run parallelly.
         parfor r = 1: repCViter
             set_seed(rndSeeds(r));
-            [repCVscore(r),edgeWeight(r,:,:),...
+            [repCVscore(r,:),edgeWeight(r,:,:),...
                 truePredLabels(r,:,:),stability(r),...
-                bestParams(r,:), corrXy{r, 1}] = outerFold(cNBSPredict);
-            show_NBSPredictProgress(cNBSPredict,r,repCVscore(r));
+                bestParams(r,:), corrXy{r, 1}, ...
+                selectedEdges(r,:,:), ...
+                statWeightedEdges(r,:,:)] = outerFold(cNBSPredict);
+            show_NBSPredictProgress(cNBSPredict,r,mean(repCVscore(r,:)));
         end
     else
         % Run sequentially.
         for r = 1: repCViter
             set_seed(rndSeeds(r));
-            [repCVscore(r),edgeWeight(r,:,:),...
+            [repCVscore(r,:),edgeWeight(r,:,:),...
                 truePredLabels(r,:,:),stability(r),...
-                bestParams(r,:), corrXy{r, 1}] = outerFold(cNBSPredict);
-            show_NBSPredictProgress(cNBSPredict,r,repCVscore);
+                bestParams(r,:), corrXy{r, 1}, ...
+                selectedEdges(r,:,:), ...
+                statWeightedEdges(r,:,:)] = outerFold(cNBSPredict);
+            show_NBSPredictProgress(cNBSPredict,r,mean(repCVscore,2));
         end
     end
     
@@ -102,11 +109,13 @@ for cModelIdx = 1: nModels
     end
     
     % Repeated CV scores.
-    meanRCVscore =  mean(repCVscore);
+    meanRepScore = mean(repCVscore,2);
+    meanRCVscore =  mean(meanRepScore);
     meanRepCVscore(cModelIdx) = meanRCVscore;
-    meanRepCVscoreCI(cModelIdx,:) = compute_CI(repCVscore);
+    meanRepCVscoreCI(cModelIdx,:) = compute_CI(repCVscore(:));
     
     % True and predicted labels
+    truePredLabels = cellfun(@single, truePredLabels, 'UniformOutput', false);
     NBSPredict.results.(cModel).truePredLabels = truePredLabels;
     
     % Stability
@@ -126,12 +135,16 @@ for cModelIdx = 1: nModels
         NBSPredict.results.(cModel).wAdjMat,NBSPredict.results.(cModel).scaledMeanEdgeWeight,...
         NBSPredict.results.(cModel).scaledWAdjMat] =...
         compute_meanWeights(edgeWeight,maxScore_,NBSPredict.data.nodes,nEdges,NBSPredict.data.edgeIdx,totalFold);
+    NBSPredict.results.(cModel).selectedEdges = ...
+        reshape(ipermute(selectedEdges,[3 2 1]),nEdges,[]);
+    NBSPredict.results.(cModel).statWeightedEdges = ...
+        reshape(ipermute(statWeightedEdges,[3 2 1]),nEdges,[]);
     
     % Save values to NBSPredict.
     NBSPredict.results.(cModel).repCVscore = repCVscore;
     NBSPredict.results.(cModel).meanCVscoreCI = meanRepCVscoreCI(cModelIdx,:);
     NBSPredict.results.(cModel).meanRepCVscore = meanRepCVscore(cModelIdx);
-    show_NBSPredictProgress(cNBSPredict,-1,repCVscore);
+    show_NBSPredictProgress(cNBSPredict,-1,meanRepScore);
     
     if verbose
         toc(modelTime);
@@ -226,7 +239,7 @@ modelEvaluateFun = @(data) modelEvaluate(data,NBSPredict);
         if ~NBSPredict.parameter.ifClass
             modelEvalResults.corrXy = corr(filterData.X, filterData.y(:, 2));
         end
-        edgeSelectMask = run_graphPval(filterData,NBSPredict);
+        [edgeSelectMask, edgeStats] = run_graphPval(filterData,NBSPredict);
         modelEvalResults.edgeSelectMask = edgeSelectMask;
         
         
@@ -255,10 +268,11 @@ modelEvaluateFun = @(data) modelEvaluate(data,NBSPredict);
         % Multiply features selected with test score of model to compute
         % weight for each feature.
         modelEvalResults.outerFoldEdgeWeight = edgeSelectMask .* weightScore;
+        modelEvalResults.statWeightedEdges = single(edgeSelectMask .* edgeStats);
     end
 
 
-varargout{1} = mean([outerFoldCVresults.score]);
+varargout{1} = single([outerFoldCVresults.score]);
 varargout{2} = [outerFoldCVresults.outerFoldEdgeWeight]';
 varargout{3} = cellfun(@single, reshape([outerFoldCVresults.truePredLabels],2,[])', ...
     'UniformOutput', false);
@@ -268,6 +282,8 @@ varargout{6} = [];
 if ~NBSPredict.parameter.ifClass
     varargout{6} = sum([outerFoldCVresults.corrXy], 2);
 end
+varargout{7} = [outerFoldCVresults.edgeSelectMask]';
+varargout{8} = [outerFoldCVresults.statWeightedEdges]';
 end
 
 function [bestParam] = middleFoldHyperOpt(data,NBSPredict)
@@ -305,12 +321,13 @@ hyperOptFun = @(data,param) optimize_hyperOpt(data,NBSPredict,param);
     end
 end
 
-function [edgeSelectMask] = run_graphPval(data,NBSPredict)
+function [edgeSelectMask, testStats] = run_graphPval(data,NBSPredict)
 % run_graphPval is a univariate feature selection method that combines
 % univariate statistical methods (t-test or F-test) and graph theoretical
 % concept of connected component.
-[~, pVal] = run_nbsPredictGlm(data.y,data.X,NBSPredict.parameter.contrast,...
+[testStats, pVal] = run_nbsPredictGlm(data.y,data.X,NBSPredict.parameter.contrast,...
     NBSPredict.parameter.test);
+testStats = testStats(:);
 cEdgesIdx = find(pVal < NBSPredict.parameter.pVal);
 if isempty(cEdgesIdx)
    warning(['No features survived the feature selection! ',...
@@ -423,13 +440,13 @@ if NBSPredict.parameter.numCores > 1
         permNBSPredict.data.y = permNBSPredict.data.y(randperm(nSub), :);
         % Repeated CV for this permutation.
         repSeeds = generate_randomStream(randi(1e+9), repCViter);
-        repScores = zeros(repCViter, 1, 'single');
+        repScores = zeros(repCViter, NBSPredict.parameter.kFold, 'single');
         cPermTruePredLabels = cell(repCViter, NBSPredict.parameter.kFold, 2);
         for r = 1:repCViter
             set_seed(repSeeds(r));
-            [repScores(r),~, cPermTruePredLabels(r,:,:), ~] = outerFold(permNBSPredict);
+            [repScores(r,:),~, cPermTruePredLabels(r,:,:), ~] = outerFold(permNBSPredict);
         end
-        permCVscore(p+1) = mean(repScores);
+        permCVscore(p+1) = mean(repScores(:));
         permTruePredLabels(p,:,:,:) = cPermTruePredLabels;
 
         if NBSPredict.parameter.verbose
@@ -457,13 +474,13 @@ else
         permNBSPredict.data.y = permNBSPredict.data.y(randperm(nSub), :);
         % Repeated CV for this permutation.
         repSeeds = generate_randomStream(randi(1e+9), repCViter);
-        repScores = zeros(repCViter, 1, 'single');
+        repScores = zeros(repCViter, NBSPredict.parameter.kFold, 'single');
         cPermTruePredLabels = cell(repCViter, NBSPredict.parameter.kFold, 2);
         for r = 1:repCViter
             set_seed(repSeeds(r));
-            [repScores(r),~, cPermTruePredLabels(r,:,:), ~] = outerFold(permNBSPredict);
+            [repScores(r,:),~, cPermTruePredLabels(r,:,:), ~] = outerFold(permNBSPredict);
         end
-        permCVscore(p+1) = mean(repScores);
+        permCVscore(p+1) = mean(repScores(:));
         permTruePredLabels(p,:,:,:) = cPermTruePredLabels;
         if NBSPredict.parameter.verbose
             permProg.increment;
@@ -478,6 +495,7 @@ else
     pVal = sum(permCVscore >= permCVscore(1)) / (permIter + 1);
 end
 permScore = [permCVscore(1), pVal];
+permTruePredLabels = cellfun(@single, permTruePredLabels, 'UniformOutput', false);
 
 if NBSPredict.parameter.verbose
     fprintf(['Permutation testing has finished. ',...
