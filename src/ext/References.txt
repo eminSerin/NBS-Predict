@@ -1,7 +1,5 @@
 References: 
 
-Glmnet for Matlab (2013) Qian, J., Hastie, T., Friedman, J., Tibshirani, R. and Simon, N.
-    http://www.stanford.edu/~hastie/glmnet_matlab/
 Morel, (2018). Gramm: grammar of graphics plotting in Matlab. Journal of Open Source Software, 3(23), 	     		       
     568, https://doi.org/10.21105/joss.00568
 Paul Kassebaum, (2020). circularGraph (https://github.com/paul-kassebaum-mathworks/

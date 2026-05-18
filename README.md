@@ -114,10 +114,9 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 
 References for the functions or toolboxes used in NBS-Predict toolbox: 
 
-1. Glmnet for Matlab (2013) Qian, J., Hastie, T., Friedman, J., Tibshirani, R. and Simon, N. http://www.stanford.edu/~hastie/glmnet_matlab/
-2. Morel, (2018). Gramm: grammar of graphics plotting in Matlab. Journal of Open Source Software, 3(23), 568, https://doi.org/10.21105/joss.00568
-3. Paul Kassebaum (2020). circularGraph (https://github.com/paul-kassebaum-mathworks/circularGraph), GitHub. Retrieved September 6, 2020.
-4. Roland Pfister (2019). dlmcell (https://www.mathworks.com/matlabcentral/fileexchange/25387-dlmcell), MATLAB Central File Exchange. Retrieved September 3, 2019.
-5. Xia, M., Wang, J., & He, Y. (2013). BrainNet Viewer: a network visualization tool for human brain connectomics. PloS one, 8(7), e68910.
-6. Zalesky, A., Fornito, A., & Bullmore, E. T. (2010). Network-based statistic: identifying differences in brain networks. Neuroimage, 53(4), 1197-1207.
+1. Morel, (2018). Gramm: grammar of graphics plotting in Matlab. Journal of Open Source Software, 3(23), 568, https://doi.org/10.21105/joss.00568
+2. Paul Kassebaum (2020). circularGraph (https://github.com/paul-kassebaum-mathworks/circularGraph), GitHub. Retrieved September 6, 2020.
+3. Roland Pfister (2019). dlmcell (https://www.mathworks.com/matlabcentral/fileexchange/25387-dlmcell), MATLAB Central File Exchange. Retrieved September 3, 2019.
+4. Xia, M., Wang, J., & He, Y. (2013). BrainNet Viewer: a network visualization tool for human brain connectomics. PloS one, 8(7), e68910.
+5. Zalesky, A., Fornito, A., & Bullmore, E. T. (2010). Network-based statistic: identifying differences in brain networks. Neuroimage, 53(4), 1197-1207.
 
