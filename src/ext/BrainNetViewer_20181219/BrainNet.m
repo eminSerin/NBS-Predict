@@ -1094,7 +1094,7 @@ if EC.msh.doublebrain == 1 % Added by Mingrui Xia, 20120717, show two brains in 
     Brain2 = trisurf(surf.tri,surf.coord2(1,:),surf.coord2(2,:),surf.coord2(3,:),'EdgeColor','none');
     hold off
 end
-whitebg(gcf,EC.bak.color);
+% whitebg(gcf,EC.bak.color);
 set(gcf,'Color',EC.bak.color,'InvertHardcopy','off');
 eval(['material ',EC.glb.material,';']);
 % material([0.1 0.9 0.2 23,0.1]);
