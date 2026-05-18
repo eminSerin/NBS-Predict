@@ -8,17 +8,11 @@ function [MLhandle] = gen_MLhandles(modelName)
 %   modelName: name of the given model.
 %       Classification:
 %           'svmC':             Support Vector Machine Classification
-%           'decisionTreeC':    Decision Tree Classification 
 %           'lda':              Linear Discriminant Analysis
 %           'LogReg':           Logistic Regression
-%           'ElasticNetC':      Elastic Net Classification
-%           'LassoC':           Lasso Classification
 %       Regression:
 %           'svmR':             Support Vector Machine Regression
-%           'decisionTreeR':    Decision Tree Regression
 %           'LinReg':           Linear Regression
-%           'ElasticNetR':      Elastic Net Regression
-%           'LassoR':           Lasso Regression
 %
 % Output:
 %     MLhandles = Function handle to initiate fit, predict and score
@@ -37,8 +31,7 @@ function [MLhandle] = gen_MLhandles(modelName)
 assert(nargin == 1, 'Inaccurate inputs given. Please check help section!');
 
 % Check if model name given is correct (validatestring gives fuzzy matching). 
-availableModels = {'svmC','decisionTreeC','LogReg','lda','ElasticNetC',...
-    'LassoC','decisionTreeR','svmR','LinReg','ElasticNetR','LassoR'};
+availableModels = {'svmC','LogReg','lda','svmR','LinReg'};
 modelName = validatestring(modelName, availableModels, 'gen_MLhandles', 'modelName');
 
 % Function handle. 
